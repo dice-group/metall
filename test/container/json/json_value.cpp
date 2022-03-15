@@ -256,6 +256,77 @@ TEST (JSONValueTest, Emplace) {
   }
 }
 
+TEST (JSONValueTest, BracketOperatorObject) {
+  json::value value;
+
+  value["double"] = 2.5;
+  value["string"] = "string";
+  GTEST_ASSERT_EQ(value["double"].as_double(), 2.5);
+  GTEST_ASSERT_EQ(value.as_object()["double"].as_double(), 2.5);
+  GTEST_ASSERT_EQ(value["string"].as_string(), "string");
+  GTEST_ASSERT_EQ(value.as_object()["string"].as_string(), "string");
+
+  const auto& const_value = value;
+  GTEST_ASSERT_EQ(const_value["double"].as_double(), 2.5);
+  GTEST_ASSERT_EQ(const_value.as_object()["double"].as_double(), 2.5);
+  GTEST_ASSERT_EQ(value["string"].as_string(), "string");
+  GTEST_ASSERT_EQ(value.as_object()["string"].as_string(), "string");
+}
+
+TEST (JSONValueTest, BracketOperatorArray) {
+  json::value value;
+  value.emplace_array().resize(2);
+
+  value[0] = 2.5;
+  value[1] = "string";
+  GTEST_ASSERT_EQ(value[0].as_double(), 2.5);
+  GTEST_ASSERT_EQ(value.as_array()[0].as_double(), 2.5);
+  GTEST_ASSERT_EQ(value[1].as_string(), "string");
+  GTEST_ASSERT_EQ(value.as_array()[1].as_string(), "string");
+
+  const auto& const_value = value;
+  GTEST_ASSERT_EQ(const_value[0].as_double(), 2.5);
+  GTEST_ASSERT_EQ(const_value.as_array()[0].as_double(), 2.5);
+  GTEST_ASSERT_EQ(const_value[1].as_string(), "string");
+  GTEST_ASSERT_EQ(const_value.as_array()[1].as_string(), "string");
+}
+
+TEST (JSONValueTest, AtObject) {
+  json::value value;
+  value.emplace_object();
+  value.as_object()["double"] = 2.5;
+  value.as_object()["string"] = "string";
+
+  GTEST_ASSERT_EQ(value.at("double").as_double(), 2.5);
+  GTEST_ASSERT_EQ(value.as_object().at("double").as_double(), 2.5);
+  GTEST_ASSERT_EQ(value.at("string").as_string(), "string");
+  GTEST_ASSERT_EQ(value.as_object().at("string").as_string(), "string");
+
+  const auto& const_value = value;
+  GTEST_ASSERT_EQ(const_value.at("double").as_double(), 2.5);
+  GTEST_ASSERT_EQ(const_value.as_object().at("double").as_double(), 2.5);
+  GTEST_ASSERT_EQ(value.at("string").as_string(), "string");
+  GTEST_ASSERT_EQ(value.as_object().at("string").as_string(), "string");
+}
+
+TEST (JSONValueTest, AtArray) {
+  json::value value;
+  value.emplace_array().resize(2);
+
+  value.at(0) = 2.5;
+  value.at(1) = "string";
+  GTEST_ASSERT_EQ(value.at(0).as_double(), 2.5);
+  GTEST_ASSERT_EQ(value.as_array().at(0).as_double(), 2.5);
+  GTEST_ASSERT_EQ(value.at(1).as_string(), "string");
+  GTEST_ASSERT_EQ(value.as_array().at(1).as_string(), "string");
+
+  const auto& const_value = value;
+  GTEST_ASSERT_EQ(const_value.at(0).as_double(), 2.5);
+  GTEST_ASSERT_EQ(const_value.as_array().at(0).as_double(), 2.5);
+  GTEST_ASSERT_EQ(const_value.at(1).as_string(), "string");
+  GTEST_ASSERT_EQ(const_value.as_array().at(1).as_string(), "string");
+}
+
 TEST (JSONValueTest, Parse) {
   auto jv = json::parse(json_string);
   GTEST_ASSERT_EQ(jv.as_object()["pi"].as_double(), 3.141);

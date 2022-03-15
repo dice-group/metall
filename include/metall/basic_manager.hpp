@@ -8,6 +8,9 @@
 
 #include <cstddef>
 #include <memory>
+#include <string>
+#include <utility>
+#include <future>
 
 #include <metall/tags.hpp>
 #include <metall/stl_allocator.hpp>

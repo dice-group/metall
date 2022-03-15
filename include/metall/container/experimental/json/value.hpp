@@ -287,6 +287,91 @@ class value {
     return *this;
   }
 
+  /// \brief Return a reference to the object mapped-value associated with 'key'.
+  /// If the value is a null, emplace an object beforehand.
+  /// This operation is equal to the following one:
+  /// \code
+  /// value.as_object()[key];
+  /// \endcode
+  auto &operator[](const typename object_type::key_type& key) {
+    if (is_null()) {
+      emplace_object();
+    }
+    return as_object()[key];
+  }
+
+  /// \brief Return a reference to the object mapped-value associated with 'key'.
+  /// This operation is equal to the following one:
+  /// \code
+  /// value.as_object()[key];
+  /// \endcode
+  const auto &operator[](const typename object_type::key_type& key) const {
+    return as_object()[key];
+  }
+
+  /// \brief Return a reference to the array element at 'index'.
+  /// This operation is equal to the following one:
+  /// \code
+  /// value.as_array()[index];
+  /// \endcode
+  auto &operator[](const std::size_t index) {
+    if (is_null()) {
+      emplace_array();
+    }
+    return as_array()[index];
+  }
+
+  /// \brief Return a reference to the array element at 'index'.
+  /// This operation is equal to the following one:
+  /// \code
+  /// value.as_array()[index];
+  /// \endcode
+  const auto &operator[](const std::size_t index) const {
+    return as_array()[index];
+  }
+
+  /// \brief Return a reference to the object mapped-value associated with 'key'.
+  /// This operation is equal to the following one:
+  /// \code
+  /// value.as_object().at(key);
+  /// \endcode
+  auto &at(const typename object_type::key_type& key) {
+    if (is_null()) {
+      emplace_object();
+    }
+    return as_object().at(key);
+  }
+
+  /// \brief Return a reference to the object mapped-value associated with 'key'.
+  /// This operation is equal to the following one:
+  /// \code
+  /// value.as_object().at(key);
+  /// \endcode
+  const auto &at(const typename object_type::key_type& key) const {
+    return as_object().at(key);
+  }
+
+  /// \brief Return a reference to the array element at 'index'.
+  /// This operation is equal to the following one:
+  /// \code
+  /// value.as_array().at(index);
+  /// \endcode
+  auto &at(const std::size_t index) {
+    if (is_null()) {
+      emplace_array();
+    }
+    return as_array().at(index);
+  }
+
+  /// \brief Return a reference to the array element at 'index'.
+  /// This operation is equal to the following one:
+  /// \code
+  /// value.as_array().at(index);
+  /// \endcode
+  const auto &at(const std::size_t index) const {
+    return as_array().at(index);
+  }
+
   /// \brief Set a null.
   /// The old content is destroyed.
   void emplace_null() {

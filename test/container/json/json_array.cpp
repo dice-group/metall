@@ -35,6 +35,23 @@ TEST (JSONArrayTest, Bracket) {
   array[1] = 1;
   GTEST_ASSERT_EQ(array[0], 0);
   GTEST_ASSERT_EQ(array[1], 1);
+
+  const auto& const_array = array;
+  GTEST_ASSERT_EQ(const_array[0], 0);
+  GTEST_ASSERT_EQ(const_array[1], 1);
+}
+
+TEST (JSONArrayTest, At) {
+  array_type array;
+  array.resize(2);
+  array[0] = 0;
+  array[1] = 1;
+  GTEST_ASSERT_EQ(array.at(0), 0);
+  GTEST_ASSERT_EQ(array.at(1), 1);
+
+  const auto& const_array = array;
+  GTEST_ASSERT_EQ(const_array.at(0), 0);
+  GTEST_ASSERT_EQ(const_array.at(1), 1);
 }
 
 TEST (JSONArrayTest, Iterator) {

@@ -104,6 +104,20 @@ class array {
     return m_array[index];
   }
 
+  /// \brief Access an element.
+  /// \param index The index of the element to access.
+  /// \return A reference to the element at 'index'.
+  value_type &at(const std::size_t index) {
+    return m_array.at(index);
+  }
+
+  /// \brief Access an element.
+  /// \param index The index of the element to access.
+  /// \return A const reference to the element at 'index'.
+  const value_type &at(const std::size_t index) const {
+    return m_array.at(index);
+  }
+
   /// \brief Returns an iterator that is at the beginning of the array.
   /// \return An iterator that is at the beginning of the array.
   iterator begin() {
