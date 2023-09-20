@@ -17,7 +17,7 @@
 #include <metall/detail/file_clone.hpp>
 #include <metall/detail/mmap.hpp>
 #include <metall/detail/utilities.hpp>
-#include <metall/logger.hpp>
+#include <metall/logger.h>
 
 namespace metall {
 namespace kernel {
@@ -36,8 +36,7 @@ class mmap_segment_storage {
   // -------------------- //
   mmap_segment_storage() {
 #ifdef METALL_USE_ANONYMOUS_NEW_MAP
-    logger::out(logger::level::info, __FILE__, __LINE__,
-                "METALL_USE_ANONYMOUS_NEW_MAP is defined");
+    METALL_INFO("METALL_USE_ANONYMOUS_NEW_MAP is defined");
 #endif
 
     if (!priv_set_system_page_size()) {
@@ -55,8 +54,7 @@ class mmap_segment_storage {
     }
 
     if (!ret) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Failed to destruct");
+      METALL_ERROR("Failed to destruct");
     }
   }
 
@@ -315,7 +313,7 @@ class mmap_segment_storage {
 
     if (!priv_test_file_space_free(base_path)) {
       std::string s("Failed to test file space free: " + base_path);
-      logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+      METALL_ERROR(s.c_str());
       priv_destroy_segment();
       priv_set_broken_status();
       return false;
@@ -330,13 +328,12 @@ class mmap_segment_storage {
     if (is_open())
       return false;  // Cannot open multiple segments simultaneously.
 
-    {
-      std::string s("Open a segment under: " + base_path);
-      logger::out(logger::level::info, __FILE__, __LINE__, s.c_str());
-    }
+    std::string s("Open a segment under: " + base_path);
+    METALL_INFO(s.c_str());
 
     m_base_path = base_path;
     m_vm_region_size = mdtl::round_down(vm_region_size, page_size());
+    ;
     m_segment = reinterpret_cast<char *>(
         mdtl::round_up(reinterpret_cast<uintptr_t>(vm_region), page_size()));
     m_read_only = read_only;
@@ -353,8 +350,7 @@ class mmap_segment_storage {
       const auto file_size = mdtl::get_file_size(file_name);
       assert(file_size % page_size() == 0);
       if (m_block_size > 0 && m_block_size != (size_type)file_size) {
-        logger::out(logger::level::error, __FILE__, __LINE__,
-                    "File sizes are not the same");
+        METALL_ERROR("File sizes are not the same");
         priv_destroy_segment();
         priv_set_broken_status();
         return false;
@@ -366,7 +362,7 @@ class mmap_segment_storage {
       if (fd == -1) {
         std::stringstream ss;
         ss << "Failed to map a file " << file_name;
-        logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+        METALL_ERROR(ss.str().c_str());
         priv_destroy_segment();
         priv_set_broken_status();
         return false;
@@ -381,7 +377,7 @@ class mmap_segment_storage {
 
     if (!read_only && !priv_test_file_space_free(base_path)) {
       std::string s("Failed to test file space free: " + base_path);
-      logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+      METALL_ERROR(s.c_str());
       priv_destroy_segment();
       priv_set_broken_status();
       return false;
@@ -403,8 +399,7 @@ class mmap_segment_storage {
     }
 
     if (request_size > m_vm_region_size) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Requested segment size is bigger than the reserved VM size");
+      METALL_ERROR("Requested segment size is bigger than the reserved VM size");
       return false;
     }
 
@@ -415,8 +410,7 @@ class mmap_segment_storage {
     while (m_current_segment_size < request_size) {
       if (!priv_create_new_map(m_base_path, m_num_blocks, m_block_size,
                                m_current_segment_size)) {
-        logger::out(logger::level::error, __FILE__, __LINE__,
-                    "Failed to extend the segment");
+        METALL_ERROR("Failed to extend the segment");
         priv_destroy_segment();
         priv_set_broken_status();
         return false;
@@ -437,14 +431,14 @@ class mmap_segment_storage {
     {
       std::string s("Create and extend a file " + file_name + " with " +
                     std::to_string(file_size) + " bytes");
-      logger::out(logger::level::info, __FILE__, __LINE__, s.c_str());
+      METALL_INFO(s.c_str());
     }
 
     if (!mdtl::create_file(file_name)) return false;
     if (!mdtl::extend_file_size(file_name, file_size)) return false;
     if (static_cast<size_type>(mdtl::get_file_size(file_name)) < file_size) {
       std::string s("Failed to create and extend file: " + file_name);
-      logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+      METALL_ERROR(s.c_str());
       return false;
     }
 
@@ -490,7 +484,7 @@ class mmap_segment_storage {
       ss << "Map a file " << path << " at " << segment_offset << " with "
          << file_size << " bytes; read-only mode is "
          << std::to_string(read_only);
-      logger::out(logger::level::info, __FILE__, __LINE__, ss.str().c_str());
+      METALL_INFO(ss.str().c_str());
     }
 
     const auto ret =
@@ -500,7 +494,7 @@ class mmap_segment_storage {
                                         MAP_FIXED | map_nosync);
     if (ret.first == -1 || !ret.second) {
       std::string s("Failed to map a file: " + path);
-      logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+      METALL_ERROR(s.c_str());
       if (ret.first != -1) {
         mdtl::os_close(ret.first);
       }
@@ -522,7 +516,7 @@ class mmap_segment_storage {
       std::string s("Map an anonymous region at " +
                     std::to_string(segment_offset) + " with " +
                     std::to_string(region_size));
-      logger::out(logger::level::info, __FILE__, __LINE__, s.c_str());
+      METALL_INFO(s.c_str());
     }
 
     const auto *addr =
@@ -530,7 +524,7 @@ class mmap_segment_storage {
     if (!addr) {
       std::string s("Failed to map an anonymous region at " +
                     std::to_string(segment_offset));
-      logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+      METALL_ERROR(s.c_str());
       return -1;
     }
 
@@ -538,9 +532,9 @@ class mmap_segment_storage {
     // in this class works.
     const auto fd = ::open(path.c_str(), O_RDWR);
     if (fd == -1) {
-      logger::perror(logger::level::error, __FILE__, __LINE__, "open");
+      METALL_ERRNO_ERROR("open");
       std::string s("Failed to open a file " + path);
-      logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+      METALL_ERROR(s.c_str());
       // Destroy the map by overwriting PROT_NONE map since the VM region is
       // managed by another class.
       mdtl::map_with_prot_none(static_cast<char *>(m_segment) + segment_offset,
@@ -573,8 +567,7 @@ class mmap_segment_storage {
   bool priv_sync(const bool sync) {
     if (!priv_sync_segment(
             sync)) {  // Failing this operation is not a critical error
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Failed to synchronize the segment");
+      METALL_ERROR("Failed to synchronize the segment");
       return false;
     }
     return true;
@@ -587,21 +580,17 @@ class mmap_segment_storage {
 
     // Protect the region to detect unexpected write by application during msync
     if (!mdtl::mprotect_read_only(m_segment, m_current_segment_size)) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Failed to protect the segment with the read only mode");
+      METALL_ERROR("Failed to protect the segment with the read only mode");
       return false;
     }
 
-    logger::out(logger::level::info, __FILE__, __LINE__,
-                "msync() for the application data segment");
+    METALL_INFO("msync() for the application data segment");
     if (!priv_parallel_msync(sync)) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Failed to msync the segment");
+      METALL_ERROR("Failed to msync the segment");
       return false;
     }
     if (!mdtl::mprotect_read_write(m_segment, m_current_segment_size)) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Failed to set the segment to readable and writable");
+      METALL_ERROR("Failed to set the segment to readable and writable");
       return false;
     }
 
@@ -638,7 +627,7 @@ class mmap_segment_storage {
     {
       std::stringstream ss;
       ss << "Sync files with " << num_threads << " threads";
-      logger::out(logger::level::info, __FILE__, __LINE__, ss.str().c_str());
+      METALL_INFO(ss.str().c_str());
     }
     std::vector<std::unique_ptr<std::thread>> threads(num_threads);
     for (auto &th : threads) {
@@ -695,14 +684,14 @@ class mmap_segment_storage {
     assert(m_anonymous_map_flag_list[block_no]);
     {
       std::string s("Sync anonymous map at block " + std::to_string(block_no));
-      logger::out(logger::level::info, __FILE__, __LINE__, s.c_str());
+      METALL_INFO(s.c_str());
     }
 
     auto *const addr = static_cast<char *>(m_segment) + block_no * m_block_size;
     if (::write(m_block_fd_list[block_no], addr, m_block_size) !=
         (ssize_t)m_block_size) {
       std::string s("Failed to write back a block");
-      logger::perror(logger::level::error, __FILE__, __LINE__, s.c_str());
+      METALL_ERRNO_ERROR(s.c_str());
       priv_destroy_segment();
       priv_set_broken_status();
       return false;
@@ -712,7 +701,7 @@ class mmap_segment_storage {
     {
       std::string s("Map block " + std::to_string(block_no) +
                     " as a non-anonymous map");
-      logger::out(logger::level::info, __FILE__, __LINE__, s.c_str());
+      METALL_INFO(s.c_str());
     }
     [[maybe_unused]] static constexpr int map_nosync =
 #ifdef MAP_NOSYNC
@@ -725,7 +714,7 @@ class mmap_segment_storage {
                                   0, MAP_FIXED | map_nosync);
     if (!mapped_addr || mapped_addr != addr) {
       std::string s("Failed to map a block");
-      logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+      METALL_ERROR(s.c_str());
       priv_destroy_segment();
       priv_set_broken_status();
       return false;
@@ -737,8 +726,7 @@ class mmap_segment_storage {
   bool priv_set_system_page_size() {
     m_system_page_size = mdtl::get_page_size();
     if (m_system_page_size == -1) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Failed to get system pagesize");
+      METALL_ERROR("Failed to get system pagesize");
       return false;
     }
     return true;
@@ -762,7 +750,7 @@ class mmap_segment_storage {
         mdtl::map_file_write_mode(file_path, nullptr, file_size, 0);
     if (ret.first == -1 || !ret.second) {
       std::string s("Failed to map file: " + file_path);
-      logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+      METALL_ERROR(s.c_str());
       if (ret.first != -1) mdtl::os_close(ret.first);
       return false;
     }
@@ -779,7 +767,7 @@ class mmap_segment_storage {
 
     if (!mdtl::os_close(ret.first)) {
       std::string s("Failed to close file: " + file_path);
-      logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+      METALL_ERROR(s.c_str());
       return false;
     }
 
@@ -787,14 +775,14 @@ class mmap_segment_storage {
     mdtl::munmap(ret.second, file_size, false);
     if (!mdtl::remove_file(file_path)) {
       std::string s("Failed to remove a file: " + file_path);
-      logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+      METALL_ERROR(s.c_str());
       return false;
     }
 
     {
       std::string s("File free test result: ");
       s += m_free_file_space ? "success" : "failed";
-      logger::out(logger::level::info, __FILE__, __LINE__, s.c_str());
+      METALL_INFO(s.c_str());
     }
 
     return true;

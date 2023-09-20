@@ -5,14 +5,17 @@
 
 #include <metall/metall.hpp>
 
+// define logger ops
+extern "C" void metall_log([[maybe_unused]] metall_log_level lvl, char const *file_name, uint64_t line, char const *message) {
+  std::cerr << file_name << " at line " << line << " --- " << message << std::endl;
+}
+
+extern "C" void metall_errno_log([[maybe_unused]] metall_log_level lvl, char const *file_name, uint64_t line, char const *message) {
+  std::cerr << file_name << " at line " << line << " --- ";
+  std::perror(message);
+}
+
 int main() {
-  // Set the log level to , for example, verbose.
-  // The log level can be changed at any time.
-  metall::logger::set_log_level(metall::logger::level::verbose);
-
-  // Enable the program to abort when a critical log message is displayed.
-  metall::logger::abort_on_critical_error(true);
-
   // Do Metall operations
   metall::manager manager(metall::create_only, "/tmp/dir");
 

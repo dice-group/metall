@@ -12,15 +12,14 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
-#include <metall/logger.hpp>
+#include <metall/logger.h>
 
 namespace metall::mtlldetail {
 
 inline ssize_t get_page_size() noexcept {
   const ssize_t page_size = ::sysconf(_SC_PAGE_SIZE);
   if (page_size == -1) {
-    logger::perror(logger::level::error, __FILE__, __LINE__,
-                   "Failed to get the page size");
+    METALL_ERRNO_ERROR("Failed to get the page size");
   }
 
   return page_size;
@@ -127,7 +126,7 @@ inline std::pair<std::size_t, std::size_t> get_num_page_faults() {
                         &minflt, &majflt)) != 2) {
       std::stringstream ss;
       ss << "Failed to reading #of page faults " << ret;
-      logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+      METALL_ERROR(ss.str().c_str());
       minflt = majflt = 0;
     }
   }

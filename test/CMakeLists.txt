@@ -82,6 +82,9 @@ endif ()
 
 include(GoogleTest)
 
+add_library(test_logger test_logger.cpp)
+target_link_libraries(test_logger Metall::Metall)
+
 # -------------------------------------------------------------------------------- #
 # Add executable functions
 # -------------------------------------------------------------------------------- #
@@ -90,6 +93,7 @@ function(add_metall_test_executable name source)
     if (ADDED_METALL_EXE)
         link_gtest_lib(${name})
         gtest_discover_tests(${name})
+        target_link_libraries(${name} PRIVATE test_logger)
         if (RUN_LARGE_SCALE_TEST)
             target_compile_definitions(${name} PRIVATE "METALL_RUN_LARGE_SCALE_TEST")
         endif()

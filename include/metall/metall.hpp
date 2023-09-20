@@ -8,7 +8,7 @@
 
 #include <metall/defs.hpp>
 #include <metall/basic_manager.hpp>
-#include <metall/logger.hpp>
+#include <metall/logger.h>
 #include <metall/version.hpp>
 
 /// \namespace metall

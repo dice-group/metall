@@ -17,7 +17,7 @@
 #include <metall/kernel/multilayer_bitset.hpp>
 #include <metall/kernel/bin_number_manager.hpp>
 #include <metall/kernel/object_size_manager.hpp>
-#include <metall/logger.hpp>
+#include <metall/logger.h>
 
 namespace metall {
 namespace kernel {
@@ -299,7 +299,7 @@ class chunk_directory {
     if (!ofs.is_open()) {
       std::stringstream ss;
       ss << "Cannot open: " << path;
-      logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+      METALL_ERROR(ss.str().c_str());
       return false;
     }
 
@@ -314,7 +314,7 @@ class chunk_directory {
       if (!ofs) {
         std::stringstream ss;
         ss << "Something happened in the ofstream: " << path;
-        logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+        METALL_ERROR(ss.str().c_str());
         return false;
       }
 
@@ -327,8 +327,7 @@ class chunk_directory {
         if (!ofs) {
           std::stringstream ss;
           ss << "Something happened in the ofstream: " << path;
-          logger::out(logger::level::error, __FILE__, __LINE__,
-                      ss.str().c_str());
+          METALL_ERROR(ss.str().c_str());
           return false;
         }
 
@@ -338,14 +337,12 @@ class chunk_directory {
         if (!ofs) {
           std::stringstream ss;
           ss << "Something happened in the ofstream: " << path;
-          logger::out(logger::level::error, __FILE__, __LINE__,
-                      ss.str().c_str());
+          METALL_ERROR(ss.str().c_str());
           return false;
         }
 
       } else {
-        logger::out(logger::level::error, __FILE__, __LINE__,
-                    "Unexpected chunk status");
+        METALL_ERROR("Unexpected chunk status");
         return false;
       }
     }
@@ -363,7 +360,7 @@ class chunk_directory {
     if (!ifs.is_open()) {
       std::stringstream ss;
       ss << "Cannot open: " << path;
-      logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+      METALL_ERROR(ss.str().c_str());
       return false;
     }
 
@@ -387,8 +384,7 @@ class chunk_directory {
                              chunk_type::large_chunk_body)) {
         m_table[chunk_no].type = chunk_type::large_chunk_body;
       } else {
-        logger::out(logger::level::error, __FILE__, __LINE__,
-                    "Invalid chunk type");
+        METALL_ERROR("Invalid chunk type");
         return false;
       }
 
@@ -398,15 +394,13 @@ class chunk_directory {
         if (!(ifs >> buf1)) {
           std::stringstream ss;
           ss << "Cannot read a file: " << path;
-          logger::out(logger::level::error, __FILE__, __LINE__,
-                      ss.str().c_str());
+          METALL_ERROR(ss.str().c_str());
           return false;
         }
         if (num_slots < buf1) {
           std::stringstream ss;
           ss << "Invalid num_occupied_slots: " << std::to_string(buf1);
-          logger::out(logger::level::error, __FILE__, __LINE__,
-                      ss.str().c_str());
+          METALL_ERROR(ss.str().c_str());
           return false;
         }
         m_table[chunk_no].num_occupied_slots = buf1;
@@ -416,15 +410,13 @@ class chunk_directory {
         if (bitset_buf.empty() || bitset_buf[0] != ' ') {
           std::stringstream ss;
           ss << "Invalid input for slot_occupancy: " << bitset_buf;
-          logger::out(logger::level::error, __FILE__, __LINE__,
-                      ss.str().c_str());
+          METALL_ERROR(ss.str().c_str());
           return false;
         }
         bitset_buf.erase(0, 1);
 
         if (!m_table[chunk_no].slot_occupancy.allocate(num_slots)) {
-          logger::out(logger::level::error, __FILE__, __LINE__,
-                      "Failed to allocate slot occupancy data");
+          METALL_ERROR("Failed to allocate slot occupancy data");
           return false;
         }
 
@@ -432,8 +424,7 @@ class chunk_directory {
                                                           bitset_buf)) {
           std::stringstream ss;
           ss << "Invalid input for slot_occupancy: " << bitset_buf;
-          logger::out(logger::level::error, __FILE__, __LINE__,
-                      ss.str().c_str());
+          METALL_ERROR(ss.str().c_str());
           return false;
         }
       }
@@ -444,7 +435,7 @@ class chunk_directory {
     if (!ifs.eof()) {
       std::stringstream ss;
       ss << "Something happened in the ifstream: " << path;
-      logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+      METALL_ERROR(ss.str().c_str());
       return false;
     }
 
@@ -514,8 +505,7 @@ class chunk_directory {
         nullptr, m_max_num_chunks * sizeof(entry_type)));
 
     if (!m_table) {
-      logger::perror(logger::level::error, __FILE__, __LINE__,
-                     "Cannot allocate chunk table");
+      METALL_ERRNO_ERROR("Cannot allocate chunk table");
       return false;
     }
 
@@ -528,8 +518,7 @@ class chunk_directory {
       try {
         erase(chunk_no);
       } catch (...) {
-        logger::perror(logger::level::error, __FILE__, __LINE__,
-                       "An exception was thrown");
+        METALL_ERRNO_ERROR("An exception was thrown");
       }
     }
     mdtl::os_munmap(m_table, m_max_num_chunks * sizeof(entry_type));
@@ -546,8 +535,7 @@ class chunk_directory {
         calc_num_slots(bin_no_mngr::to_object_size(bin_no));
     assert(num_slots > 1);
     if (num_slots > multilayer_bitset_type::max_size()) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Too many slots are requested.");
+      METALL_ERROR("Too many slots are requested.");
       return m_max_num_chunks;
     }
 
@@ -559,8 +547,7 @@ class chunk_directory {
         m_table[chunk_no].type = chunk_type::small_chunk;
         m_table[chunk_no].num_occupied_slots = 0;
         if (!m_table[chunk_no].slot_occupancy.allocate(num_slots)) {
-          logger::out(logger::level::error, __FILE__, __LINE__,
-                      "Failed to allocates slot occupancy data");
+          METALL_ERROR("Failed to allocates slot occupancy data");
           return m_max_num_chunks;
         }
 
@@ -570,8 +557,7 @@ class chunk_directory {
         return chunk_no;
       }
     }
-    logger::out(logger::level::error, __FILE__, __LINE__,
-                "No empty chunk for small allocation");
+    METALL_ERROR("No empty chunk for small allocation");
     return m_max_num_chunks;
   }
 
@@ -614,9 +600,7 @@ class chunk_directory {
       }
     }
 
-    logger::out(logger::level::error, __FILE__, __LINE__,
-                "No available space for large allocation, which requires "
-                "multiple contiguous chunks");
+    METALL_ERROR("No available space for large allocation, which requires multiple contiguous chunks");
     return m_max_num_chunks;
   }
 

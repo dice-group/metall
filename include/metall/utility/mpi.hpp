@@ -12,7 +12,7 @@
 
 #include <mpi.h>
 
-#include <metall/logger.hpp>
+#include <metall/logger.h>
 #include <metall/detail/file.hpp>
 #include <metall/detail/mmap.hpp>
 
@@ -23,8 +23,7 @@ namespace metall::utility::mpi {
 inline int comm_rank(const MPI_Comm &comm) {
   int rank;
   if (::MPI_Comm_rank(comm, &rank) != MPI_SUCCESS) {
-    logger::out(logger::level::error, __FILE__, __LINE__,
-                "Failed MPI_Comm_rank");
+    METALL_ERROR("Failed MPI_Comm_rank");
     return -1;
   }
   return rank;
@@ -33,8 +32,7 @@ inline int comm_rank(const MPI_Comm &comm) {
 inline int comm_size(const MPI_Comm &comm) {
   int size;
   if (::MPI_Comm_size(comm, &size) != MPI_SUCCESS) {
-    logger::out(logger::level::error, __FILE__, __LINE__,
-                "Failed MPI_Comm_size");
+    METALL_ERROR("Failed MPI_Comm_size");
     return -1;
   }
   return size;
@@ -42,7 +40,7 @@ inline int comm_size(const MPI_Comm &comm) {
 
 inline bool barrier(const MPI_Comm &comm) {
   if (::MPI_Barrier(comm) != MPI_SUCCESS) {
-    logger::out(logger::level::error, __FILE__, __LINE__, "Failed MPI_Barrier");
+    METALL_ERROR("Failed MPI_Barrier");
     return false;
   }
   return true;
@@ -93,7 +91,7 @@ inline int determine_local_root(const MPI_Comm &comm) {
   if (world_rank > 0) {
     if (::MPI_Recv(nullptr, 0, MPI_BYTE, world_rank - 1, 1, MPI_COMM_WORLD,
                    MPI_STATUS_IGNORE) != MPI_SUCCESS) {
-      logger::out(logger::level::error, __FILE__, __LINE__, "Failed MPI_Recv");
+      METALL_ERROR("Failed MPI_Recv");
       return -1;
     }
   }
@@ -105,8 +103,7 @@ inline int determine_local_root(const MPI_Comm &comm) {
   if (shm_fd == -1) {
     shm_fd = ::shm_open(shm_name, O_CREAT | O_RDWR, 0666);
     if (shm_fd == -1) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Failed to open & create a shm file");
+      METALL_ERROR("Failed to open & create a shm file");
       return -1;
     }
     this_rank_created = true;
@@ -121,8 +118,7 @@ inline int determine_local_root(const MPI_Comm &comm) {
   void *const ptr =
       metall::mtlldetail::map_file_write_mode(shm_fd, nullptr, shm_size, 0, 0);
   if (!ptr) {
-    logger::out(logger::level::error, __FILE__, __LINE__,
-                "Failed to map a shm file");
+    METALL_ERROR("Failed to map a shm file");
     return -1;
   }
 
@@ -139,7 +135,7 @@ inline int determine_local_root(const MPI_Comm &comm) {
   if (world_rank < world_size - 1) {
     if (MPI_Send(nullptr, 0, MPI_BYTE, world_rank + 1, 1, MPI_COMM_WORLD) !=
         MPI_SUCCESS) {
-      logger::out(logger::level::error, __FILE__, __LINE__, "Failed MPI_Send");
+      METALL_ERROR("Failed MPI_Send");
       return -1;
     }
   }
@@ -155,8 +151,7 @@ inline int determine_local_root(const MPI_Comm &comm) {
   }
   barrier(comm);
   if (this_rank_created && ::shm_unlink(shm_name) != 0) {
-    logger::perror(logger::level::warning, __FILE__, __LINE__,
-                   "Failed to remove the shm file; however, continue work.");
+    METALL_ERRNO_WARN("Failed to remove the shm file; however, continue work.");
   }
 
   return local_root_rank;

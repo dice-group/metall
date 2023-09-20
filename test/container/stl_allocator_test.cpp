@@ -136,16 +136,10 @@ TEST(StlAllocatorTest, Exception) {
 
   ASSERT_NO_THROW({ allocator.deallocate(allocator.allocate(1), 1); });
 
-  // Turn off log temporary because the following exception test cases could
-  // show error messages
-  metall::logger::set_log_level(metall::logger::level::critical);
-
   ASSERT_THROW({ allocator.allocate(1UL << 24UL); }, std::bad_alloc);
 
   ASSERT_THROW({ allocator.allocate(allocator.max_size() + 1); },
                std::bad_array_new_length);
-
-  metall::logger::set_log_level(metall::logger::level::error);
 }
 
 TEST(StlAllocatorTest, Container) {

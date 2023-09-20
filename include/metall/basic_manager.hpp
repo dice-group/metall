@@ -122,8 +122,7 @@ class basic_manager {
       m_kernel->open(base_path);
     } catch (...) {
       m_kernel.reset(nullptr);
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
   }
 
@@ -136,8 +135,7 @@ class basic_manager {
       m_kernel->open_read_only(base_path);
     } catch (...) {
       m_kernel.reset(nullptr);
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
   }
 
@@ -149,8 +147,7 @@ class basic_manager {
       m_kernel->create(base_path);
     } catch (...) {
       m_kernel.reset(nullptr);
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
   }
 
@@ -164,8 +161,7 @@ class basic_manager {
       m_kernel->create(base_path, capacity);
     } catch (...) {
       m_kernel.reset(nullptr);
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
   }
 
@@ -372,8 +368,7 @@ class basic_manager {
     try {
       return m_kernel->template find<T>(name);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
 
     return std::make_pair(nullptr, 0);
@@ -500,8 +495,7 @@ class basic_manager {
     try {
       return m_kernel->get_instance_name(ptr);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return nullptr;
   }
@@ -528,8 +522,7 @@ class basic_manager {
     try {
       return m_kernel->get_instance_kind(ptr);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return instance_kind();
   }
@@ -557,8 +550,7 @@ class basic_manager {
     try {
       return m_kernel->get_instance_length(ptr);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return 0;
   }
@@ -584,8 +576,7 @@ class basic_manager {
     try {
       return m_kernel->template is_instance_type<T>(ptr);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return false;
   }
@@ -614,8 +605,7 @@ class basic_manager {
     try {
       return m_kernel->get_instance_description(ptr, description);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return false;
   }
@@ -645,8 +635,7 @@ class basic_manager {
       return m_kernel->set_instance_description(ptr, description);
     } catch (...) {
       m_kernel.reset(nullptr);
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return false;
   }
@@ -667,8 +656,7 @@ class basic_manager {
     try {
       return m_kernel->get_num_named_objects();
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return 0;
   }
@@ -686,8 +674,7 @@ class basic_manager {
     try {
       return m_kernel->get_num_unique_objects();
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return 0;
   }
@@ -705,8 +692,7 @@ class basic_manager {
     try {
       return m_kernel->get_num_anonymous_objects();
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return 0;
   }
@@ -723,8 +709,7 @@ class basic_manager {
     try {
       return m_kernel->named_begin();
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return const_named_iterator();
   }
@@ -742,8 +727,7 @@ class basic_manager {
     try {
       return m_kernel->named_end();
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return const_named_iterator();
   }
@@ -761,8 +745,7 @@ class basic_manager {
     try {
       return m_kernel->unique_begin();
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return const_unique_iterator();
   }
@@ -780,8 +763,7 @@ class basic_manager {
     try {
       return m_kernel->unique_end();
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return const_unique_iterator();
   }
@@ -799,8 +781,7 @@ class basic_manager {
     try {
       return m_kernel->anonymous_begin();
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return const_anonymous_iterator();
   }
@@ -817,8 +798,7 @@ class basic_manager {
     try {
       return m_kernel->anonymous_end();
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return const_anonymous_iterator();
   }
@@ -841,8 +821,7 @@ class basic_manager {
       return m_kernel->allocate(nbytes);
     } catch (...) {
       m_kernel.reset(nullptr);
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return nullptr;
   }
@@ -863,8 +842,7 @@ class basic_manager {
       return m_kernel->allocate_aligned(nbytes, alignment);
     } catch (...) {
       m_kernel.reset(nullptr);
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return nullptr;
   }
@@ -884,8 +862,7 @@ class basic_manager {
       return m_kernel->deallocate(addr);
     } catch (...) {
       m_kernel.reset(nullptr);
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
   }
 
@@ -906,8 +883,7 @@ class basic_manager {
     try {
       return m_kernel->all_memory_deallocated();
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return false;
   }
@@ -926,8 +902,7 @@ class basic_manager {
       m_kernel->flush(synchronous);
     } catch (...) {
       m_kernel.reset(nullptr);
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
   }
 
@@ -950,8 +925,7 @@ class basic_manager {
                                 num_max_copy_threads);
     } catch (...) {
       m_kernel.reset(nullptr);
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return false;
   }
@@ -976,8 +950,7 @@ class basic_manager {
       return manager_kernel_type::copy(source_dir_path, destination_dir_path,
                                        clone, num_max_copy_threads);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return false;
   }
@@ -1003,8 +976,7 @@ class basic_manager {
       return manager_kernel_type::copy_async(
           source_dir_path, destination_dir_path, clone, num_max_copy_threads);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return std::future<bool>();
   }
@@ -1019,8 +991,7 @@ class basic_manager {
     try {
       return manager_kernel_type::remove(dir_path);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return false;
   }
@@ -1036,8 +1007,7 @@ class basic_manager {
     try {
       return std::async(std::launch::async, remove, dir_path);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return std::future<bool>();
   }
@@ -1058,8 +1028,7 @@ class basic_manager {
     try {
       return manager_kernel_type::consistent(dir_path);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return false;
   }
@@ -1075,8 +1044,7 @@ class basic_manager {
     try {
       return m_kernel->get_uuid();
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return std::string();
   }
@@ -1090,8 +1058,7 @@ class basic_manager {
     try {
       return manager_kernel_type::get_uuid(dir_path);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return std::string();
   }
@@ -1107,8 +1074,7 @@ class basic_manager {
     try {
       return m_kernel->get_version();
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return version_type();
   }
@@ -1122,8 +1088,7 @@ class basic_manager {
     try {
       return manager_kernel_type::get_version(dir_path);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
       return version_type();
     }
   }
@@ -1147,8 +1112,7 @@ class basic_manager {
       return m_kernel->set_description(description);
     } catch (...) {
       m_kernel.reset(nullptr);
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return false;
   }
@@ -1166,8 +1130,7 @@ class basic_manager {
     try {
       return manager_kernel_type::set_description(dir_path, description);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return false;
   }
@@ -1188,8 +1151,7 @@ class basic_manager {
     try {
       return m_kernel->get_description(description);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return false;
   }
@@ -1208,8 +1170,7 @@ class basic_manager {
     try {
       return manager_kernel_type::get_description(dir_path, description);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return false;
   }
@@ -1226,8 +1187,7 @@ class basic_manager {
     try {
       return manager_kernel_type::access_named_object_attribute(dir_path);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return named_object_attribute_accessor_type();
   }
@@ -1243,8 +1203,7 @@ class basic_manager {
     try {
       return manager_kernel_type::access_unique_object_attribute(dir_path);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return unique_object_attribute_accessor_type();
   }
@@ -1260,8 +1219,7 @@ class basic_manager {
     try {
       return manager_kernel_type::access_anonymous_object_attribute(dir_path);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return anonymous_object_attribute_accessor_type();
   }
@@ -1281,8 +1239,7 @@ class basic_manager {
       return allocator_type<T>(reinterpret_cast<manager_kernel_type *const *>(
           &(m_kernel->get_segment_header()->manager_kernel_address)));
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return allocator_type<T>(nullptr);
   }
@@ -1304,8 +1261,7 @@ class basic_manager {
     try {
       return m_kernel->get_segment();
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return nullptr;
   }
@@ -1323,8 +1279,7 @@ class basic_manager {
     try {
       return m_kernel->get_segment_size();
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
     return 0;
   }
@@ -1351,8 +1306,7 @@ class basic_manager {
       m_kernel->profile(log_out);
     } catch (...) {
       m_kernel.reset(nullptr);
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
+      METALL_ERROR("An exception has been thrown");
     }
   }
 #endif
