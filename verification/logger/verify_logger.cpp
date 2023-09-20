@@ -4,29 +4,29 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 #include <iostream>
-#include <metall/logger.hpp>
+#include <metall/logger.h>
 
 using namespace metall;
 
 void log_cerr() {
   logger::out(logger::level::silent, __FILE__, __LINE__, "silent logger");
   logger::out(logger::level::critical, __FILE__, __LINE__, "critical logger");
-  logger::out(logger::level::error, __FILE__, __LINE__, "error logger");
+  METALL_ERROR("error logger");
   logger::out(logger::level::warning, __FILE__, __LINE__, "warning logger");
-  logger::out(logger::level::info, __FILE__, __LINE__, "info logger");
-  logger::out(logger::level::debug, __FILE__, __LINE__, "debug logger");
-  logger::out(logger::level::verbose, __FILE__, __LINE__, "verbose logger");
+  METALL_INFO("info logger");
+  METALL_DEBUG("debug logger");
+  METALL_TRACE("verbose logger");
 }
 
 void log_perror() {
   logger::perror(logger::level::silent, __FILE__, __LINE__, "silent logger");
   logger::perror(logger::level::critical, __FILE__, __LINE__,
                  "critical logger");
-  logger::perror(logger::level::error, __FILE__, __LINE__, "error logger");
-  logger::perror(logger::level::warning, __FILE__, __LINE__, "warning logger");
+  METALL_ERRNO_ERROR("error logger");
+  METALL_ERRNO_WARN("warning logger");
   logger::perror(logger::level::info, __FILE__, __LINE__, "info logger");
-  logger::perror(logger::level::debug, __FILE__, __LINE__, "debug logger");
-  logger::perror(logger::level::verbose, __FILE__, __LINE__, "verbose logger");
+  METALL_ERRNO_DEBUG("debug logger");
+  METALL_ERRNO_TRACE("verbose logger");
 }
 
 int main() {

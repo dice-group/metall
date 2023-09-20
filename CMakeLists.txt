@@ -299,7 +299,7 @@ function(common_setup_for_metall_executable name)
     # https://libcxx.llvm.org/docs/UsingLibcxx.html
     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND
             NOT (CMAKE_CXX_COMPILER_ID MATCHES "Darwin" OR CMAKE_CXX_COMPILER_ID MATCHES "FreeBSD"))
-        target_compile_options(${name} PRIVATE -stdlib=libc++)
+        #target_compile_options(${name} PRIVATE -stdlib=libc++)
     endif ()
     # --------------------
 

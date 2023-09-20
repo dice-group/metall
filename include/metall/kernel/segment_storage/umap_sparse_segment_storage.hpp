@@ -113,11 +113,11 @@ class umap_sparse_segment_storage {
 
     if (clone) {
       std::string s("Clone: " + source_path);
-      logger::out(logger::level::info, __FILE__, __LINE__, s.c_str());
+      METALL_INFO(s.c_str());
       return mdtl::clone_file(source_path, destination_path);
     } else {
       std::string s("Copy: " + source_path);
-      logger::out(logger::level::info, __FILE__, __LINE__, s.c_str());
+      METALL_INFO(s.c_str());
       return mdtl::copy_file(source_path, destination_path);
     }
     assert(false);
