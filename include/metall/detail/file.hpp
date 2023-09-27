@@ -28,277 +28,136 @@
 #include <thread>
 #include <atomic>
 #include <functional>
-
-#ifdef __has_include
-
-// Check if the Filesystem library is available or disabled by the user
-#if __has_include(<filesystem>) && !defined(METALL_DISABLE_CXX17_FILESYSTEM_LIB)
 #include <filesystem>
-#else
-#ifdef METALL_VERBOSE_SYSTEM_SUPPORT_WARNING
-#warning "The Filesystem library is not available or disabled by the user."
-#endif
-#endif
-
-#else  // __has_include is not defined
-
-#ifdef METALL_VERBOSE_SYSTEM_SUPPORT_WARNING
-#warning \
-    "__has_include is not defined, consequently disable the Filesystem library."
-#endif  // METALL_VERBOSE_SYSTEM_SUPPORT_WARNING
-
-#endif  // #ifdef __has_include
-
-#include <metall/logger.h>
 
 namespace metall::mtlldetail {
 
-#if defined(__cpp_lib_filesystem) && \
-    !defined(METALL_DISABLE_CXX17_FILESYSTEM_LIB)
 namespace {
 namespace fs = std::filesystem;
 }
-#endif
 
-inline bool os_close(const int fd) {
+inline void os_close(const int fd) {
   if (::close(fd) == -1) {
-    METALL_ERRNO_ERROR("close");
-    return false;
+    throw std::system_error{errno, std::system_category(), "close"};
   }
-  return true;
 }
 
-inline bool os_fsync(const int fd) {
+inline void os_fsync(const int fd) {
   if (::fsync(fd) != 0) {
-    METALL_ERRNO_ERROR("fsync");
-    return false;
+    throw std::system_error{errno, std::system_category(), "fsync"};
   }
-  return true;
 }
 
-inline bool fsync(const std::string &path) {
+inline void fsync(const std::filesystem::path &path) {
   const int fd = ::open(path.c_str(), O_RDONLY);
   if (fd == -1) {
-    METALL_ERRNO_ERROR("open");
-    return false;
+    throw std::system_error{errno, std::system_category(), "open"};
   }
 
-  bool ret = true;
-  ret &= os_fsync(fd);
-  ret &= os_close(fd);
+  try {
+    os_fsync(fd);
+  } catch (std::system_error const &e) {
+    os_close(fd);
+    throw e;
+  }
 
-  return ret;
+  os_close(fd);
 }
 
-inline bool fsync_recursive(const std::string &path) {
-#if defined(__cpp_lib_filesystem) && \
-    !defined(METALL_DISABLE_CXX17_FILESYSTEM_LIB)
-  fs::path p(path);
-  p = fs::canonical(p);
+inline void fsync_recursive(std::filesystem::path path) {
+  path = fs::canonical(path);
   while (true) {
-    if (!fsync(p.string())) {
-      return false;
-    }
-    if (p == p.root_path()) {
+    fsync(path);
+
+    if (path == path.root_path()) {
       break;
     }
-    p = p.parent_path();
+    path = path.parent_path();
   }
-  return true;
-#else
-  char *abs = ::realpath(path.c_str(), NULL);
-  if (!abs) return false;
-  char *ref = abs;
-  while (true) {
-    if (!fsync(std::string(abs))) {
-      ::free(ref);
-      return false;
-    }
-    if (::strcmp(abs, "/") == 0) {
-      break;
-    }
-    abs = ::dirname(abs);
-  }
-  ::free(ref);
-  return true;
-#endif
 }
 
-inline bool extend_file_size_manually(const int fd, const off_t offset,
-                                      const ssize_t file_size) {
-  auto buffer = new unsigned char[4096];
-  for (off_t i = offset; i < file_size / 4096 + offset; ++i) {
-    ::pwrite(fd, buffer, 4096, i * 4096);
-  }
-  const size_t remained_size = file_size % 4096;
-  if (remained_size > 0)
-    ::pwrite(fd, buffer, remained_size, file_size - remained_size);
-
-  delete[] buffer;
-
-  const bool ret = os_fsync(fd);
-
-  return ret;
-}
-
-inline bool extend_file_size(const int fd, const size_t file_size,
+inline void extend_file_size(const int fd, const size_t file_size,
                              const bool fill_with_zero) {
   if (fill_with_zero) {
-#ifdef __APPLE__
-    if (!extend_file_size_manually(fd, 0, file_size)) {
-      METALL_ERROR("Failed to extend file size manually, filling zero");
-      return false;
+    if (int err_no = ::posix_fallocate(fd, 0, static_cast<off_t>(file_size)); err_no != 0) {
+      throw std::system_error{err_no, std::system_category(), "posix_fallocate"};
     }
-#else
-    if (::posix_fallocate(fd, 0, file_size) == -1) {
-      METALL_ERRNO_ERROR("fallocate");
-      return false;
-    }
-#endif
   } else {
     // -----  extend the file if its size is smaller than that of mapped area
     // ----- //
     struct stat stat_buf;
     if (::fstat(fd, &stat_buf) == -1) {
-      METALL_ERRNO_ERROR("fstat");
-      return false;
+      throw std::system_error{errno, std::system_category(), "fstat"};
     }
     if (::llabs(stat_buf.st_size) < static_cast<ssize_t>(file_size)) {
-      if (::ftruncate(fd, file_size) == -1) {
-        METALL_ERRNO_ERROR("ftruncate");
-        return false;
+      if (::ftruncate(fd, static_cast<off_t>(file_size)) == -1) {
+        throw std::system_error{errno, std::system_category(), "ftruncate"};
       }
     }
   }
-
-  const bool ret = os_fsync(fd);
-  return ret;
 }
 
-inline bool extend_file_size(const std::string &file_path,
+inline void extend_file_size(const std::filesystem::path &file_path,
                              const size_t file_size,
                              const bool fill_with_zero = false) {
   const int fd = ::open(file_path.c_str(), O_RDWR);
   if (fd == -1) {
-    METALL_ERRNO_ERROR("open");
-    return false;
+    throw std::system_error{errno, std::system_category(), "open"};
   }
 
-  bool ret = extend_file_size(fd, file_size, fill_with_zero);
-  ret &= os_close(fd);
-
-  return ret;
-}
-
-/// \brief Check if a file, any kinds of file including directory, exists
-/// \warning This implementation could return a wrong result due to metadata
-/// cache on NFS. The following code could fail: if (mpi_rank == 1)
-/// file_exist(path); // NFS creates metadata cache mpi_barrier(); if (mpi_rank
-/// == 0) create_directory(path); mpi_barrier(); if (mpi_rank == 1)
-/// assert(file_exist(path)); // Could fail due to the cached metadata.
-inline bool file_exist(const std::string &file_name) {
-  std::string fixed_string(file_name);
-  while (fixed_string.back() == '/') {
-    fixed_string.pop_back();
+  try {
+    extend_file_size(fd, file_size, fill_with_zero);
+  } catch (std::system_error const &e) {
+    os_close(fd);
+    throw e;
   }
-  return (::access(fixed_string.c_str(), F_OK) == 0);
+
+  os_close(fd);
 }
 
-/// \brief Check if a directory exists
-/// \warning This implementation could return a wrong result due to metadata
-/// cache on NFS.
-inline bool directory_exist(const std::string &dir_path) {
-  struct stat stat_buf;
-  if (::stat(dir_path.c_str(), &stat_buf) == -1) {
-    return false;
-  }
-  return S_ISDIR(stat_buf.st_mode);
-}
-
-inline bool create_file(const std::string &file_path) {
-  const int fd =
-      ::open(file_path.c_str(), O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+inline void create_file(const std::filesystem::path &file_path) {
+  const int fd = ::open(file_path.c_str(), O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
   if (fd == -1) {
-    METALL_ERRNO_ERROR("open");
-    return false;
+    throw std::system_error{errno, std::system_category(), "open"};
   }
 
-  if (!os_close(fd)) return false;
-
-  return fsync_recursive(file_path);
+  os_close(fd);
+  fsync_recursive(file_path);
 }
 
-#if defined(__cpp_lib_filesystem) && \
-    !defined(METALL_DISABLE_CXX17_FILESYSTEM_LIB)
 /// \brief Creates directories recursively.
 /// \return Returns true if the directory was created or already exists.
 /// Otherwise, returns false.
-inline bool create_directory(const std::string &dir_path) {
-  std::string fixed_string = dir_path;
-  // MEMO: GCC bug 87846 (fixed in v8.3)
-  // "Calling std::filesystem::create_directories with a path with a trailing
-  // separator (e.g. "./a/b/") does not create any directory."
-#if (defined(__GNUG__) && !defined(__clang__)) && \
-    (__GNUC__ < 8 ||                              \
-     (__GNUC__ == 8 && __GNUC_MINOR__ < 3))  // Check if < GCC 8.3
-  // Remove trailing separator(s) if they exist:
-  while (fixed_string.back() == '/') {
-    fixed_string.pop_back();
-  }
-#endif
-
-  bool success = true;
-  try {
-    std::error_code ec;
-    if (!fs::create_directories(fixed_string, ec)) {
-      if (!ec) {
-        // if the directory exist, create_directories returns false.
-        // However, std::error_code is cleared and !ec returns true.
-        return true;
-      }
-
-      METALL_ERROR(ec.message().c_str());
-      success = false;
+inline void create_directory(const std::filesystem::path &dir_path) {
+  std::error_code ec;
+  if (!fs::create_directories(dir_path, ec)) {
+    if (!ec) {
+      // if the directory exist, create_directories returns false.
+      // However, std::error_code is cleared and !ec returns true.
+      return;
     }
-  } catch (fs::filesystem_error &e) {
-    METALL_ERROR(e.what());
-    success = false;
+
+    throw std::system_error{ec, "create directory"};
   }
-
-  return success;
 }
-#else
-/// \brief Creates directories recursively.
-/// \return Returns true if the directory was created or already exists, returns
-/// true. Otherwise, returns false.
-inline bool create_directory(const std::string &dir_path) {
-  std::string mkdir_command("mkdir -p " + dir_path);
-  const int status = std::system(mkdir_command.c_str());
-  return (status != -1) && !!(WIFEXITED(status));
-}
-#endif
 
-inline ssize_t get_file_size(const std::string &file_path) {
+inline size_t get_file_size(const std::filesystem::path &file_path) {
   std::ifstream ifs(file_path, std::ifstream::binary | std::ifstream::ate);
   ssize_t size = ifs.tellg();
   if (size == -1) {
-    std::stringstream ss;
-    ss << "Failed to get file size: " << file_path;
-    METALL_ERROR(ss.str().c_str());
+    throw std::system_error{errno, std::system_category(), "Failed to get file size"};
   }
 
-  return size;
+  return static_cast<size_t>(size);
 }
 
 /// \brief
 /// Note that, according to GCC,
 /// the file system may use some blocks for internal record keeping
-inline ssize_t get_actual_file_size(const std::string &file_path) {
+inline size_t get_actual_file_size(const std::filesystem::path &file_path) {
   struct stat stat_buf;
   if (::stat(file_path.c_str(), &stat_buf) != 0) {
-    std::string s("stat (" + file_path + ")");
-    METALL_ERRNO_ERROR(s.c_str());
-    return -1;
+    throw std::system_error{errno, std::system_category(), "stat"};
   }
   return stat_buf.st_blocks * 512LL;
 }
@@ -306,147 +165,55 @@ inline ssize_t get_actual_file_size(const std::string &file_path) {
 /// \brief Remove a file or directory
 /// \return Upon successful completion, returns true; otherwise, false is
 /// returned. If the file or directory does not exist, true is returned.
-inline bool remove_file(const std::string &path) {
-#if defined(__cpp_lib_filesystem) && \
-    !defined(METALL_DISABLE_CXX17_FILESYSTEM_LIB)
-  std::filesystem::path p(path);
+inline void remove_file(const std::filesystem::path &path) {
   std::error_code ec;
-  [[maybe_unused]] const auto num_removed = std::filesystem::remove_all(p, ec);
-  return !ec;
-#else
-  std::string rm_command("rm -rf " + path);
-  const int status = std::system(rm_command.c_str());
-  return (status != -1) && !!(WIFEXITED(status));
-#endif
+  std::filesystem::remove_all(path, ec);
+  if (ec) {
+    throw std::system_error{ec, "remove file"};
+  }
 }
 
-inline bool free_file_space([[maybe_unused]] const int fd,
+inline void free_file_space([[maybe_unused]] const int fd,
                             [[maybe_unused]] const off_t off,
                             [[maybe_unused]] const off_t len) {
 #if defined(FALLOC_FL_PUNCH_HOLE) && defined(FALLOC_FL_KEEP_SIZE)
-  if (::fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, off, len) ==
-      -1) {
-    METALL_ERRNO_WARN("fallocate");
-    return false;
+  if (::fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, off, len) == -1) {
+    throw std::system_error{errno, std::system_category(), "fallocate"};
   }
-  return true;
 
-#else
-#ifdef METALL_VERBOSE_SYSTEM_SUPPORT_WARNING
+#elif defined(METALL_VERBOSE_SYSTEM_SUPPORT_WARNING)
 #warning "FALLOC_FL_PUNCH_HOLE or FALLOC_FL_KEEP_SIZE is not supported"
-#endif
-  return false;
 #endif
 }
 
 namespace file_copy_detail {
 
-#if defined(__cpp_lib_filesystem) && \
-    !defined(METALL_DISABLE_CXX17_FILESYSTEM_LIB)
-inline bool copy_file_dense(const std::string &source_path,
-                            const std::string &destination_path) {
-  bool success = true;
+inline void copy_file_dense(const std::filesystem::path &source_path,
+                            const std::filesystem::path &destination_path) {
   try {
-    if (!fs::copy_file(source_path, destination_path,
-                       fs::copy_options::overwrite_existing)) {
-      std::stringstream ss;
-      ss << "Failed copying file: " << source_path << " -> "
-         << destination_path;
-      METALL_ERROR(ss.str().c_str());
-      success = false;
-    }
+    fs::copy_file(source_path, destination_path,
+                  fs::copy_options::overwrite_existing);
   } catch (fs::filesystem_error &e) {
-    METALL_ERROR(e.what());
-    success = false;
+    throw std::system_error{e.code(), e.what()};
   }
 
-  if (success) {
-    success &= metall::mtlldetail::fsync(destination_path);
-  }
-
-  return success;
+  metall::mtlldetail::fsync(destination_path);
 }
-
-#else
-
-inline bool copy_file_dense(const std::string &source_path,
-                            const std::string &destination_path) {
-  {
-    const ssize_t source_file_size = get_file_size(source_path);
-    const ssize_t actual_source_file_size = get_actual_file_size(source_path);
-    if (source_file_size == -1 || actual_source_file_size == -1) {
-      return false;
-    }
-
-    // If the source file is empty, just create the destination file and done.
-    if (source_file_size == 0 || actual_source_file_size == 0) {
-      create_file(destination_path);
-      return true;
-    }
-  }
-
-  {
-    std::ifstream source(source_path);
-    if (!source.is_open()) {
-      std::stringstream ss;
-      ss << "Cannot open: " << source_path;
-      METALL_ERROR(ss.str().c_str());
-      return false;
-    }
-
-    std::ofstream destination(destination_path);
-    if (!destination.is_open()) {
-      std::stringstream ss;
-      ss << "Cannot open: " << destination_path;
-      METALL_ERROR(ss.str().c_str());
-      return false;
-    }
-
-    destination << source.rdbuf();
-    if (!destination) {
-      std::stringstream ss;
-      ss << "Something happened in the ofstream: " << destination_path;
-      METALL_ERROR(ss.str().c_str());
-      return false;
-    }
-
-    destination.close();
-
-    if (!metall::mtlldetail::fsync(destination_path)) {
-      return false;
-    }
-  }
-
-  {
-    // Sanity check
-    const ssize_t s1 = get_file_size(source_path);
-    const ssize_t s2 = get_file_size(destination_path);
-    if (s1 < 0 || s1 != s2) {
-      std::stringstream ss;
-      ss << "Something wrong in file sizes: " << s1 << " " << s2;
-      METALL_ERROR(ss.str().c_str());
-      return false;
-    }
-  }
-  return true;
-}
-
-#endif
 
 #ifdef __linux__
-inline bool copy_file_sparse_linux(const std::string &source_path,
-                                   const std::string &destination_path) {
-  std::string command("cp --sparse=auto " + source_path + " " +
-                      destination_path);
+inline void copy_file_sparse_linux(const std::filesystem::path &source_path,
+                                   const std::filesystem::path &destination_path) {
+  // TODO WTF is this function
+
+  std::ostringstream oss;
+  oss << "cp --sparse=auto " << source_path << ' ' << destination_path;
+  auto command = oss.str();
+
   const int status = std::system(command.c_str());
   const bool success = (status != -1) && !!(WIFEXITED(status));
   if (!success) {
-    std::stringstream ss;
-    ss << "Failed copying file: " << source_path << " -> " << destination_path;
-    METALL_ERROR(ss.str().c_str());
-    return false;
+    throw std::runtime_error{"Failed sparse copying file"};
   }
-  return success;
 }
 #endif
 
@@ -457,18 +224,18 @@ inline bool copy_file_sparse_linux(const std::string &source_path,
 /// \param destination_path A destination path.
 /// \param sparse_copy If true is specified, tries to perform sparse file copy.
 /// \return  On success, returns true. On error, returns false.
-inline bool copy_file(const std::string &source_path,
-                      const std::string &destination_path,
+inline void copy_file(const std::filesystem::path &source_path,
+                      const std::filesystem::path &destination_path,
                       const bool sparse_copy = true) {
   if (sparse_copy) {
 #ifdef __linux__
-    return file_copy_detail::copy_file_sparse_linux(source_path,
-                                                    destination_path);
+    file_copy_detail::copy_file_sparse_linux(source_path,
+                                             destination_path);
 #else
-    METALL_INFO("Sparse file copy is not available");
+    METALL_WARN("Sparse file copy is not available");
 #endif
   }
-  return file_copy_detail::copy_file_dense(source_path, destination_path);
+  file_copy_detail::copy_file_dense(source_path, destination_path);
 }
 
 /// \brief Get the file names in a directory.
@@ -478,44 +245,24 @@ inline bool copy_file(const std::string &source_path,
 /// \param file_list A buffer to put results.
 /// \return Returns true if there is no error (empty directory returns true as
 /// long as the operation does not fail). Returns false on error.
-inline bool get_regular_file_names(const std::string &dir_path,
-                                   std::vector<std::string> *file_list) {
-#if defined(__cpp_lib_filesystem) && \
-    !defined(METALL_DISABLE_CXX17_FILESYSTEM_LIB)
-
-  if (!directory_exist(dir_path)) {
-    return false;
+inline std::vector<std::filesystem::path> get_regular_file_names(const std::filesystem::path &dir_path) {
+  if (!std::filesystem::exists(dir_path)) {
+    return {};
   }
+
+  std::vector<std::filesystem::path> ret;
 
   try {
-    file_list->clear();
-    for (auto &p : fs::directory_iterator(dir_path)) {
+    for (auto const &p : std::filesystem::directory_iterator(dir_path)) {
       if (p.is_regular_file()) {
-        file_list->push_back(p.path().filename().string());
+        ret.push_back(p.path().filename());
       }
     }
-  } catch (...) {
-    METALL_ERROR("Exception was thrown");
-    return false;
+
+    return ret;
+  } catch (std::filesystem::filesystem_error const &e) {
+    throw std::system_error{e.code(), e.what()};
   }
-
-  return true;
-
-#else
-  DIR *d = ::opendir(dir_path.c_str());
-  if (!d) {
-    return false;
-  }
-
-  for (dirent *dir; (dir = ::readdir(d)) != nullptr;) {
-    if (dir->d_type == DT_REG) {
-      file_list->push_back(dir->d_name);
-    }
-  }
-  ::closedir(d);
-
-  return true;
-#endif
 }
 
 /// \brief Copy files in a directory.
@@ -527,46 +274,52 @@ inline bool get_regular_file_names(const std::string &dir_path,
 /// If <= 0 is given, the value is automatically determined.
 /// \param copy_func The actual copy function.
 /// \return  On success, returns true. On error, returns false.
-inline bool copy_files_in_directory_in_parallel_helper(
-    const std::string &source_dir_path, const std::string &destination_dir_path,
-    const int max_num_threads,
-    const std::function<bool(const std::string &, const std::string &)>
-        &copy_func) {
-  std::vector<std::string> src_file_names;
-  if (!get_regular_file_names(source_dir_path, &src_file_names)) {
-    METALL_ERROR("Failed to get file list");
-    return false;
-  }
+inline void copy_files_in_directory_in_parallel_helper(
+    const std::filesystem::path &source_dir_path, const std::filesystem::path &destination_dir_path,
+    const size_t max_num_threads,
+    const std::function<void(const std::filesystem::path &, const std::filesystem::path &)> &copy_func) {
+
+  auto const src_file_names = get_regular_file_names(source_dir_path);
 
   std::atomic_uint_fast64_t num_successes = 0;
   std::atomic_uint_fast64_t file_no_cnt = 0;
+
   auto copy_lambda = [&file_no_cnt, &num_successes, &source_dir_path,
                       &src_file_names, &destination_dir_path, &copy_func]() {
     while (true) {
       const auto file_no = file_no_cnt.fetch_add(1);
-      if (file_no >= src_file_names.size()) break;
-      const std::string &src_file_path =
-          source_dir_path + "/" + src_file_names[file_no];
-      const std::string &dst_file_path =
-          destination_dir_path + "/" + src_file_names[file_no];
-      num_successes.fetch_add(copy_func(src_file_path, dst_file_path) ? 1 : 0);
+
+      if (file_no >= src_file_names.size())
+        break;
+
+      auto const src_file_path = source_dir_path / src_file_names[file_no];
+      auto const dst_file_path = destination_dir_path / src_file_names[file_no];
+
+      try {
+        copy_func(src_file_path, dst_file_path);
+        num_successes.fetch_add(1);
+      } catch (...) {
+        // ignore
+      }
     }
   };
 
-  const auto num_threads = (int)std::min(
-      src_file_names.size(),
-      (std::size_t)(max_num_threads > 0 ? max_num_threads
-                                        : std::thread::hardware_concurrency()));
-  std::vector<std::thread *> threads(num_threads, nullptr);
-  for (auto &th : threads) {
-    th = new std::thread(copy_lambda);
+  const auto num_threads = std::min(src_file_names.size(),
+                                    max_num_threads > 0 ? max_num_threads
+                                                        : std::thread::hardware_concurrency());
+
+  std::vector<std::thread> threads;
+  for (size_t ix = 0; ix < num_threads; ++ix) {
+    threads.emplace_back(copy_lambda);
   }
 
   for (auto &th : threads) {
-    th->join();
+    th.join();
   }
 
-  return num_successes == src_file_names.size();
+  if (num_successes != src_file_names.size()) {
+    throw std::runtime_error{"Parallel file copy failed"};
+  }
 }
 
 /// \brief Copy files in a directory.
@@ -577,13 +330,14 @@ inline bool copy_files_in_directory_in_parallel_helper(
 /// If <= 0 is given, it is automatically determined.
 /// \param sparse_copy Performs sparse file copy.
 /// \return  On success, returns true. On error, returns false.
-inline bool copy_files_in_directory_in_parallel(
-    const std::string &source_dir_path, const std::string &destination_dir_path,
-    const int max_num_threads, const bool sparse_copy = true) {
-  return copy_files_in_directory_in_parallel_helper(
+inline void copy_files_in_directory_in_parallel(
+    const std::filesystem::path &source_dir_path, const std::filesystem::path &destination_dir_path,
+    const size_t max_num_threads, const bool sparse_copy = true) {
+
+  copy_files_in_directory_in_parallel_helper(
       source_dir_path, destination_dir_path, max_num_threads,
-      [&sparse_copy](const std::string &src, const std::string &dst) -> bool {
-        return copy_file(src, dst, sparse_copy);
+      [&sparse_copy](const std::filesystem::path &src, const std::filesystem::path &dst) {
+        copy_file(src, dst, sparse_copy);
       });
 }
 }  // namespace metall::mtlldetail

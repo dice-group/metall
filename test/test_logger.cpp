@@ -1,4 +1,4 @@
-#include <metall/logger.h>
+#include <metall/logger_interface.h>
 
 #include <iostream>
 
@@ -10,10 +10,10 @@ static char const *log_level_to_string(metall_log_level lvl) noexcept {
     case METALL_LL_WARN: {
       return "WARNING";
     }
-    case METAL_LL_INFO: {
+    case METALL_LL_INFO: {
       return "INFO";
     }
-    case METAL_LL_DEBUG: {
+    case METALL_LL_DEBUG: {
       return "DEBUG";
     }
     case METALL_LL_TRACE: {
@@ -22,11 +22,6 @@ static char const *log_level_to_string(metall_log_level lvl) noexcept {
   }
 }
 
-extern "C" void metall_log([[maybe_unused]] metall_log_level lvl, char const *file_name, uint64_t line, char const *message) {
-  std::cerr << log_level_to_string(lvl) << ' ' << file_name << ':' << line << ": " << message << std::endl;
-}
-
-extern "C" void metall_errno_log([[maybe_unused]] metall_log_level lvl, char const *file_name, uint64_t line, char const *message) {
-  std::cerr << log_level_to_string(lvl) << ' ' << file_name << ':' << line << ": ";
-  std::perror(message);
+extern "C" void metall_log([[maybe_unused]] metall_log_level lvl, char const *function, char const *message) {
+  std::cerr << log_level_to_string(lvl) << ' ' << function << ": " << message << std::endl;
 }

@@ -325,31 +325,10 @@ TEST(ManagerMultithreadsTest, ConstructAndFind) {
     }
   }
 
-  int *num_deallocated = nullptr;
-#if defined(__APPLE__)
-  num_deallocated = static_cast<int *>(::malloc(keys.size() * sizeof(int)));
-#else
-  num_deallocated =
-      static_cast<int *>(::aligned_alloc(4096, keys.size() * sizeof(int)));
-#endif
-  for (std::size_t i = 0; i < keys.size(); ++i) num_deallocated[i] = 0;
-
   OMP_DIRECTIVE(parallel) {
     for (std::size_t i = 0; i < keys.size(); ++i) {
-      const bool ret =
-          manager.destroy<allocation_element_type>(keys[i].c_str());
-      if (ret) {
-        OMP_DIRECTIVE(atomic)
-        ++(num_deallocated[i]);
-      }
+      manager.destroy<allocation_element_type>(keys[i].c_str());
     }
   }
-
-  // There must be only one thread that destroys the object
-  for (std::size_t i = 0; i < keys.size(); ++i) {
-    ASSERT_EQ(num_deallocated[i], 1);
-  }
-
-  ::free(num_deallocated);
 }
 }  // namespace

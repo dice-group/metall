@@ -23,8 +23,8 @@ using object_size_mngr =
     metall::kernel::object_size_manager<k_chunk_size, 1ULL << 48>;
 constexpr std::size_t k_min_object_size = object_size_mngr::at(0);
 
-const std::string &dir_path() {
-  const static std::string path(test_utility::make_test_path());
+const std::filesystem::path &dir_path() {
+  const static std::filesystem::path path(test_utility::make_test_path());
   return path;
 }
 
@@ -32,55 +32,55 @@ TEST(ManagerTest, CreateAndOpenModes) {
   {
     manager_type::remove(dir_path().c_str());
     {
-      manager_type manager(metall::create_only, dir_path().c_str(),
+      manager_type manager(metall::create_only, dir_path(),
                            1UL << 30UL);
       ASSERT_NE(manager.construct<int>("int")(10), nullptr);
-      ASSERT_TRUE(manager.destroy<int>("int"));
+      manager.destroy<int>("int");
     }
     {
-      manager_type manager(metall::create_only, dir_path().c_str(),
+      manager_type manager(metall::create_only, dir_path(),
                            1UL << 30UL);
       auto ret = manager.find<int>("int");
       ASSERT_EQ(ret.first, nullptr);
-      ASSERT_FALSE(manager.destroy<int>("int"));
+      manager.destroy<int>("int");
     }
   }
 
   {
     manager_type::remove(dir_path().c_str());
     {
-      manager_type manager(metall::create_only, dir_path().c_str(),
+      manager_type manager(metall::create_only, dir_path(),
                            1UL << 30UL);
       ASSERT_NE(manager.construct<int>("int")(10), nullptr);
     }
     {
-      manager_type manager(metall::open_only, dir_path().c_str());
+      manager_type manager(metall::open_only, dir_path());
       auto ret = manager.find<int>("int");
       ASSERT_NE(ret.first, nullptr);
       ASSERT_EQ(*(static_cast<int *>(ret.first)), 10);
-      ASSERT_TRUE(manager.destroy<int>("int"));
+      manager.destroy<int>("int");;
     }
   }
 
   {
     manager_type::remove(dir_path().c_str());
     {
-      manager_type manager(metall::create_only, dir_path().c_str(),
+      manager_type manager(metall::create_only, dir_path(),
                            1UL << 30UL);
       ASSERT_NE(manager.construct<int>("int")(10), nullptr);
     }
     {
-      manager_type manager(metall::open_read_only, dir_path().c_str());
+      manager_type manager(metall::open_read_only, dir_path());
       auto ret = manager.find<int>("int");
       ASSERT_NE(ret.first, nullptr);
       ASSERT_EQ(*(static_cast<int *>(ret.first)), 10);
     }
     {
-      manager_type manager(metall::open_only, dir_path().c_str());
+      manager_type manager(metall::open_only, dir_path());
       auto ret = manager.find<int>("int");
       ASSERT_NE(ret.first, nullptr);
       ASSERT_EQ(*(static_cast<int *>(ret.first)), 10);
-      ASSERT_TRUE(manager.destroy<int>("int"));
+      manager.destroy<int>("int");
     }
   }
 }
@@ -89,13 +89,13 @@ TEST(ManagerTest, ConstructArray) {
   {
     {
       manager_type::remove(dir_path().c_str());
-      manager_type manager(metall::create_only, dir_path().c_str(),
+      manager_type manager(metall::create_only, dir_path(),
                            1UL << 30UL);
       ASSERT_NE(manager.construct<int>("int")[2](10), nullptr);
     }
 
     {
-      manager_type manager(metall::open_read_only, dir_path().c_str());
+      manager_type manager(metall::open_read_only, dir_path());
       auto ret = manager.find<int>("int");
       ASSERT_NE(ret.first, nullptr);
       ASSERT_EQ(ret.second, 2);
@@ -105,8 +105,8 @@ TEST(ManagerTest, ConstructArray) {
     }
 
     {
-      manager_type manager(metall::open_only, dir_path().c_str());
-      ASSERT_TRUE(manager.destroy<int>("int"));
+      manager_type manager(metall::open_only, dir_path());
+      manager.destroy<int>("int");
     }
   }
 }
@@ -128,7 +128,7 @@ TEST(ManagerTest, findOrConstruct) {
 
     {
       manager_type manager(metall::open_only, dir_path().c_str());
-      ASSERT_TRUE(manager.destroy<int>("int"));
+      manager.destroy<int>("int");
     }
   }
 }
@@ -151,7 +151,7 @@ TEST(ManagerTest, findOrConstructArray) {
 
     {
       manager_type manager(metall::open_only, dir_path().c_str());
-      ASSERT_TRUE(manager.destroy<int>("int"));
+      manager.destroy<int>("int");
     }
   }
 }
@@ -184,7 +184,7 @@ TEST(ManagerTest, ConstructContainers) {
 
     {
       manager_type manager(metall::open_only, dir_path().c_str());
-      ASSERT_TRUE(manager.destroy<vec_t>("vecs"));
+      manager.destroy<vec_t>("vecs");
       ASSERT_TRUE(manager.all_memory_deallocated());
     }
   }
@@ -212,7 +212,7 @@ TEST(ManagerTest, ConstructWithIterator) {
 
     {
       manager_type manager(metall::open_only, dir_path().c_str());
-      ASSERT_TRUE(manager.destroy<int>("int"));
+      manager.destroy<int>("int");
     }
   }
 }
@@ -249,7 +249,7 @@ TEST(ManagerTest, ConstructObjectsWithIterator) {
 
     {
       manager_type manager(metall::open_only, dir_path().c_str());
-      ASSERT_TRUE(manager.destroy<data>("data"));
+      manager.destroy<data>("data");
     }
   }
 }
@@ -276,7 +276,7 @@ TEST(ManagerTest, FindOrConstructWithIterator) {
 
     {
       manager_type manager(metall::open_only, dir_path().c_str());
-      ASSERT_TRUE(manager.destroy<int>("int"));
+      manager.destroy<int>("int");
     }
   }
 }
@@ -286,22 +286,23 @@ TEST(ManagerTest, Destroy) {
     manager_type::remove(dir_path().c_str());
     manager_type manager(metall::create_only, dir_path().c_str(), 1UL << 30UL);
 
-    ASSERT_FALSE(manager.destroy<int>("named_obj"));
-    ASSERT_FALSE(manager.destroy<int>(metall::unique_instance));
-    ASSERT_FALSE(manager.destroy<int>("array_obj"));
+    // Will not success but should also not throw
+    manager.destroy<int>("named_obj");
+    manager.destroy<int>(metall::unique_instance);
+    manager.destroy<int>("array_obj");
 
     manager.construct<int>("named_obj")();
     manager.construct<int>(metall::unique_instance)();
     manager.construct<int>("array_obj")[2](10);
 
-    ASSERT_TRUE(manager.destroy<int>("named_obj"));
-    ASSERT_FALSE(manager.destroy<int>("named_obj"));
+    manager.destroy<int>("named_obj");
+    manager.destroy<int>("named_obj");
 
-    ASSERT_TRUE(manager.destroy<int>(metall::unique_instance));
-    ASSERT_FALSE(manager.destroy<int>(metall::unique_instance));
+    manager.destroy<int>(metall::unique_instance);
+    manager.destroy<int>(metall::unique_instance);
 
-    ASSERT_TRUE(manager.destroy<int>("array_obj"));
-    ASSERT_FALSE(manager.destroy<int>("array_obj"));
+    manager.destroy<int>("array_obj");
+    manager.destroy<int>("array_obj");
 
     ASSERT_TRUE(manager.all_memory_deallocated());
   }
@@ -319,9 +320,9 @@ TEST(ManagerTest, Destroy) {
   {
     manager_type manager(metall::open_only, dir_path().c_str());
 
-    ASSERT_TRUE(manager.destroy<int>("named_obj"));
-    ASSERT_TRUE(manager.destroy<int>(metall::unique_instance));
-    ASSERT_TRUE(manager.destroy<int>("array_obj"));
+    manager.destroy<int>("named_obj");
+    manager.destroy<int>(metall::unique_instance);
+    manager.destroy<int>("array_obj");
 
     ASSERT_TRUE(manager.all_memory_deallocated());
   }
@@ -337,17 +338,17 @@ TEST(ManagerTest, DestroyPtr) {
     int *anonymous_obj = manager.construct<int>(metall::anonymous_instance)();
     int *array_obj = manager.construct<int>("array_obj")[2](10);
 
-    ASSERT_TRUE(manager.destroy_ptr(named_obj));
-    ASSERT_FALSE(manager.destroy_ptr(named_obj));
+    manager.destroy_ptr(named_obj);
+    manager.destroy_ptr(named_obj);
 
-    ASSERT_TRUE(manager.destroy_ptr(unique_obj));
-    ASSERT_FALSE(manager.destroy_ptr(unique_obj));
+    manager.destroy_ptr(unique_obj);
+    manager.destroy_ptr(unique_obj);
 
-    ASSERT_TRUE(manager.destroy_ptr(anonymous_obj));
-    ASSERT_FALSE(manager.destroy_ptr(anonymous_obj));
+    manager.destroy_ptr(anonymous_obj);
+    manager.destroy_ptr(anonymous_obj);
 
-    ASSERT_TRUE(manager.destroy_ptr(array_obj));
-    ASSERT_FALSE(manager.destroy_ptr(array_obj));
+    manager.destroy_ptr(array_obj);
+    manager.destroy_ptr(array_obj);
   }
 
   {
@@ -366,14 +367,13 @@ TEST(ManagerTest, DestroyPtr) {
   {
     manager_type manager(metall::open_only, dir_path().c_str());
 
-    ASSERT_TRUE(manager.destroy_ptr(manager.find<int>("named_obj").first));
-    ASSERT_TRUE(
-        manager.destroy_ptr(manager.find<int>(metall::unique_instance).first));
-    ASSERT_TRUE(manager.destroy_ptr(manager.find<int>("array_obj").first));
+    manager.destroy_ptr(manager.find<int>("named_obj").first);
+    manager.destroy_ptr(manager.find<int>(metall::unique_instance).first);
+    manager.destroy_ptr(manager.find<int>("array_obj").first);
     metall::offset_ptr<int> *ptr =
         manager.find<metall::offset_ptr<int>>("metall::offset_ptr<int>").first;
-    ASSERT_TRUE(manager.destroy_ptr(ptr->get()));  // destroy anonymous object
-    ASSERT_TRUE(manager.destroy_ptr(ptr));
+    manager.destroy_ptr(ptr->get());  // destroy anonymous object
+    manager.destroy_ptr(ptr);
   }
 }
 
@@ -455,7 +455,7 @@ TEST(ManagerTest, ConstructException) {
 
   manager_type::remove(dir_path().c_str());
   {
-    manager_type manager(metall::create_only, dir_path().c_str(), 1UL << 30UL);
+    manager_type manager(metall::create_only, dir_path(), 1UL << 30UL);
     bool do_throw[2] = {false, true};
     bool wrong_destroy = false;
     bool *flags[2] = {&wrong_destroy, &wrong_destroy};
@@ -629,76 +629,85 @@ TEST(ManagerTest, InstanceDescription) {
 
     auto *named_obj = manager.construct<int>("named_obj")();
     std::string desc_name = "desc name";
-    ASSERT_TRUE(manager.set_instance_description(named_obj, desc_name));
+    manager.set_instance_description(named_obj, desc_name);
 
     auto *unique_obj = manager.construct<int>(metall::unique_instance)();
-    ASSERT_TRUE(manager.set_instance_description(unique_obj, "desc unique"));
+    manager.set_instance_description(unique_obj, "desc unique");
 
     auto *anonymous_obj = manager.construct<int>(metall::anonymous_instance)();
-    ASSERT_TRUE(
-        manager.set_instance_description(anonymous_obj, "desc anonymous"));
+    manager.set_instance_description(anonymous_obj, "desc anonymous");
 
-    std::string buf;
-    ASSERT_TRUE(manager.get_instance_description(named_obj, &buf));
-    ASSERT_EQ(buf, desc_name);
+    auto buf = manager.get_instance_description(named_obj);
+    ASSERT_TRUE(buf.has_value());
+    ASSERT_EQ(*buf, desc_name);
 
-    ASSERT_TRUE(manager.get_instance_description<int>(unique_obj, &buf));
-    ASSERT_EQ(buf, "desc unique");
+    buf = manager.get_instance_description<int>(unique_obj);
+    ASSERT_TRUE(buf.has_value());
+    ASSERT_EQ(*buf, "desc unique");
 
-    ASSERT_TRUE(manager.get_instance_description(anonymous_obj, &buf));
-    ASSERT_EQ(buf, "desc anonymous");
+    buf = manager.get_instance_description(anonymous_obj);
+    ASSERT_TRUE(buf.has_value());
+    ASSERT_EQ(*buf, "desc anonymous");
     manager.construct<metall::offset_ptr<int>>("ptr<int>")(anonymous_obj);
   }
 
   {
     manager_type manager(metall::open_only, dir_path().c_str());
 
-    std::string buf;
+    std::optional<std::string> buf;
 
-    ASSERT_TRUE(manager.get_instance_description(
-        manager.find<int>("named_obj").first, &buf));
-    ASSERT_EQ(buf, "desc name");
+    buf = manager.get_instance_description(
+        manager.find<int>("named_obj").first);
+    ASSERT_TRUE(buf.has_value());
+    ASSERT_EQ(*buf, "desc name");
 
-    ASSERT_TRUE(manager.get_instance_description(
-        manager.find<int>(metall::unique_instance).first, &buf));
-    ASSERT_EQ(buf, "desc unique");
+    buf = manager.get_instance_description(
+        manager.find<int>(metall::unique_instance).first);
+    ASSERT_TRUE(buf.has_value());
+    ASSERT_EQ(*buf, "desc unique");
 
-    ASSERT_TRUE(manager.get_instance_description(
-        manager.find<metall::offset_ptr<int>>("ptr<int>").first->get(), &buf));
-    ASSERT_EQ(buf, "desc anonymous");
+    buf = manager.get_instance_description(
+        manager.find<metall::offset_ptr<int>>("ptr<int>").first->get());
+    ASSERT_TRUE(buf.has_value());
+    ASSERT_EQ(*buf, "desc anonymous");
 
-    ASSERT_TRUE(manager.set_instance_description(
-        manager.find<int>("named_obj").first, "desc name 2"));
-    ASSERT_TRUE(manager.set_instance_description(
-        manager.find<int>(metall::unique_instance).first, "desc unique 2"));
-    ASSERT_TRUE(manager.set_instance_description(
+    manager.set_instance_description(
+        manager.find<int>("named_obj").first, "desc name 2");
+
+    manager.set_instance_description(
+        manager.find<int>(metall::unique_instance).first, "desc unique 2");
+
+    manager.set_instance_description(
         manager.find<metall::offset_ptr<int>>("ptr<int>").first->get(),
-        "desc anonymous 2"));
+        "desc anonymous 2");
   }
 
   {
     manager_type manager(metall::open_read_only, dir_path().c_str());
 
-    std::string buf;
+    std::optional<std::string> buf;
 
-    ASSERT_TRUE(manager.get_instance_description(
-        manager.find<int>("named_obj").first, &buf));
-    ASSERT_EQ(buf, "desc name 2");
+    buf = manager.get_instance_description(
+        manager.find<int>("named_obj").first);
+    ASSERT_TRUE(buf.has_value());
+    ASSERT_EQ(*buf, "desc name 2");
 
-    ASSERT_TRUE(manager.get_instance_description(
-        manager.find<int>(metall::unique_instance).first, &buf));
-    ASSERT_EQ(buf, "desc unique 2");
+    buf = manager.get_instance_description(
+        manager.find<int>(metall::unique_instance).first);
+    ASSERT_TRUE(buf.has_value());
+    ASSERT_EQ(*buf, "desc unique 2");
 
-    ASSERT_TRUE(manager.get_instance_description(
-        manager.find<metall::offset_ptr<int>>("ptr<int>").first->get(), &buf));
-    ASSERT_EQ(buf, "desc anonymous 2");
+    buf = manager.get_instance_description(
+        manager.find<metall::offset_ptr<int>>("ptr<int>").first->get());
+    ASSERT_TRUE(buf.has_value());
+    ASSERT_EQ(*buf, "desc anonymous 2");
 
     // Cannot change with the read only mode
-    ASSERT_FALSE(manager.set_instance_description(
+    ASSERT_ANY_THROW(manager.set_instance_description(
         manager.find<int>("named_obj").first, "desc name 3"));
-    ASSERT_FALSE(manager.set_instance_description(
+    ASSERT_ANY_THROW(manager.set_instance_description(
         manager.find<int>(metall::unique_instance).first, "desc unique 3"));
-    ASSERT_FALSE(manager.set_instance_description(
+    ASSERT_ANY_THROW(manager.set_instance_description(
         manager.find<metall::offset_ptr<int>>("ptr<int>").first->get(),
         "desc anonymous 3"));
   }
@@ -727,19 +736,19 @@ TEST(ManagerTest, CountObjects) {
     auto *anony_obj2 = manager.construct<float>(metall::anonymous_instance)();
     ASSERT_EQ(manager.get_num_anonymous_objects(), 2);
 
-    ASSERT_TRUE(manager.destroy<int>("named_obj1"));
+    manager.destroy<int>("named_obj1");
     ASSERT_EQ(manager.get_num_named_objects(), 1);
-    ASSERT_TRUE(manager.destroy<float>("named_obj2"));
+    manager.destroy<float>("named_obj2");
     ASSERT_EQ(manager.get_num_named_objects(), 0);
 
-    ASSERT_TRUE(manager.destroy<int>(metall::unique_instance));
+    manager.destroy<int>(metall::unique_instance);
     ASSERT_EQ(manager.get_num_unique_objects(), 1);
-    ASSERT_TRUE(manager.destroy<float>(metall::unique_instance));
+    manager.destroy<float>(metall::unique_instance);
     ASSERT_EQ(manager.get_num_unique_objects(), 0);
 
-    ASSERT_TRUE(manager.destroy_ptr(anony_obj1));
+    manager.destroy_ptr(anony_obj1);
     ASSERT_EQ(manager.get_num_anonymous_objects(), 1);
-    ASSERT_TRUE(manager.destroy_ptr(anony_obj2));
+    manager.destroy_ptr(anony_obj2);
     ASSERT_EQ(manager.get_num_anonymous_objects(), 0);
   }
 
@@ -765,23 +774,23 @@ TEST(ManagerTest, CountObjects) {
     manager_type manager(metall::open_only, dir_path().c_str());
 
     ASSERT_EQ(manager.get_num_named_objects(), 2);
-    ASSERT_TRUE(manager.destroy<int>("named_obj1"));
+    manager.destroy<int>("named_obj1");
     ASSERT_EQ(manager.get_num_named_objects(), 1);
-    ASSERT_TRUE(manager.destroy<float>("named_obj2"));
+    manager.destroy<float>("named_obj2");
     ASSERT_EQ(manager.get_num_named_objects(), 0);
 
     ASSERT_EQ(manager.get_num_unique_objects(), 2);
-    ASSERT_TRUE(manager.destroy<int>(metall::unique_instance));
+    manager.destroy<int>(metall::unique_instance);
     ASSERT_EQ(manager.get_num_unique_objects(), 1);
-    ASSERT_TRUE(manager.destroy<float>(metall::unique_instance));
+    manager.destroy<float>(metall::unique_instance);
     ASSERT_EQ(manager.get_num_unique_objects(), 0);
 
     ASSERT_EQ(manager.get_num_anonymous_objects(), 2);
-    ASSERT_TRUE(manager.destroy_ptr(
-        reinterpret_cast<const char *>(manager.get_address()) + anony_offset1));
+    manager.destroy_ptr(
+        reinterpret_cast<const char *>(manager.get_address()) + anony_offset1);
     ASSERT_EQ(manager.get_num_anonymous_objects(), 1);
-    ASSERT_TRUE(manager.destroy_ptr(
-        reinterpret_cast<const char *>(manager.get_address()) + anony_offset2));
+    manager.destroy_ptr(
+        reinterpret_cast<const char *>(manager.get_address()) + anony_offset2);
     ASSERT_EQ(manager.get_num_anonymous_objects(), 0);
   }
 }
@@ -819,9 +828,9 @@ TEST(ManagerTest, NamedObjectIterator) {
     ASSERT_TRUE(found2);
     ASSERT_EQ(count, 2);
 
-    ASSERT_TRUE(manager.destroy<int>("named_obj1"));
+    manager.destroy<int>("named_obj1");
     ASSERT_STREQ(manager.named_begin()->name().c_str(), "named_obj2");
-    ASSERT_TRUE(manager.destroy<float>("named_obj2"));
+    manager.destroy<float>("named_obj2");
 
     // Everyone is at the end
     ASSERT_EQ(manager.named_begin(), manager.named_end());
@@ -864,9 +873,9 @@ TEST(ManagerTest, UniqueObjectIterator) {
     ASSERT_TRUE(found2);
     ASSERT_EQ(count, 2);
 
-    ASSERT_TRUE(manager.destroy<int>(metall::unique_instance));
+    manager.destroy<int>(metall::unique_instance);
     ASSERT_STREQ(manager.unique_begin()->name().c_str(), typeid(float).name());
-    ASSERT_TRUE(manager.destroy<float>(metall::unique_instance));
+    manager.destroy<float>(metall::unique_instance);
 
     // Everyone is at the end
     ASSERT_EQ(manager.named_begin(), manager.named_end());
@@ -912,9 +921,9 @@ TEST(ManagerTest, AnonymoustObjectIterator) {
     ASSERT_TRUE(found2);
     ASSERT_EQ(count, 2);
 
-    ASSERT_TRUE(manager.destroy_ptr(obj1));
+    manager.destroy_ptr(obj1);
     ASSERT_EQ(manager.anonymous_begin()->offset(), obj2 - segment);
-    ASSERT_TRUE(manager.destroy_ptr(obj2));
+    manager.destroy_ptr(obj2);
 
     // Everyone is at the end
     ASSERT_EQ(manager.named_begin(), manager.named_end());
@@ -1256,8 +1265,8 @@ TEST(ManagerTest, UniqueConstruct) {
   ASSERT_EQ(manager->find<double>(metall::unique_instance).first, b);
   ASSERT_EQ(manager->find<double>(metall::unique_instance).second, 1);
 
-  ASSERT_EQ(manager->destroy<int>(metall::unique_instance), true);
-  ASSERT_EQ(manager->destroy<double>(metall::unique_instance), true);
+  manager->destroy<int>(metall::unique_instance);
+  manager->destroy<double>(metall::unique_instance);
 
   delete manager;
 }
@@ -1300,19 +1309,16 @@ TEST(ManagerTest, Description) {
   // Set and get with non-static method
   {
     manager_type::remove(dir_path().c_str());
-    manager_type manager(metall::create_only, dir_path().c_str());
+    manager_type manager(metall::create_only, dir_path());
 
-    ASSERT_TRUE(manager.set_description("description1"));
-    std::string description;
-    ASSERT_TRUE(manager.get_description(&description));
+    manager.set_description("description1");
+    auto description = manager.get_description();
     ASSERT_STREQ(description.c_str(), "description1");
   }
 
   // Get with static method
   {
-    std::string description;
-    ASSERT_TRUE(
-        manager_type::get_description(dir_path().c_str(), &description));
+    std::string description = manager_type::get_description(dir_path());
     ASSERT_STREQ(description.c_str(), "description1");
   }
 
@@ -1321,29 +1327,24 @@ TEST(ManagerTest, Description) {
     manager_type::remove(dir_path().c_str());
     manager_type manager(metall::create_only,
                          dir_path().c_str());  // Make a new data store
-    ASSERT_TRUE(
-        manager_type::set_description(dir_path().c_str(), "description2"));
+    manager_type::set_description(dir_path().c_str(), "description2");
   }
 
   // Get with non-static method
   {
-    manager_type manager(metall::open_only, dir_path().c_str());
-    std::string description;
-    ASSERT_TRUE(manager.get_description(&description));
+    manager_type manager(metall::open_only, dir_path());
+    std::string description = manager.get_description();
     ASSERT_STREQ(description.c_str(), "description2");
   }
 }
 
 TEST(ManagerTest, CheckSanity) {
   {
-    auto *manager = new manager_type(metall::create_only, dir_path().c_str());
-    ASSERT_TRUE(manager->check_sanity());
+    manager_type(metall::create_only, dir_path());
   }
 
   {
-    auto *bad_manager =
-        new manager_type(metall::open_only, (dir_path() + "-invalid").c_str());
-    ASSERT_FALSE(bad_manager->check_sanity());
+    ASSERT_ANY_THROW(manager_type(metall::open_only, dir_path() / "invalid"));
   }
 }
 }  // namespace

@@ -210,17 +210,15 @@ TEST(ObjectAttributeAccessorTest, Iterator) {
 }
 
 TEST(ObjectAttributeAccessorTest, Description) {
-  manager::remove(test_utility::make_test_path().c_str());
+  manager::remove(test_utility::make_test_path());
 
   {
-    manager mngr(create_only, test_utility::make_test_path().c_str(),
-                 1ULL << 30ULL);
+    manager mngr(create_only, test_utility::make_test_path(), 1ULL << 30ULL);
   }
 
   {
-    ASSERT_FALSE(attr_accessor_named().set_description("int1", "desc1"));
-    ASSERT_FALSE(attr_accessor_unique().set_description<float>(unique_instance,
-                                                               "desc2"));
+    ASSERT_ANY_THROW(attr_accessor_named().set_description("int1", "desc1"));
+    ASSERT_ANY_THROW(attr_accessor_unique().set_description<float>(unique_instance, "desc2"));
   }
 
   {
@@ -230,22 +228,19 @@ TEST(ObjectAttributeAccessorTest, Description) {
   }
 
   {
-    ASSERT_TRUE(attr_accessor_named().set_description("int1", "desc1"));
-    ASSERT_TRUE(attr_accessor_unique().set_description<float>(unique_instance,
-                                                              "desc2"));
+    attr_accessor_named().set_description("int1", "desc1");
+    attr_accessor_unique().set_description<float>(unique_instance, "desc2");
   }
 
   {
     manager mngr(open_only, test_utility::make_test_path().c_str());
-    std::string buf1;
-    ASSERT_TRUE(
-        mngr.get_instance_description(mngr.find<int>("int1").first, &buf1));
-    ASSERT_STREQ(buf1.c_str(), "desc1");
+    std::optional<std::string> buf1 = mngr.get_instance_description(mngr.find<int>("int1").first);
+    ASSERT_TRUE(buf1.has_value());
+    ASSERT_STREQ(buf1->c_str(), "desc1");
 
-    std::string buf2;
-    ASSERT_TRUE(mngr.get_instance_description(
-        mngr.find<float>(unique_instance).first, &buf2));
-    ASSERT_STREQ(buf2.c_str(), "desc2");
+    auto buf2 = mngr.get_instance_description(mngr.find<float>(unique_instance).first);
+    ASSERT_TRUE(buf2.has_value());
+    ASSERT_STREQ(buf2->c_str(), "desc2");
   }
 }
 }  // namespace

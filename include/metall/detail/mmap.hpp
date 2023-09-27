@@ -23,7 +23,7 @@
 #include <metall/detail/memory.hpp>
 #include <metall/detail/file.hpp>
 #include <metall/detail/utilities.hpp>
-#include <metall/logger.h>
+#include <metall/logger_interface.h>
 
 namespace metall::mtlldetail {
 
@@ -39,40 +39,28 @@ namespace metall::mtlldetail {
 inline void *os_mmap(void *const addr, const size_t length,
                      const int protection, const int flags, const int fd,
                      const off_t offset) {
-  const ssize_t page_size = get_page_size();
-  if (page_size == -1) {
-    return nullptr;
-  }
+  const size_t page_size = get_page_size();
 
-  if ((ptrdiff_t)addr % page_size != 0) {
-    std::stringstream ss;
-    ss << "address (" << addr << ") is not page aligned ("
-       << ::sysconf(_SC_PAGE_SIZE) << ")";
-    METALL_ERROR(ss.str().c_str());
-    return nullptr;
+  if (reinterpret_cast<uintptr_t>(addr) % page_size != 0) {
+    throw std::logic_error{"Provided address is not page aligned"};
   }
 
   if (offset % page_size != 0) {
-    std::stringstream ss;
-    ss << "offset (" << offset << ") is not a multiple of the page size ("
-       << ::sysconf(_SC_PAGE_SIZE) << ")";
-    METALL_ERROR(ss.str().c_str());
-    return nullptr;
+    throw std::logic_error{"Provided offset is not a multiple of the page size"};
   }
 
   // ----- Map the file ----- //
   void *mapped_addr = ::mmap(addr, length, protection, flags, fd, offset);
   if (mapped_addr == MAP_FAILED) {
-    METALL_ERRNO_ERROR("mmap");
-    return nullptr;
+    throw std::system_error{errno, std::system_category(), "mmap"};
   }
 
-  if ((ptrdiff_t)mapped_addr % page_size != 0) {
-    std::stringstream ss;
-    ss << "mapped address (" << mapped_addr << ") is not page aligned ("
-       << ::sysconf(_SC_PAGE_SIZE) << ")";
-    METALL_ERROR(ss.str().c_str());
-    return nullptr;
+  if (reinterpret_cast<uintptr_t>(mapped_addr) % page_size != 0) {
+    if (::munmap(mapped_addr, length) == -1) {
+      METALL_WARN("Could not unmap faulty address: {}", strerror(errno));
+    }
+
+    throw std::runtime_error{"final mapped address is not page aligned"};
   }
 
   return mapped_addr;
@@ -98,24 +86,26 @@ inline void *map_anonymous_write_mode(void *const addr, const size_t length,
 /// \return A pair of the file descriptor of the file and the starting address
 /// for the map
 inline std::pair<int, void *> map_file_read_mode(
-    const std::string &file_name, void *const addr, const size_t length,
+    const std::filesystem::path &file_name, void *const addr, const size_t length,
     const off_t offset, const int additional_flags = 0) {
   // ----- Open the file ----- //
   const int fd = ::open(file_name.c_str(), O_RDONLY);
   if (fd == -1) {
-    METALL_ERRNO_ERROR("open");
-    return std::make_pair(-1, nullptr);
+    throw std::system_error{errno, std::system_category(), "open"};
   }
 
   // ----- Map the file ----- //
-  void *mapped_addr = os_mmap(addr, length, PROT_READ,
-                              MAP_SHARED | additional_flags, fd, offset);
-  if (mapped_addr == nullptr) {
-    close(fd);
-    return std::make_pair(-1, nullptr);
-  }
+  try {
+    void *mapped_addr = os_mmap(addr, length, PROT_READ,
+                                MAP_SHARED | additional_flags, fd, offset);
+    return std::make_pair(fd, mapped_addr);
+  } catch (std::system_error const &e) {
+    if (::close(fd) == -1) {
+      METALL_WARN("Unable to close backing file after unsuccessful mmap: ", strerror(errno));
+    }
 
-  return std::make_pair(fd, mapped_addr);
+    throw e;
+  }
 }
 
 /// \brief Map a file with write mode.
@@ -127,16 +117,9 @@ inline std::pair<int, void *> map_file_read_mode(
 inline void *map_file_write_mode(const int fd, void *const addr,
                                  const size_t length, const off_t offset,
                                  const int additional_flags = 0) {
-  if (fd == -1) return nullptr;
-
   // ----- Map the file ----- //
-  void *mapped_addr = os_mmap(addr, length, PROT_READ | PROT_WRITE,
-                              MAP_SHARED | additional_flags, fd, offset);
-  if (mapped_addr == nullptr) {
-    return nullptr;
-  }
-
-  return mapped_addr;
+  return os_mmap(addr, length, PROT_READ | PROT_WRITE,
+                 MAP_SHARED | additional_flags, fd, offset);
 }
 
 /// \brief Map a file with write mode
@@ -147,24 +130,26 @@ inline void *map_file_write_mode(const int fd, void *const addr,
 /// \return A pair of the file descriptor of the file and the starting address
 /// for the map
 inline std::pair<int, void *> map_file_write_mode(
-    const std::string &file_name, void *const addr, const size_t length,
+    const std::filesystem::path &file_name, void *const addr, const size_t length,
     const off_t offset, const int additional_flags = 0) {
   // ----- Open the file ----- //
   const int fd = ::open(file_name.c_str(), O_RDWR);
   if (fd == -1) {
-    METALL_ERRNO_ERROR("open");
-    return std::make_pair(-1, nullptr);
+    throw std::system_error{errno, std::system_category(), "open"};
   }
 
   // ----- Map the file ----- //
-  void *mapped_addr = os_mmap(addr, length, PROT_READ | PROT_WRITE,
-                              MAP_SHARED | additional_flags, fd, offset);
-  if (mapped_addr == nullptr) {
-    close(fd);
-    return std::make_pair(-1, nullptr);
-  }
+  try {
+    void *mapped_addr = os_mmap(addr, length, PROT_READ | PROT_WRITE,
+                                MAP_SHARED | additional_flags, fd, offset);
+    return std::make_pair(fd, mapped_addr);
+  } catch (std::system_error const &e) {
+    if (::close(fd) == -1) {
+      METALL_WARN("Unable to close backing file after unsuccessful mmap: ", strerror(errno));
+    }
 
-  return std::make_pair(fd, mapped_addr);
+    throw e;
+  }
 }
 
 /// \brief Map a file with write mode and MAP_PRIVATE.
@@ -177,16 +162,9 @@ inline void *map_file_write_private_mode(const int fd, void *const addr,
                                          const size_t length,
                                          const off_t offset,
                                          const int additional_flags = 0) {
-  if (fd == -1) return nullptr;
-
   // ----- Map the file ----- //
-  void *mapped_addr = os_mmap(addr, length, PROT_READ | PROT_WRITE,
-                              MAP_PRIVATE | additional_flags, fd, offset);
-  if (mapped_addr == nullptr) {
-    return nullptr;
-  }
-
-  return mapped_addr;
+  return os_mmap(addr, length, PROT_READ | PROT_WRITE,
+                 MAP_PRIVATE | additional_flags, fd, offset);
 }
 
 /// \brief Map a file with write mode and MAP_PRIVATE
@@ -197,81 +175,81 @@ inline void *map_file_write_private_mode(const int fd, void *const addr,
 /// \return A pair of the file descriptor of the file and the starting address
 /// for the map
 inline std::pair<int, void *> map_file_write_private_mode(
-    const std::string &file_name, void *const addr, const size_t length,
+    const std::filesystem::path &file_name, void *const addr, const size_t length,
     const off_t offset, const int additional_flags = 0) {
   // ----- Open the file ----- //
   const int fd = ::open(file_name.c_str(), O_RDWR);
   if (fd == -1) {
-    METALL_ERRNO_ERROR("open");
-    return std::make_pair(-1, nullptr);
+    throw std::system_error{errno, std::system_category(), "open"};
   }
 
   // ----- Map the file ----- //
-  void *mapped_addr = os_mmap(addr, length, PROT_READ | PROT_WRITE,
-                              MAP_PRIVATE | additional_flags, fd, offset);
-  if (mapped_addr == nullptr) {
-    close(fd);
-    return std::make_pair(-1, nullptr);
-  }
+  try {
+    void *mapped_addr = os_mmap(addr, length, PROT_READ | PROT_WRITE,
+                                MAP_PRIVATE | additional_flags, fd, offset);
+    return std::make_pair(fd, mapped_addr);
+  } catch (std::system_error const &e) {
+    if (::close(fd) == -1) {
+      METALL_WARN("Unable to close backing file after unsuccessful mmap: ", strerror(errno));
+    }
 
-  return std::make_pair(fd, mapped_addr);
+    throw e;
+  }
 }
 
-inline bool os_msync(void *const addr, const size_t length, const bool sync,
+inline void os_msync(void *const addr, const size_t length, const bool sync,
                      const int additional_flags = 0) {
-  if (::msync(addr, length, (sync ? MS_SYNC : MS_ASYNC) | additional_flags) !=
-      0) {
-    METALL_ERRNO_ERROR("msync");
-    return false;
+  if (::msync(addr, length, (sync ? MS_SYNC : MS_ASYNC) | additional_flags) != 0) {
+    throw std::system_error{errno, std::system_category(), "msync"};
   }
-  return true;
 }
 
-inline bool os_munmap(void *const addr, const size_t length) {
+inline void os_munmap(void *const addr, const size_t length) {
   if (::munmap(addr, length) == -1) {
-    METALL_ERRNO_ERROR("munmap");
-    return false;
+    throw std::system_error{errno, std::system_category(), "munmap"};
   }
-  return true;
 }
 
-inline bool munmap(void *const addr, const size_t length,
+inline void munmap(void *const addr, const size_t length,
                    const bool call_msync) {
-  if (call_msync) return os_msync(addr, length, true);
-  return os_munmap(addr, length);
+  if (call_msync)
+    os_msync(addr, length, true);
+
+  os_munmap(addr, length);
 }
 
-inline bool munmap(const int fd, void *const addr, const size_t length,
+inline void munmap(const int fd, void *const addr, const size_t length,
                    const bool call_msync) {
-  bool ret = true;
-  ret &= os_close(fd);
-  ret &= munmap(addr, length, call_msync);
-  return ret;
+
+  try {
+    munmap(addr, length, call_msync);
+  } catch (std::system_error const &e) {
+    os_close(fd);
+    throw e;
+  }
+
+  os_close(fd);
 }
 
-inline bool map_with_prot_none(void *const addr, const size_t length) {
-  return (os_mmap(addr, length, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1,
-                  0) == addr);
+inline void map_with_prot_none(void *const addr, const size_t length) {
+  os_mmap(addr, length, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 }
 
-inline bool os_mprotect(void *const addr, const size_t length, const int prot) {
+inline void os_mprotect(void *const addr, const size_t length, const int prot) {
   if (::mprotect(addr, length, prot) == -1) {
-    METALL_ERRNO_ERROR("mprotect");
-    return false;
+    throw std::system_error{errno, std::system_category(), "mprotect"};
   }
-  return true;
 }
 
-inline bool mprotect_read_only(void *const addr, const size_t length) {
-  return os_mprotect(addr, length, PROT_READ);
+inline void mprotect_read_only(void *const addr, const size_t length) {
+  os_mprotect(addr, length, PROT_READ);
 }
 
-inline bool mprotect_read_write(void *const addr, const size_t length) {
-  return os_mprotect(addr, length, PROT_READ | PROT_WRITE);
+inline void mprotect_read_write(void *const addr, const size_t length) {
+  os_mprotect(addr, length, PROT_READ | PROT_WRITE);
 }
 
-// Does not log message because there are many situation where madvise fails
-inline bool os_madvise(void *const addr, const size_t length, const int advice,
+inline void os_madvise(void *const addr, const size_t length, const int advice,
                        const std::size_t loop_safe_guard = 4) {
   int ret = -1;
   std::size_t loop_count = 0;
@@ -280,57 +258,40 @@ inline bool os_madvise(void *const addr, const size_t length, const int advice,
     ++loop_count;
   } while (ret == -1 && errno == EAGAIN && loop_count < loop_safe_guard);
 
-  return (ret == 0);
+  if (ret != 0) {
+    // Only logging to debug because there are many situation where madvise fails
+    METALL_DEBUG("madvice failed: ", strerror(errno));
+  }
 }
 
 // NOTE: the MADV_FREE operation can be applied only to private anonymous pages.
-inline bool uncommit_private_anonymous_pages(void *const addr,
+inline void uncommit_private_anonymous_pages(void *const addr,
                                              const size_t length) {
 #ifdef MADV_FREE
-  if (!os_madvise(addr, length, MADV_FREE)) {
-    METALL_ERRNO_INFO("madvise MADV_FREE");
-    return false;
-  }
+  os_madvise(addr, length, MADV_FREE);
 #else
 #ifdef METALL_VERBOSE_SYSTEM_SUPPORT_WARNING
 #warning "MADV_FREE is not defined. Metall uses MADV_DONTNEED instead."
 #endif
-  if (!os_madvise(addr, length, MADV_DONTNEED)) {
-    METALL_ERRNO_INFO("madvise MADV_DONTNEED");
-    return false;
-  }
+  os_madvise(addr, length, MADV_DONTNEED);
 #endif
-  return true;
 }
 
-inline bool uncommit_private_nonanonymous_pages(void *const addr,
+inline void uncommit_private_nonanonymous_pages(void *const addr,
                                                 const size_t length) {
-  if (!os_madvise(addr, length, MADV_DONTNEED)) {
-    METALL_ERRNO_INFO("madvise MADV_DONTNEED");
-    return false;
-  }
-
-  return true;
+  os_madvise(addr, length, MADV_DONTNEED);
 }
 
-inline bool uncommit_shared_pages(void *const addr, const size_t length) {
-  if (!os_madvise(addr, length, MADV_DONTNEED)) {
-    METALL_ERRNO_INFO("madvise MADV_DONTNEED");
-    return false;
-  }
-  return true;
+inline void uncommit_shared_pages(void *const addr, const size_t length) {
+  os_madvise(addr, length, MADV_DONTNEED);
 }
 
-inline bool uncommit_shared_pages_and_free_file_space(
+inline void uncommit_shared_pages_and_free_file_space(
     [[maybe_unused]] void *const addr, [[maybe_unused]] const size_t length) {
 #ifdef MADV_REMOVE
-  if (!os_madvise(addr, length, MADV_REMOVE)) {
-    METALL_ERRNO_INFO("madvise MADV_REMOVE");
-    return uncommit_shared_pages(addr, length);
-  }
-  return true;
+  os_madvise(addr, length, MADV_REMOVE);
 #else
-  return false;
+  METALL_TRACE("cannot uncommit_shared_pages_and_free_file_space because MADV_REMOVE is not defined");
 #endif
 }
 
@@ -339,9 +300,7 @@ inline bool uncommit_shared_pages_and_free_file_space(
 /// \return The address of the reserved region
 inline void *reserve_vm_region(const size_t length) {
   /// MEMO: MAP_SHARED doesn't work at least when try to reserve a large size??
-  void *mapped_addr =
-      os_mmap(nullptr, length, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-  return mapped_addr;
+  return os_mmap(nullptr, length, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 }
 
 /// \brief Reserve an aligned VM region
@@ -350,70 +309,58 @@ inline void *reserve_vm_region(const size_t length) {
 /// of the reserved region
 inline void *reserve_aligned_vm_region(const size_t alignment,
                                        const size_t length) {
-  const ssize_t page_size = get_page_size();
-  if (page_size == -1) {
-    return nullptr;
-  }
+  const size_t page_size = get_page_size();
 
   if (alignment % page_size != 0) {
-    std::stringstream ss;
-    ss << "alignment (" << alignment << ") is not a multiple of the page size ("
-       << ::sysconf(_SC_PAGE_SIZE) << ")";
-    METALL_ERROR(ss.str().c_str());
-    return nullptr;
+    throw std::logic_error{"Provided alignment is not a multiple of the page size"};
   }
 
   if (length % alignment != 0) {
-    std::stringstream ss;
-    ss << "length (" << length << ") is not a multiple of alignment ("
-       << ::sysconf(_SC_PAGE_SIZE) << ")";
-    METALL_ERROR(ss.str().c_str());
-    return nullptr;
+    throw std::logic_error{"Provided length is not a multiple of the alignment"};
   }
 
   void *const map_addr = os_mmap(nullptr, length + alignment, PROT_NONE,
                                  MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
   void *const aligned_map_addr = reinterpret_cast<void *>(
-      round_up(reinterpret_cast<size_t>(map_addr), alignment));
+      round_up(reinterpret_cast<uintptr_t>(map_addr), static_cast<uintptr_t>(alignment)));
 
   // Trim the head
-  const size_t surplus_head_length =
-      reinterpret_cast<size_t>(aligned_map_addr) -
-      reinterpret_cast<size_t>(map_addr);
+  const auto surplus_head_length = static_cast<size_t>(reinterpret_cast<uintptr_t>(aligned_map_addr)
+                                                       - reinterpret_cast<uintptr_t>(map_addr));
   assert(surplus_head_length % page_size == 0);
   // assert(alignment <= surplus_head_length);
-  if (surplus_head_length > 0 && !os_munmap(map_addr, surplus_head_length)) {
-    return nullptr;
+  if (surplus_head_length > 0) {
+    os_munmap(map_addr, surplus_head_length);
   }
 
   // Trim the tail
   const size_t surplus_tail_length = alignment - surplus_head_length;
   assert(surplus_tail_length % page_size == 0);
-  if (surplus_tail_length > 0 &&
-      !os_munmap(reinterpret_cast<char *>(aligned_map_addr) + length,
-                 surplus_tail_length)) {
-    return nullptr;
+  if (surplus_tail_length > 0) {
+    os_munmap(reinterpret_cast<char *>(aligned_map_addr) + length, surplus_tail_length);
   }
 
   // The final check, just in case
-  assert(reinterpret_cast<uint64_t>(aligned_map_addr) % alignment == 0);
+  assert(reinterpret_cast<uintptr_t>(aligned_map_addr) % alignment == 0);
 
   return aligned_map_addr;
 }
 
 class pagemap_reader {
- public:
-  static constexpr uint64_t error_value = static_cast<uint64_t>(-1);
-
   pagemap_reader() : m_fd(-1) {
     m_fd = ::open("/proc/self/pagemap", O_RDONLY);
     if (m_fd < 0) {
-      METALL_ERROR("Cannot open /proc/self/pagemap\n");
-      METALL_ERRNO_ERROR("open");
+      throw std::system_error{errno, std::system_category(), "open"};
     }
   }
 
-  ~pagemap_reader() { os_close(m_fd); }
+  ~pagemap_reader() {
+    try {
+      os_close(m_fd);
+    } catch (std::system_error const &e) {
+      METALL_WARN("Unable to close /proc/self/pagemap: {}", e.what());
+    }
+  }
 
   // Bits 0-54  page frame number (PFN) if present
   // Bits 0-4   swap type if swapped
@@ -424,21 +371,14 @@ class pagemap_reader {
   // Bit  61    page is file-page or shared-anon (since 3.5)
   // Bit  62    page swapped
   // Bit  63    page present
-  uint64_t at(const uint64_t page_no) {
-    if (m_fd < 0) {
-      return error_value;
-    }
-
+  [[nodiscard]] uint64_t at(const uint64_t page_no) const {
     uint64_t buf;
     if (::pread(m_fd, &buf, sizeof(buf), page_no * sizeof(uint64_t)) == -1) {
-      METALL_ERRNO_ERROR("pread");
-      return error_value;
+      throw std::system_error{errno, std::system_category(), "pread"};
     }
 
-    if (buf &
-        0x1E00000000000000ULL) {  // Sanity check; 57-60 bits are must be 0.
-      METALL_ERROR("57-60 bits of the pagemap are not 0\n");
-      return error_value;
+    if (buf & 0x1E00000000000000ULL) {  // Sanity check; 57-60 bits are must be 0.
+      throw std::runtime_error{"57-60 bits of the pagemap are not 0"};
     }
 
     return buf;

@@ -22,7 +22,7 @@
 #include <metall/kernel/object_size_manager.hpp>
 #include <metall/detail/char_ptr_holder.hpp>
 #include <metall/detail/utilities.hpp>
-#include <metall/logger.h>
+#include <metall/logger_interface.h>
 
 #define ENABLE_MUTEX_IN_METALL_SEGMENT_ALLOCATOR 1
 #if ENABLE_MUTEX_IN_METALL_SEGMENT_ALLOCATOR
@@ -244,43 +244,27 @@ class segment_allocator {
   /// \brief
   /// \param base_path
   /// \return
-  bool serialize(const std::string &base_path) {
+  void serialize(const std::filesystem::path &base_path) {
 #ifndef METALL_DISABLE_OBJECT_CACHE
     priv_clear_object_cache();
 #endif
 
-    if (!m_non_full_chunk_bin.serialize(
-            priv_make_file_name(base_path, k_non_full_chunk_bin_file_name)
-                .c_str())) {
-      METALL_ERROR("Failed to serialize bin directory");
-      return false;
-    }
-    if (!m_chunk_directory.serialize(
-            priv_make_file_name(base_path, k_chunk_directory_file_name)
-                .c_str())) {
-      METALL_ERROR("Failed to serialize chunk directory");
-      return false;
-    }
-    return true;
+    m_non_full_chunk_bin.serialize(
+        priv_make_file_name(base_path, k_non_full_chunk_bin_file_name));
+
+    m_chunk_directory.serialize(
+        priv_make_file_name(base_path, k_chunk_directory_file_name));
   }
 
   /// \brief
   /// \param base_path
   /// \return
-  bool deserialize(const std::string &base_path) {
-    if (!m_non_full_chunk_bin.deserialize(
-            priv_make_file_name(base_path, k_non_full_chunk_bin_file_name)
-                .c_str())) {
-      METALL_ERROR("Failed to deserialize bin directory");
-      return false;
-    }
-    if (!m_chunk_directory.deserialize(
-            priv_make_file_name(base_path, k_chunk_directory_file_name)
-                .c_str())) {
-      METALL_ERROR("Failed to deserialize chunk directory");
-      return false;
-    }
-    return true;
+  void deserialize(const std::filesystem::path &base_path) {
+    m_non_full_chunk_bin.deserialize(
+        priv_make_file_name(base_path, k_non_full_chunk_bin_file_name));
+
+    m_chunk_directory.deserialize(
+        priv_make_file_name(base_path, k_chunk_directory_file_name));
   }
 
   /// \brief
@@ -399,9 +383,8 @@ class segment_allocator {
       const bin_no_type bin_no) {
     const size_type object_size = bin_no_mngr::to_object_size(bin_no);
 
-    if (m_non_full_chunk_bin.empty(bin_no) &&
-        !priv_insert_new_small_object_chunk(bin_no)) {
-      return k_null_offset;
+    if (m_non_full_chunk_bin.empty(bin_no)) {
+      priv_insert_new_small_object_chunk(bin_no);
     }
 
     assert(!m_non_full_chunk_bin.empty(bin_no));
@@ -430,9 +413,12 @@ class segment_allocator {
 
     std::size_t cnt_allocations = 0;
     while (cnt_allocations < num_requested_allocates) {
-      if (m_non_full_chunk_bin.empty(bin_no) &&
-          !priv_insert_new_small_object_chunk(bin_no)) {
-        return;
+      if (m_non_full_chunk_bin.empty(bin_no)) {
+        try {
+          priv_insert_new_small_object_chunk(bin_no);
+        } catch (...) {
+          return;
+        }
       }
 
       assert(!m_non_full_chunk_bin.empty(bin_no));
@@ -464,17 +450,15 @@ class segment_allocator {
     assert(cnt_allocations == num_requested_allocates);
   }
 
-  bool priv_insert_new_small_object_chunk(const bin_no_type bin_no) {
+  void priv_insert_new_small_object_chunk(const bin_no_type bin_no) {
     chunk_no_type new_chunk_no;
 #if ENABLE_MUTEX_IN_METALL_SEGMENT_ALLOCATOR
     lock_guard_type chunk_guard(*m_chunk_mutex);
 #endif
     new_chunk_no = m_chunk_directory.insert(bin_no);
-    if (!priv_extend_segment_without_lock(new_chunk_no, 1)) {
-      return false;
-    }
+
+    priv_extend_segment_without_lock(new_chunk_no, 1);
     m_non_full_chunk_bin.insert(bin_no, new_chunk_no);
-    return true;
   }
 
   difference_type priv_allocate_large_object(const bin_no_type bin_no) {
@@ -484,33 +468,31 @@ class segment_allocator {
     const chunk_no_type new_chunk_no = m_chunk_directory.insert(bin_no);
     const size_type num_chunks =
         (bin_no_mngr::to_object_size(bin_no) + k_chunk_size - 1) / k_chunk_size;
-    if (!priv_extend_segment_without_lock(new_chunk_no, num_chunks)) {
+
+    try {
+      priv_extend_segment_without_lock(new_chunk_no, num_chunks);
+    } catch (std::exception const &e) {
       // Failed to extend the segment (fatal error)
       // Do clean up just in case and return k_null_offset
+
+      METALL_ERROR("Failed to extend the segment: {}", e.what());
       m_chunk_directory.erase(new_chunk_no);
-      return k_null_offset;
+      throw std::bad_alloc{};
     }
+
     const difference_type offset = k_chunk_size * new_chunk_no;
     return offset;
   }
 
-  bool priv_extend_segment_without_lock(const chunk_no_type head_chunk_no,
+  void priv_extend_segment_without_lock(const chunk_no_type head_chunk_no,
                                         const size_type num_chunks) {
     const size_type required_segment_size =
         (head_chunk_no + num_chunks) * k_chunk_size;
     if (required_segment_size <= m_segment_storage->size()) {
-      return true;  // Has an enough segment size already
+      return;  // Has an enough segment size already
     }
 
-    if (!m_segment_storage->extend(required_segment_size)) {
-      std::stringstream ss;
-      ss << "Failed to extend the segment to " << required_segment_size
-         << " bytes";
-      METALL_ERROR(ss.str().c_str());
-      return false;
-    }
-
-    return true;
+    m_segment_storage->extend(required_segment_size);
   }
 
   // ---------- For deallocation ---------- //

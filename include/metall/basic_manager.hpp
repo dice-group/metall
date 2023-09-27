@@ -116,53 +116,29 @@ class basic_manager {
 
   /// \brief Opens an existing data store.
   /// \param base_path Path to a data store.
-  basic_manager(open_only_t, const char *base_path) noexcept {
-    try {
-      m_kernel = std::make_unique<manager_kernel_type>();
-      m_kernel->open(base_path);
-    } catch (...) {
-      m_kernel.reset(nullptr);
-      METALL_ERROR("An exception has been thrown");
-    }
+  basic_manager(open_only_t, std::filesystem::path const &base_path) : m_kernel{std::make_unique<manager_kernel_type>()} {
+    m_kernel->open(base_path);
   }
 
   /// \brief Opens an existing data store with the read only mode.
   /// Write accesses will cause segmentation fault.
   /// \param base_path Path to a data store.
-  basic_manager(open_read_only_t, const char *base_path) noexcept {
-    try {
-      m_kernel = std::make_unique<manager_kernel_type>();
-      m_kernel->open_read_only(base_path);
-    } catch (...) {
-      m_kernel.reset(nullptr);
-      METALL_ERROR("An exception has been thrown");
-    }
+  basic_manager(open_read_only_t, std::filesystem::path const &base_path) : m_kernel{std::make_unique<manager_kernel_type>()} {
+    m_kernel->open_read_only(base_path);
   }
 
   /// \brief Creates a new data store (an existing data store will be
   /// overwritten). \param base_path Path to create a data store.
-  basic_manager(create_only_t, const char *base_path) noexcept {
-    try {
-      m_kernel = std::make_unique<manager_kernel_type>();
-      m_kernel->create(base_path);
-    } catch (...) {
-      m_kernel.reset(nullptr);
-      METALL_ERROR("An exception has been thrown");
-    }
+  basic_manager(create_only_t, std::filesystem::path const &base_path) : m_kernel{std::make_unique<manager_kernel_type>()} {
+    m_kernel->create(base_path);
   }
 
   /// \brief Creates a new data store (an existing data store will be
   /// overwritten). \param base_path Path to create a data store. \param
   /// capacity Maximum total allocation size.
-  basic_manager(create_only_t, const char *base_path,
-                const size_type capacity) noexcept {
-    try {
-      m_kernel = std::make_unique<manager_kernel_type>();
-      m_kernel->create(base_path, capacity);
-    } catch (...) {
-      m_kernel.reset(nullptr);
-      METALL_ERROR("An exception has been thrown");
-    }
+  basic_manager(create_only_t, std::filesystem::path const &base_path,
+                const size_type capacity) : m_kernel{std::make_unique<manager_kernel_type>()} {
+    m_kernel->create(base_path, capacity);
   }
 
   /// \brief Deleted.
@@ -360,18 +336,8 @@ class basic_manager {
   /// \return Returns a pointer to the object and the count (if it is not an
   /// array, returns 1). If not present, nullptr is returned.
   template <typename T>
-  std::pair<T *, size_type> find(char_ptr_holder_type name) const noexcept {
-    if (!check_sanity()) {
-      return std::make_pair(nullptr, 0);
-    }
-
-    try {
-      return m_kernel->template find<T>(name);
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-
-    return std::make_pair(nullptr, 0);
+  std::pair<T *, size_type> find(char_ptr_holder_type name) const {
+    return m_kernel->template find<T>(name);
   }
 
   /// \brief Destroys a previously created object.
@@ -398,11 +364,8 @@ class basic_manager {
   /// \param name The name of the object.
   /// \return Returns false if the object was not destroyed.
   template <typename T>
-  bool destroy(const char *name) {
-    if (!check_sanity()) {
-      return false;
-    }
-    return m_kernel->template destroy<T>(name);
+  void destroy(char const *name) {
+    m_kernel->template destroy<T>(name);
   }
 
   /// \brief Destroys a unique object of type T.
@@ -428,11 +391,8 @@ class basic_manager {
   /// \tparam T The type of the object.
   /// \return Returns false if the object was not destroyed.
   template <typename T>
-  bool destroy(const metall::mtlldetail::unique_instance_t *const) {
-    if (!check_sanity()) {
-      return false;
-    }
-    return m_kernel->template destroy<T>(metall::unique_instance);
+  void destroy(const metall::mtlldetail::unique_instance_t *const) {
+    m_kernel->template destroy<T>(metall::unique_instance);
   }
 
   /// \brief Destroys a object (named, unique, or anonymous) by its address.
@@ -463,11 +423,8 @@ class basic_manager {
   /// Note that the original API developed by Boost.Interprocess library does
   /// not return value.
   template <class T>
-  bool destroy_ptr(const T *ptr) {
-    if (!check_sanity()) {
-      return false;
-    }
-    return m_kernel->template destroy_ptr<T>(ptr);
+  void destroy_ptr(const T *ptr) {
+    m_kernel->template destroy_ptr<T>(ptr);
   }
 
   /// \brief Returns the name of an object created with
@@ -488,16 +445,8 @@ class basic_manager {
   /// If ptr points to an anonymous instance or memory not allocated by
   /// construct/find_or_construct functions, nullptr is returned.
   template <class T>
-  const char_type *get_instance_name(const T *ptr) const noexcept {
-    if (!check_sanity()) {
-      return nullptr;
-    }
-    try {
-      return m_kernel->get_instance_name(ptr);
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return nullptr;
+  const char_type *get_instance_name(const T *ptr) const {
+    return m_kernel->get_instance_name(ptr);
   }
 
   /// \brief Returns the kind of an object created with
@@ -515,16 +464,8 @@ class basic_manager {
   /// \param ptr A pointer to the object.
   /// \return The type of the object.
   template <class T>
-  instance_kind get_instance_kind(const T *ptr) const noexcept {
-    if (!check_sanity()) {
-      return instance_kind();
-    }
-    try {
-      return m_kernel->get_instance_kind(ptr);
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return instance_kind();
+  instance_kind get_instance_kind(const T *ptr) const {
+    return m_kernel->get_instance_kind(ptr);
   }
 
   /// \brief Returns the length of an object created with
@@ -543,16 +484,8 @@ class basic_manager {
   /// \param ptr A pointer to the object.
   /// \return The type of the object.
   template <class T>
-  size_type get_instance_length(const T *ptr) const noexcept {
-    if (!check_sanity()) {
-      return 0;
-    }
-    try {
-      return m_kernel->get_instance_length(ptr);
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return 0;
+  size_type get_instance_length(const T *ptr) const {
+    return m_kernel->get_instance_length(ptr);
   }
 
   /// \brief Checks if the type of an object, which was created with
@@ -569,16 +502,8 @@ class basic_manager {
   /// \param ptr A pointer to the object.
   /// \return Returns true if T is correct; otherwise false.
   template <class T>
-  bool is_instance_type(const void *const ptr) const noexcept {
-    if (!check_sanity()) {
-      return false;
-    }
-    try {
-      return m_kernel->template is_instance_type<T>(ptr);
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return false;
+  bool is_instance_type(const void *const ptr) const {
+    return m_kernel->template is_instance_type<T>(ptr);
   }
 
   /// \brief Gets the description of an object created with
@@ -597,17 +522,8 @@ class basic_manager {
   /// \param description A pointer to a string buffer.
   /// \return Returns false on error.
   template <class T>
-  bool get_instance_description(const T *ptr,
-                                std::string *description) const noexcept {
-    if (!check_sanity()) {
-      return false;
-    }
-    try {
-      return m_kernel->get_instance_description(ptr, description);
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return false;
+  std::optional<std::string> get_instance_description(const T *ptr) const {
+    return m_kernel->get_instance_description(ptr);
   }
 
   /// \brief Sets a description to an object created with
@@ -626,18 +542,9 @@ class basic_manager {
   /// \param description A description to set.
   /// \return Returns false on error.
   template <class T>
-  bool set_instance_description(const T *ptr,
-                                const std::string &description) noexcept {
-    if (!check_sanity()) {
-      return false;
-    }
-    try {
-      return m_kernel->set_instance_description(ptr, description);
-    } catch (...) {
-      m_kernel.reset(nullptr);
-      METALL_ERROR("An exception has been thrown");
-    }
-    return false;
+  void set_instance_description(const T *ptr,
+                                const std::string &description) {
+    m_kernel->set_instance_description(ptr, description);
   }
 
   /// \brief Returns Returns the number of named objects stored in the managed
@@ -649,16 +556,8 @@ class basic_manager {
   /// \copydoc doc_object_attrb_obj_family
   ///
   /// \return The number of named objects stored in the managed segment.
-  size_type get_num_named_objects() const noexcept {
-    if (!check_sanity()) {
-      return 0;
-    }
-    try {
-      return m_kernel->get_num_named_objects();
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return 0;
+  size_type get_num_named_objects() const {
+    return m_kernel->get_num_named_objects();
   }
 
   /// \brief Returns Returns the number of unique objects stored in the managed
@@ -667,16 +566,8 @@ class basic_manager {
   /// \copydoc doc_object_attrb_obj_const_thread_safe
   ///
   /// \return The number of unique objects stored in the managed segment.
-  size_type get_num_unique_objects() const noexcept {
-    if (!check_sanity()) {
-      return 0;
-    }
-    try {
-      return m_kernel->get_num_unique_objects();
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return 0;
+  size_type get_num_unique_objects() const {
+    return m_kernel->get_num_unique_objects();
   }
 
   /// \brief Returns Returns the number of anonymous objects (objects
@@ -685,16 +576,8 @@ class basic_manager {
   /// \copydoc doc_object_attrb_obj_const_thread_safe
   ///
   /// \return The number of anonymous objects stored in the managed segment.
-  size_type get_num_anonymous_objects() const noexcept {
-    if (!check_sanity()) {
-      return 0;
-    }
-    try {
-      return m_kernel->get_num_anonymous_objects();
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return 0;
+  size_type get_num_anonymous_objects() const {
+    return m_kernel->get_num_anonymous_objects();
   }
 
   /// \brief Returns a constant iterator to the index storing the named objects.
@@ -702,16 +585,8 @@ class basic_manager {
   /// \copydoc doc_object_attrb_obj_const_thread_safe
   ///
   /// \return A constant iterator to the index storing the named objects.
-  const_named_iterator named_begin() const noexcept {
-    if (!check_sanity()) {
-      return const_named_iterator();
-    }
-    try {
-      return m_kernel->named_begin();
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return const_named_iterator();
+  const_named_iterator named_begin() const {
+    return m_kernel->named_begin();
   }
 
   /// \brief Returns a constant iterator to the end of the index storing the
@@ -720,16 +595,8 @@ class basic_manager {
   /// \copydoc doc_object_attrb_obj_const_thread_safe
   ///
   /// \return A constant iterator.
-  const_named_iterator named_end() const noexcept {
-    if (!check_sanity()) {
-      return const_named_iterator();
-    }
-    try {
-      return m_kernel->named_end();
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return const_named_iterator();
+  const_named_iterator named_end() const {
+    return m_kernel->named_end();
   }
 
   /// \brief Returns a constant iterator to the index storing the unique
@@ -738,16 +605,8 @@ class basic_manager {
   /// \copydoc doc_object_attrb_obj_const_thread_safe
   ///
   /// \return A constant iterator to the index storing the unique objects.
-  const_unique_iterator unique_begin() const noexcept {
-    if (!check_sanity()) {
-      return const_unique_iterator();
-    }
-    try {
-      return m_kernel->unique_begin();
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return const_unique_iterator();
+  const_unique_iterator unique_begin() const {
+    return m_kernel->unique_begin();
   }
 
   /// \brief Returns a constant iterator to the end of the index
@@ -756,16 +615,8 @@ class basic_manager {
   /// \copydoc doc_object_attrb_obj_const_thread_safe
   ///
   /// \return A constant iterator.
-  const_unique_iterator unique_end() const noexcept {
-    if (!check_sanity()) {
-      return const_unique_iterator();
-    }
-    try {
-      return m_kernel->unique_end();
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return const_unique_iterator();
+  const_unique_iterator unique_end() const {
+    return m_kernel->unique_end();
   }
 
   /// \brief Returns a constant iterator to the index storing the anonymous
@@ -774,16 +625,8 @@ class basic_manager {
   ///
   /// \return A constant iterator to the index storing the anonymous
   /// objects.
-  const_anonymous_iterator anonymous_begin() const noexcept {
-    if (!check_sanity()) {
-      return const_anonymous_iterator();
-    }
-    try {
-      return m_kernel->anonymous_begin();
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return const_anonymous_iterator();
+  const_anonymous_iterator anonymous_begin() const {
+    return m_kernel->anonymous_begin();
   }
 
   /// \brief Returns a constant iterator to the end of the index
@@ -791,16 +634,8 @@ class basic_manager {
   /// \copydoc doc_object_attrb_obj_const_thread_safe
   ///
   /// \return A constant iterator.
-  const_anonymous_iterator anonymous_end() const noexcept {
-    if (!check_sanity()) {
-      return const_anonymous_iterator();
-    }
-    try {
-      return m_kernel->anonymous_end();
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return const_anonymous_iterator();
+  const_anonymous_iterator anonymous_end() const {
+    return m_kernel->anonymous_end();
   }
 
   // TODO: implement
@@ -813,17 +648,8 @@ class basic_manager {
   ///
   /// \param nbytes Number of bytes to allocate.
   /// \return Returns a pointer to the allocated memory.
-  void *allocate(size_type nbytes) noexcept {
-    if (!check_sanity()) {
-      return nullptr;
-    }
-    try {
-      return m_kernel->allocate(nbytes);
-    } catch (...) {
-      m_kernel.reset(nullptr);
-      METALL_ERROR("An exception has been thrown");
-    }
-    return nullptr;
+  void *allocate(size_type nbytes) {
+    return m_kernel->allocate(nbytes);
   }
 
   /// \brief Allocates nbytes bytes. The address of the allocated memory will be
@@ -834,17 +660,8 @@ class basic_manager {
   /// be a multiple alignment. \param alignment Alignment size. Alignment must
   /// be a power of two and satisfy [min allocation size, chunk size]. \return
   /// Returns a pointer to the allocated memory.
-  void *allocate_aligned(size_type nbytes, size_type alignment) noexcept {
-    if (!check_sanity()) {
-      return nullptr;
-    }
-    try {
-      return m_kernel->allocate_aligned(nbytes, alignment);
-    } catch (...) {
-      m_kernel.reset(nullptr);
-      METALL_ERROR("An exception has been thrown");
-    }
-    return nullptr;
+  void *allocate_aligned(size_type nbytes, size_type alignment) {;
+    return m_kernel->allocate_aligned(nbytes, alignment);
   }
 
   // void allocate_many(const std::nothrow_t &tag, size_type elem_bytes,
@@ -855,14 +672,10 @@ class basic_manager {
   ///
   /// \param addr A pointer to the allocated memory to be deallocated.
   void deallocate(void *addr) noexcept {
-    if (!check_sanity()) {
-      return;
-    }
     try {
       return m_kernel->deallocate(addr);
-    } catch (...) {
-      m_kernel.reset(nullptr);
-      METALL_ERROR("An exception has been thrown");
+    } catch (std::exception const &e) {
+      METALL_ERROR("Exception thrown while deallocating: {}", e.what());
     }
   }
 
@@ -876,14 +689,10 @@ class basic_manager {
   /// \return Returns
   /// true if all allocated memory has been deallocated; otherwise, false.
   bool all_memory_deallocated() const noexcept {
-    if (!check_sanity()) {
-      return false;
-    }
-
     try {
       return m_kernel->all_memory_deallocated();
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
+    } catch (std::exception const &e) {
+      METALL_ERROR("Exception thrown while testing for memory allocations: {}", e.what());
     }
     return false;
   }
@@ -894,16 +703,8 @@ class basic_manager {
   ///
   /// \param synchronous If true, performs synchronous operation;
   /// otherwise, performs asynchronous operation.
-  void flush(const bool synchronous = true) noexcept {
-    if (!check_sanity()) {
-      return;
-    }
-    try {
-      m_kernel->flush(synchronous);
-    } catch (...) {
-      m_kernel.reset(nullptr);
-      METALL_ERROR("An exception has been thrown");
-    }
+  void flush(const bool synchronous = true) {
+    m_kernel->flush(synchronous);
   }
 
   // -------- Snapshot, copy, data store management -------- //
@@ -915,19 +716,11 @@ class basic_manager {
   /// if it is available. \param num_max_copy_threads The maximum number of copy
   /// threads to use. If <= 0 is given, the value is automatically determined.
   /// \return Returns true on success; other false.
-  bool snapshot(const char_type *destination_dir_path, const bool clone = true,
-                const int num_max_copy_threads = 0) noexcept {
-    if (!check_sanity()) {
-      return false;
-    }
-    try {
-      return m_kernel->snapshot(destination_dir_path, clone,
-                                num_max_copy_threads);
-    } catch (...) {
-      m_kernel.reset(nullptr);
-      METALL_ERROR("An exception has been thrown");
-    }
-    return false;
+  void snapshot(std::filesystem::path const &destination_dir_path,
+                const bool clone = true,
+                const int num_max_copy_threads = 0) {
+    m_kernel->snapshot(destination_dir_path, clone,
+                       num_max_copy_threads);
   }
 
   /// \brief Copies data store synchronously.
@@ -942,17 +735,12 @@ class basic_manager {
   /// \param num_max_copy_threads The maximum number of copy threads to use.
   /// If <= 0 is given, the value is automatically determined.
   /// \return If succeeded, returns true; other false.
-  static bool copy(const char_type *source_dir_path,
-                   const char_type *destination_dir_path,
+  static void copy(std::filesystem::path const &source_dir_path,
+                   std::filesystem::path const &destination_dir_path,
                    const bool clone = true,
                    const int num_max_copy_threads = 0) noexcept {
-    try {
-      return manager_kernel_type::copy(source_dir_path, destination_dir_path,
-                                       clone, num_max_copy_threads);
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return false;
+    manager_kernel_type::copy(source_dir_path, destination_dir_path,
+                              clone, num_max_copy_threads);
   }
 
   /// \brief Copies data store asynchronously.
@@ -968,17 +756,12 @@ class basic_manager {
   /// If <= 0 is given, the value is automatically determined.
   /// \return Returns an object of std::future.
   /// If succeeded, its get() returns true; other false.
-  static auto copy_async(const char_type *source_dir_path,
-                         const char_type *destination_dir_path,
-                         const bool clone = true,
-                         const int num_max_copy_threads = 0) noexcept {
-    try {
-      return manager_kernel_type::copy_async(
-          source_dir_path, destination_dir_path, clone, num_max_copy_threads);
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return std::future<bool>();
+  static std::future<void> copy_async(std::filesystem::path const &source_dir_path,
+                                      std::filesystem::path const &destination_dir_path,
+                                      const bool clone = true,
+                                      const int num_max_copy_threads = 0) {
+    return manager_kernel_type::copy_async(
+        source_dir_path, destination_dir_path, clone, num_max_copy_threads);
   }
 
   /// \brief Removes data store synchronously.
@@ -987,13 +770,8 @@ class basic_manager {
   ///
   /// \param dir_path Path to a data store to remove. \return If
   /// succeeded, returns true; other false.
-  static bool remove(const char_type *dir_path) noexcept {
-    try {
-      return manager_kernel_type::remove(dir_path);
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return false;
+  static void remove(std::filesystem::path const &dir_path) {
+    manager_kernel_type::remove(dir_path);
   }
 
   /// \brief Remove data store asynchronously.
@@ -1003,13 +781,8 @@ class basic_manager {
   /// \param dir_path Path to a data store to remove.
   /// \return Returns an object of std::future.
   /// If succeeded, its get() returns true; other false
-  static std::future<bool> remove_async(const char_type *dir_path) noexcept {
-    try {
-      return std::async(std::launch::async, remove, dir_path);
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return std::future<bool>();
+  static std::future<void> remove_async(const char_type *dir_path) {
+    return std::async(std::launch::async, remove, dir_path);
   }
 
   /// \brief Check if a data store exists and is consistent (i.e., it was closed
@@ -1024,11 +797,11 @@ class basic_manager {
   /// \param dir_path Path to a data store.
   /// \return Returns true if it exists and is consistent; otherwise, returns
   /// false.
-  static bool consistent(const char_type *dir_path) noexcept {
+  static bool consistent(std::filesystem::path const &dir_path) noexcept {
     try {
       return manager_kernel_type::consistent(dir_path);
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
+    } catch (std::exception const &e) {
+      METALL_ERROR("Exception while checking consistency: {}", e.what());
     }
     return false;
   }
@@ -1037,16 +810,8 @@ class basic_manager {
   /// \copydoc doc_thread_safe
   ///
   /// \return UUID in the std::string format; returns an empty string on error.
-  std::string get_uuid() const noexcept {
-    if (!check_sanity()) {
-      return std::string();
-    }
-    try {
-      return m_kernel->get_uuid();
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return std::string();
+  [[nodiscard]] std::string get_uuid() const {
+    return m_kernel->get_uuid();
   }
 
   /// \brief Returns a UUID of the data store.
@@ -1054,29 +819,16 @@ class basic_manager {
   ///
   /// \param dir_path Path to a data store.
   /// \return UUID in the std::string format; returns an empty string on error.
-  static std::string get_uuid(const char_type *dir_path) noexcept {
-    try {
-      return manager_kernel_type::get_uuid(dir_path);
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return std::string();
+  static std::string get_uuid(std::filesystem::path const &dir_path) {
+    return manager_kernel_type::get_uuid(dir_path);
   }
 
   /// \brief Gets the version of the Metall that created the backing data store.
   /// \copydoc doc_thread_safe
   ///
   /// \return Returns a version number; returns 0 on error.
-  version_type get_version() const noexcept {
-    if (!check_sanity()) {
-      return version_type();
-    }
-    try {
-      return m_kernel->get_version();
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return version_type();
+  version_type get_version() const {
+    return m_kernel->get_version();
   }
 
   /// \brief Gets the version of the Metall that created the backing data store.
@@ -1084,13 +836,8 @@ class basic_manager {
   ///
   /// \param dir_path Path to a data store.
   /// \return Returns a version number; returns 0 on error.
-  static version_type get_version(const char_type *dir_path) noexcept {
-    try {
-      return manager_kernel_type::get_version(dir_path);
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-      return version_type();
-    }
+  static version_type get_version(const char_type *dir_path) {
+    return manager_kernel_type::get_version(dir_path);
   }
 
   // ---------- Data store description ---------- //
@@ -1104,17 +851,8 @@ class basic_manager {
   /// \param description An
   /// std::string object that holds a description. \return Returns true on
   /// success; otherwise, false.
-  bool set_description(const std::string &description) noexcept {
-    if (!check_sanity()) {
-      return false;
-    }
-    try {
-      return m_kernel->set_description(description);
-    } catch (...) {
-      m_kernel.reset(nullptr);
-      METALL_ERROR("An exception has been thrown");
-    }
-    return false;
+  void set_description(const std::string &description) {
+    m_kernel->set_description(description);
   }
 
   /// \brief Sets a description to a Metall data store.
@@ -1125,14 +863,9 @@ class basic_manager {
   /// \param dir_path Path to a data store. \param description An std::string
   /// object that holds a description. \return Returns true on success;
   /// otherwise, false.
-  static bool set_description(const char *dir_path,
-                              const std::string &description) noexcept {
-    try {
-      return manager_kernel_type::set_description(dir_path, description);
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return false;
+  static void set_description(std::filesystem::path const &dir_path,
+                              const std::string &description) {
+    manager_kernel_type::set_description(dir_path, description);
   }
 
   /// \brief Gets a description.
@@ -1144,16 +877,8 @@ class basic_manager {
   /// description if it exists. \return Returns true on success; returns false
   /// on error. Trying to get a non-existent description is not considered as an
   /// error.
-  bool get_description(std::string *description) const noexcept {
-    if (!check_sanity()) {
-      return false;
-    }
-    try {
-      return m_kernel->get_description(description);
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return false;
+  [[nodiscard]] std::string get_description() const {
+    return m_kernel->get_description();
   }
 
   /// \brief Gets a description.
@@ -1165,14 +890,8 @@ class basic_manager {
   /// to an std::string object to store a description if it exists. \return
   /// Returns true on success; returns false on error. Trying to get a
   /// non-existent description is not considered as an error.
-  static bool get_description(const char *dir_path,
-                              std::string *description) noexcept {
-    try {
-      return manager_kernel_type::get_description(dir_path, description);
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return false;
+  static std::string get_description(std::filesystem::path const &dir_path) {
+    return manager_kernel_type::get_description(dir_path);
   }
 
   // ---------- Object attribute ---------- //
@@ -1183,7 +902,7 @@ class basic_manager {
   /// \param dir_path Path to a data store. \return Returns an instance
   /// of named_object_attribute_accessor_type.
   static named_object_attribute_accessor_type access_named_object_attribute(
-      const char *dir_path) noexcept {
+      std::filesystem::path const &dir_path) noexcept {
     try {
       return manager_kernel_type::access_named_object_attribute(dir_path);
     } catch (...) {
@@ -1199,7 +918,7 @@ class basic_manager {
   /// \param dir_path Path to a data store. \return Returns an instance
   /// of unique_object_attribute_accessor_type.
   static unique_object_attribute_accessor_type access_unique_object_attribute(
-      const char *dir_path) noexcept {
+      std::filesystem::path const &dir_path) noexcept {
     try {
       return manager_kernel_type::access_unique_object_attribute(dir_path);
     } catch (...) {
@@ -1215,7 +934,7 @@ class basic_manager {
   /// \param dir_path Path to a data store. \return Returns an
   /// instance of anonymous_object_attribute_accessor_type.
   static anonymous_object_attribute_accessor_type
-  access_anonymous_object_attribute(const char *dir_path) noexcept {
+  access_anonymous_object_attribute(std::filesystem::path const &dir_path) noexcept {
     try {
       return manager_kernel_type::access_anonymous_object_attribute(dir_path);
     } catch (...) {
@@ -1231,17 +950,9 @@ class basic_manager {
   /// \tparam T Type of the object.
   /// \return Returns a STL compatible allocator object.
   template <typename T = std::byte>
-  allocator_type<T> get_allocator() const noexcept {
-    if (!check_sanity()) {
-      return allocator_type<T>(nullptr);
-    }
-    try {
-      return allocator_type<T>(reinterpret_cast<manager_kernel_type *const *>(
-          &(m_kernel->get_segment_header()->manager_kernel_address)));
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return allocator_type<T>(nullptr);
+  allocator_type<T> get_allocator() const {
+    return allocator_type<T>(reinterpret_cast<manager_kernel_type *const *>(
+        &(m_kernel->get_segment_header()->manager_kernel_address)));
   }
 
   /// \brief Returns the internal chunk size.
@@ -1254,16 +965,8 @@ class basic_manager {
   /// \copydoc doc_thread_safe
   ///
   /// \return The address of the application data segment.
-  const void *get_address() const noexcept {
-    if (!check_sanity()) {
-      return nullptr;
-    }
-    try {
-      return m_kernel->get_segment();
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return nullptr;
+  [[nodiscard]] const void *get_address() const {
+    return m_kernel->get_segment();
   }
 
   /// \brief Returns the size (i.e., the maximum total allocation size) of the
@@ -1272,25 +975,11 @@ class basic_manager {
   /// \copydoc doc_thread_safe
   ///
   /// \return The size of the application data segment.
-  size_type get_size() const noexcept {
-    if (!check_sanity()) {
-      return 0;
-    }
-    try {
-      return m_kernel->get_segment_size();
-    } catch (...) {
-      METALL_ERROR("An exception has been thrown");
-    }
-    return 0;
+  size_type get_size() const {
+    return m_kernel->get_segment_size();
   }
 
   // bool belongs_to_segment (const void *ptr) const
-
-  /// \brief Checks the sanity.
-  /// \copydoc doc_thread_safe
-  ///
-  /// \return Returns true if there is no issue; otherwise, returns false.
-  bool check_sanity() const noexcept { return !!m_kernel && m_kernel->good(); }
 
   // ---------- For profiling and debug ---------- //
 #if !defined(DOXYGEN_SKIP)
@@ -1299,14 +988,10 @@ class basic_manager {
   /// \param log_out An object of the out stream.
   template <typename out_stream_type>
   void profile(out_stream_type *log_out) noexcept {
-    if (!check_sanity()) {
-      return;
-    }
     try {
       m_kernel->profile(log_out);
-    } catch (...) {
-      m_kernel.reset(nullptr);
-      METALL_ERROR("An exception has been thrown");
+    } catch (std::exception const &e) {
+      METALL_ERROR("Exception thrown while profiling: {}", e.what());
     }
   }
 #endif
@@ -1315,7 +1000,7 @@ class basic_manager {
   // -------------------- //
   // Private fields
   // -------------------- //
-  std::unique_ptr<manager_kernel_type> m_kernel{nullptr};
+  std::unique_ptr<manager_kernel_type> m_kernel;
 };
 }  // namespace metall
 

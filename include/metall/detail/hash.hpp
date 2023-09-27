@@ -122,6 +122,8 @@ struct hash {
 /// \tparam seed A seed value used for hashing.
 template <typename string_type, unsigned int seed = 123>
 struct string_hash {
+  using is_transparent = void;
+
   inline uint64_t operator()(const string_type &key) const noexcept {
     return murmur_hash_64a(
         key.c_str(), key.length() * sizeof(typename string_type::value_type),

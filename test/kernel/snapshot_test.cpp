@@ -34,8 +34,8 @@ TEST(SnapshotTest, Snapshot) {
     [[maybe_unused]] auto b =
         manager.construct<uint64_t>(metall::unique_instance)(2);
 
-    ASSERT_TRUE(manager.snapshot(snapshot_dir_path().c_str()));
-    ASSERT_TRUE(metall::manager::consistent(snapshot_dir_path().c_str()));
+    manager.snapshot(snapshot_dir_path());
+    ASSERT_TRUE(metall::manager::consistent(snapshot_dir_path()));
 
     // UUID
     const auto original_uuid =

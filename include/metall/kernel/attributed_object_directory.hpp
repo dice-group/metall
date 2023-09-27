@@ -15,12 +15,13 @@
 #include <tuple>
 #include <sstream>
 #include <memory>
+#include <filesystem>
 
 #include <boost/container/string.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/container/list.hpp>
 
-#include <metall/logger.h>
+#include <metall/logger_interface.h>
 #include <metall/detail/ptree.hpp>
 #include <metall/detail/hash.hpp>
 
@@ -424,24 +425,14 @@ class attributed_object_directory {
 
   /// \brief
   /// \param path
-  bool serialize(const char *const path) const noexcept {
-    try {
-      return priv_serialize_throw(path);
-    } catch (...) {
-      return false;
-    }
-    return true;
+  void serialize(std::filesystem::path const &path) const {
+    priv_serialize_throw(path);
   }
 
   /// \brief
   /// \param path
-  bool deserialize(const char *const path) noexcept {
-    try {
-      return priv_deserialize_throw(path);
-    } catch (...) {
-      return false;
-    }
-    return true;
+  void deserialize(std::filesystem::path const &path) {
+    priv_deserialize_throw(path);
   }
 
  private:
@@ -500,9 +491,9 @@ class attributed_object_directory {
     return true;
   }
 
-  bool priv_serialize_throw(const char *const path) const {
+  void priv_serialize_throw(std::filesystem::path const &path) const {
     if (!good()) {
-      return false;
+      throw std::runtime_error{"cannot serialize attributed object directory, not in good state"};
     }
 
     json::node_type json_attributed_objects_list;
@@ -518,41 +509,39 @@ class attributed_object_directory {
                            &json_named_object_entry) ||
           !json::add_value(json_key::description, item.description(),
                            &json_named_object_entry)) {
-        return false;
+        throw std::runtime_error{"Could not add value to json"};
       }
       if (!json::push_back(json_named_object_entry,
                            &json_attributed_objects_list)) {
-        return false;
+        throw std::runtime_error{"Could not add value to json"};
       }
     }
 
     json::node_type json_root;
     if (!json::add_child(json_key::attributed_objects,
                          json_attributed_objects_list, &json_root)) {
-      return false;
+      throw std::runtime_error{"Could not add value to json"};
     }
 
     if (!json::write_json(json_root, path)) {
-      return false;
+      throw std::runtime_error{"Could not write json"};
     }
-
-    return true;
   }
 
-  bool priv_deserialize_throw(const char *const path) {
+  void priv_deserialize_throw(std::filesystem::path const &path) {
     if (!good()) {
-      return false;
+      throw std::runtime_error{"cannot deserialize attributed object directory, not in good state"};
     }
 
     json::node_type json_root;
     if (!json::read_json(path, &json_root)) {
-      return false;
+      throw std::runtime_error{"Could not read json"};
     }
 
     json::node_type json_attributed_objects_list;
     if (!json::get_child(json_root, json_key::attributed_objects,
                          &json_attributed_objects_list)) {
-      return false;
+      throw std::runtime_error{"Could not get value from json"};
     }
 
     for (const auto &object : json_attributed_objects_list) {
@@ -568,21 +557,17 @@ class attributed_object_directory {
           !json::get_value(object.second, json_key::type_id, &type_id) ||
           !json::get_value(object.second, json_key::description,
                            &description)) {
-        return false;
+        throw std::runtime_error{"Could not get value from json"};
       }
 
       if (count(name) > 0) {
-        METALL_ERROR("Failed to reconstruct object table");
-        return false;
+        throw std::runtime_error{"Failed to reconstruct object table"};
       }
 
       if (!insert(name, offset, length, type_id, description)) {
-        METALL_ERROR("Failed to reconstruct object table");
-        return false;
+        throw std::runtime_error{"Failed to reconstruct object table"};
       }
     }
-
-    return true;
   }
 
   // -------------------- //

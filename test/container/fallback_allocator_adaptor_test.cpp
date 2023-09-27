@@ -230,11 +230,11 @@ TEST(FallbackAllocatorAdaptorTest, PersistentConstructFind) {
 
   {
     metall::manager manager(metall::open_only, dir_path().c_str());
-    ASSERT_TRUE(manager.destroy<int>("int"));
-    ASSERT_FALSE(manager.destroy<int>("int"));
+    manager.destroy<int>("int");
+    manager.destroy<int>("int");
 
-    ASSERT_TRUE(manager.destroy<vector_type>("vector_type"));
-    ASSERT_FALSE(manager.destroy<vector_type>("vector_type"));
+    manager.destroy<vector_type>("vector_type");
+    manager.destroy<vector_type>("vector_type");
   }
 }
 
@@ -269,11 +269,11 @@ TEST(FallbackAllocatorAdaptorTest, PersistentConstructOrFind) {
 
   {
     metall::manager manager(metall::open_only, dir_path().c_str());
-    ASSERT_TRUE(manager.destroy<int>("int"));
-    ASSERT_FALSE(manager.destroy<int>("int"));
+    manager.destroy<int>("int");
+    manager.destroy<int>("int");
 
-    ASSERT_TRUE(manager.destroy<vector_type>("vector_type"));
-    ASSERT_FALSE(manager.destroy<vector_type>("vector_type"));
+    manager.destroy<vector_type>("vector_type");
+    manager.destroy<vector_type>("vector_type");
   }
 }
 

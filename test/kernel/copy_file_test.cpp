@@ -40,13 +40,13 @@ const std::string &copy_dir_path() {
 }
 
 TEST(CopyFileTest, SyncCopy) {
-  metall::manager::remove(original_dir_path().c_str());
-  metall::manager::remove(copy_dir_path().c_str());
+  metall::manager::remove(original_dir_path());
+  metall::manager::remove(copy_dir_path());
 
   create(original_dir_path());
 
-  ASSERT_TRUE(metall::manager::copy(original_dir_path().c_str(),
-                                    copy_dir_path().c_str()));
+  metall::manager::copy(original_dir_path(),
+                        copy_dir_path());
 
   open(copy_dir_path());
 }
@@ -59,7 +59,7 @@ TEST(CopyFileTest, AsyncCopy) {
 
   auto handler = metall::manager::copy_async(original_dir_path().c_str(),
                                              copy_dir_path().c_str());
-  ASSERT_TRUE(handler.get());
+  handler.get();
 
   open(copy_dir_path());
 }

@@ -17,7 +17,7 @@
 #include <metall/kernel/multilayer_bitset.hpp>
 #include <metall/kernel/bin_number_manager.hpp>
 #include <metall/kernel/object_size_manager.hpp>
-#include <metall/logger.h>
+#include <metall/logger_interface.h>
 
 namespace metall {
 namespace kernel {
@@ -294,13 +294,10 @@ class chunk_directory {
 
   /// \brief
   /// \param path
-  bool serialize(const char *path) const {
+  void serialize(std::filesystem::path const &path) const {
     std::ofstream ofs(path);
     if (!ofs.is_open()) {
-      std::stringstream ss;
-      ss << "Cannot open: " << path;
-      METALL_ERROR(ss.str().c_str());
-      return false;
+      throw std::system_error{errno, std::generic_category(), "cannot open file to serialize chunk directory"};
     }
 
     for (chunk_no_type chunk_no = 0; chunk_no < size(); ++chunk_no) {
@@ -314,8 +311,7 @@ class chunk_directory {
       if (!ofs) {
         std::stringstream ss;
         ss << "Something happened in the ofstream: " << path;
-        METALL_ERROR(ss.str().c_str());
-        return false;
+        throw std::system_error{errno, std::generic_category(), ss.str()};
       }
 
       if (m_table[chunk_no].type == chunk_type::small_chunk) {
@@ -327,8 +323,7 @@ class chunk_directory {
         if (!ofs) {
           std::stringstream ss;
           ss << "Something happened in the ofstream: " << path;
-          METALL_ERROR(ss.str().c_str());
-          return false;
+          throw std::system_error{errno, std::generic_category(), ss.str()};
         }
 
       } else if (m_table[chunk_no].type == chunk_type::large_chunk_head ||
@@ -337,31 +332,24 @@ class chunk_directory {
         if (!ofs) {
           std::stringstream ss;
           ss << "Something happened in the ofstream: " << path;
-          METALL_ERROR(ss.str().c_str());
-          return false;
+          throw std::system_error{errno, std::generic_category(), ss.str()};
         }
 
       } else {
-        METALL_ERROR("Unexpected chunk status");
-        return false;
+        throw std::runtime_error{"Unexpected chunk status"};
       }
     }
-
-    ofs.close();
-
-    return true;
   }
 
   /// \brief
   /// \param path
   /// \return
-  bool deserialize(const char *path) {
+  void deserialize(std::filesystem::path const &path) {
     std::ifstream ifs(path);
     if (!ifs.is_open()) {
       std::stringstream ss;
       ss << "Cannot open: " << path;
-      METALL_ERROR(ss.str().c_str());
-      return false;
+      throw std::system_error{errno, std::generic_category(), "cannot open file for deserializing chunk directory"};
     }
 
     uint64_t buf1;
@@ -384,24 +372,19 @@ class chunk_directory {
                              chunk_type::large_chunk_body)) {
         m_table[chunk_no].type = chunk_type::large_chunk_body;
       } else {
-        METALL_ERROR("Invalid chunk type");
-        return false;
+        throw std::runtime_error{"Invalid chunk type"};
       }
 
       if (m_table[chunk_no].type == chunk_type::small_chunk) {
         const slot_count_type num_slots =
             calc_num_slots(bin_no_mngr::to_object_size(bin_no));
         if (!(ifs >> buf1)) {
-          std::stringstream ss;
-          ss << "Cannot read a file: " << path;
-          METALL_ERROR(ss.str().c_str());
-          return false;
+          throw std::system_error{errno, std::generic_category(), "cannot read file for deserialiting"};
         }
         if (num_slots < buf1) {
           std::stringstream ss;
           ss << "Invalid num_occupied_slots: " << std::to_string(buf1);
-          METALL_ERROR(ss.str().c_str());
-          return false;
+          throw std::runtime_error{ss.str()};
         }
         m_table[chunk_no].num_occupied_slots = buf1;
 
@@ -410,38 +393,21 @@ class chunk_directory {
         if (bitset_buf.empty() || bitset_buf[0] != ' ') {
           std::stringstream ss;
           ss << "Invalid input for slot_occupancy: " << bitset_buf;
-          METALL_ERROR(ss.str().c_str());
-          return false;
+          throw std::runtime_error{ss.str()};
         }
         bitset_buf.erase(0, 1);
 
-        if (!m_table[chunk_no].slot_occupancy.allocate(num_slots)) {
-          METALL_ERROR("Failed to allocate slot occupancy data");
-          return false;
-        }
-
-        if (!m_table[chunk_no].slot_occupancy.deserialize(num_slots,
-                                                          bitset_buf)) {
-          std::stringstream ss;
-          ss << "Invalid input for slot_occupancy: " << bitset_buf;
-          METALL_ERROR(ss.str().c_str());
-          return false;
-        }
+        m_table[chunk_no].slot_occupancy.allocate(num_slots);
+        m_table[chunk_no].slot_occupancy.deserialize(num_slots,
+                                                     bitset_buf);
       }
 
       m_last_used_chunk_no = std::max((ssize_t)chunk_no, m_last_used_chunk_no);
     }
 
     if (!ifs.eof()) {
-      std::stringstream ss;
-      ss << "Something happened in the ifstream: " << path;
-      METALL_ERROR(ss.str().c_str());
-      return false;
+      throw std::system_error{errno, std::generic_category(), "something happened in the ifstream"};
     }
-
-    ifs.close();
-
-    return true;
   }
 
   auto get_all_marked_slots() const {
@@ -494,7 +460,7 @@ class chunk_directory {
   /// Allocates 'uncommitted pages' so that not to waste physical memory until
   /// the pages are touched. Accordingly, this function does not initialize an
   /// allocate data.
-  bool priv_allocate() {
+  void priv_allocate() {
     assert(!m_table);
 
     // Assume that mmap + MAP_ANONYMOUS returns 'uncommitted pages'.
@@ -504,13 +470,7 @@ class chunk_directory {
     m_table = static_cast<entry_type *>(mdtl::map_anonymous_write_mode(
         nullptr, m_max_num_chunks * sizeof(entry_type)));
 
-    if (!m_table) {
-      METALL_ERRNO_ERROR("Cannot allocate chunk table");
-      return false;
-    }
-
     m_last_used_chunk_no = -1;
-    return true;
   }
 
   void priv_destroy() noexcept {
@@ -518,7 +478,7 @@ class chunk_directory {
       try {
         erase(chunk_no);
       } catch (...) {
-        METALL_ERRNO_ERROR("An exception was thrown");
+        METALL_ERROR("An exception was thrown");
       }
     }
     mdtl::os_munmap(m_table, m_max_num_chunks * sizeof(entry_type));
@@ -546,10 +506,7 @@ class chunk_directory {
         m_table[chunk_no].bin_no = bin_no;
         m_table[chunk_no].type = chunk_type::small_chunk;
         m_table[chunk_no].num_occupied_slots = 0;
-        if (!m_table[chunk_no].slot_occupancy.allocate(num_slots)) {
-          METALL_ERROR("Failed to allocates slot occupancy data");
-          return m_max_num_chunks;
-        }
+        m_table[chunk_no].slot_occupancy.allocate(num_slots);
 
         m_last_used_chunk_no =
             std::max((ssize_t)chunk_no, m_last_used_chunk_no);

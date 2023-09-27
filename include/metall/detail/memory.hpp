@@ -12,26 +12,26 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
-#include <metall/logger.h>
+#include <metall/logger.hpp>
 
 namespace metall::mtlldetail {
 
-inline ssize_t get_page_size() noexcept {
+inline size_t get_page_size() {
   const ssize_t page_size = ::sysconf(_SC_PAGE_SIZE);
   if (page_size == -1) {
-    METALL_ERRNO_ERROR("Failed to get the page size");
+    throw std::system_error{errno, std::system_category(), "failed to get page size"};
   }
 
-  return page_size;
+  return static_cast<size_t>(page_size);
 }
 
 /// \brief Reads a value from /proc/meminfo
 /// \param key Target token looking for
 /// \return On success, returns read value. On error, returns -1.
-inline ssize_t read_meminfo(const std::string &key) {
+inline size_t read_meminfo(const std::string &key) {
   std::ifstream fin("/proc/meminfo");
   if (!fin.is_open()) {
-    return -1;
+    throw std::system_error{errno, std::system_category(), "failed to open /proc/meminfo"};
   }
 
   std::string key_with_colon(key);
@@ -44,7 +44,7 @@ inline ssize_t read_meminfo(const std::string &key) {
 
     std::size_t value;
     if (!(fin >> value)) {
-      return -1;
+      throw std::system_error{errno, std::system_category(), "failed to read value"};
     }
 
     std::string unit;
@@ -54,60 +54,45 @@ inline ssize_t read_meminfo(const std::string &key) {
       if (unit == "kb") {  // for now, we only expect this case
         return value * 1024;
       }
-      return -1;
+      throw std::logic_error{"unexpected unit suffix"};
     } else {  // found a line does not has unit
       return value;
     }
   }
-  return -1;
+
+  throw std::logic_error{"unable to find value"};
 }
 
 /// \brief Returns the size of the total ram size
 /// \return On success, returns the total ram size of the system. On error,
 /// returns -1.
-inline ssize_t get_total_ram_size() {
-  const ssize_t mem_total = read_meminfo("MemTotal:");
-  if (mem_total == -1) {
-    return -1;  // something wrong;
-  }
-  return static_cast<ssize_t>(mem_total);
+inline size_t get_total_ram_size() {
+  return read_meminfo("MemTotal:");
 }
 
 /// \brief Returns the size of used ram size from /proc/meminfo
 /// \return On success, returns the used ram size. On error, returns -1.
-inline ssize_t get_used_ram_size() {
-  const ssize_t mem_total = read_meminfo("MemTotal:");
-  const ssize_t mem_free = read_meminfo("MemFree:");
-  const ssize_t buffers = read_meminfo("Buffers:");
-  const ssize_t cached = read_meminfo("Cached:");
-  const ssize_t slab = read_meminfo("Slab:");
-  const ssize_t used = mem_total - mem_free - buffers - cached - slab;
-  if (mem_total == -1 || mem_free == -1 || buffers == -1 || cached == -1 ||
-      slab == -1 || used < 0) {
-    return -1;  // something wrong;
-  }
-  return used;
+inline size_t get_used_ram_size() {
+  const size_t mem_total = read_meminfo("MemTotal:");
+  const size_t mem_free = read_meminfo("MemFree:");
+  const size_t buffers = read_meminfo("Buffers:");
+  const size_t cached = read_meminfo("Cached:");
+  const size_t slab = read_meminfo("Slab:");
+
+  return mem_total - mem_free - buffers - cached - slab;
 }
 
 /// \brief Returns the size of free ram size from /proc/meminfo
 /// \return On success, returns the free ram size. On error, returns -1.
-inline ssize_t get_free_ram_size() {
-  const ssize_t mem_free = read_meminfo("MemFree:");
-  if (mem_free == -1) {
-    return -1;  // something wrong;
-  }
-  return static_cast<ssize_t>(mem_free);
+inline size_t get_free_ram_size() {
+  return read_meminfo("MemFree:");
 }
 
 /// \brief Returns the size of the 'cached' ram size
 /// \return On success, returns the 'cached' ram size of the system. On error,
 /// returns -1.
-inline ssize_t get_page_cache_size() {
-  const ssize_t cached_size = read_meminfo("Cached:");
-  if (cached_size == -1) {
-    return -1;  // something wrong;
-  }
-  return static_cast<ssize_t>(cached_size);
+inline size_t get_page_cache_size() {
+  return read_meminfo("Cached:");
 }
 
 /// \brief Returns the number of page faults caused by the process
@@ -126,7 +111,7 @@ inline std::pair<std::size_t, std::size_t> get_num_page_faults() {
                         &minflt, &majflt)) != 2) {
       std::stringstream ss;
       ss << "Failed to reading #of page faults " << ret;
-      METALL_ERROR(ss.str().c_str());
+      METALL_WARN("Failed to read number of page faults: {}", strerror(errno));
       minflt = majflt = 0;
     }
   }

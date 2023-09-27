@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 #include <streambuf>
 #include <cassert>
 #include <string>
@@ -19,7 +20,7 @@
 #include <sstream>
 #include <typeinfo>
 
-#include <metall/logger.h>
+#include <metall/logger_interface.h>
 #include <metall/offset_ptr.hpp>
 #include <metall/version.hpp>
 #include <metall/kernel/manager_kernel_fwd.hpp>
@@ -184,23 +185,20 @@ class manager_kernel {
   /// Expect to be called by a single thread
   /// \param base_dir_path
   /// \param vm_reserve_size
-  /// \return Returns true if success; otherwise, returns false
-  bool create(const char *base_dir_path,
+  void create(std::filesystem::path const &base_dir_path,
               size_type vm_reserve_size = k_default_vm_reserve_size);
 
   /// \brief Opens an existing datastore
   /// Expect to be called by a single thread
   /// \param base_dir_path
   /// \param vm_reserve_size
-  /// \return Returns true if success; otherwise, returns false
-  bool open(const char *base_dir_path,
+  void open(std::filesystem::path const &base_dir_path,
             size_type vm_reserve_size = k_default_vm_reserve_size);
 
   /// \brief Opens an existing datastore with read only
   /// Expect to be called by a single thread
   /// \param base_dir_path
-  /// \return Returns true if success; otherwise, returns false
-  bool open_read_only(const char *base_dir_path);
+  void open_read_only(std::filesystem::path const &base_dir_path);
 
   /// \brief Expect to be called by a single thread
   void close();
@@ -230,7 +228,7 @@ class manager_kernel {
 
   /// \brief Check if all allocated memory has been deallocated.
   /// Note that this function clears object cache.
-  bool all_memory_deallocated() const;
+  [[nodiscard]] bool all_memory_deallocated() const;
 
   /// \brief Finds an already constructed object
   /// \tparam T
@@ -246,13 +244,13 @@ class manager_kernel {
   /// \param name
   /// \return
   template <typename T>
-  bool destroy(char_ptr_holder_type name);
+  void destroy(char_ptr_holder_type name);
 
   /// \brief Destroy a constructed object (named, unique, or anonymous).
   /// Cannot destroy an object not allocated by construct/find_or_construct
   /// functions. \tparam T \param ptr \return
   template <typename T>
-  bool destroy_ptr(const T *ptr);
+  void destroy_ptr(const T *ptr);
 
   /// \brief Returns the name of an object created with
   /// construct/find_or_construct functions. If ptr points to an unique
@@ -277,20 +275,20 @@ class manager_kernel {
   /// construct/find_or_construct functions (1 if is a single element, >=1 if
   /// it's an array), is T. \tparam T \param ptr \return
   template <class T>
-  bool is_instance_type(const void *const ptr) const;
+  bool is_instance_type(const void *ptr) const;
 
   /// \brief Gets the description of an object created with
   /// construct/find_or_construct. \tparam T The type of the object. \param ptr
   /// A pointer to the object. \param description A pointer to a string buffer.
   /// \return
   template <class T>
-  bool get_instance_description(const T *ptr, std::string *description) const;
+  std::optional<std::string> get_instance_description(const T *ptr) const;
 
   /// \brief Sets a description to an object created with
   /// construct/find_or_construct. \tparam T The type of the object. \param ptr
   /// A pointer to the object. \param description A description to set. \return
   template <class T>
-  bool set_instance_description(const T *ptr, const std::string &description);
+  void set_instance_description(const T *ptr, const std::string &description);
 
   /// \brief Returns Returns the number of named objects stored in the managed
   /// segment. \return
@@ -362,8 +360,9 @@ class manager_kernel {
   /// \param num_max_copy_threads The maximum number of copy threads to use.
   /// If <= 0 is given, the value is automatically determined.
   /// \return If succeeded, returns True; other false
-  bool snapshot(const char *destination_dir_path, const bool clone,
-                const int num_max_copy_threads);
+  void snapshot(std::filesystem::path const &destination_dir_path,
+                bool clone,
+                int num_max_copy_threads);
 
   /// \brief Copies a data store synchronously, keeping the same UUID.
   /// \param source_dir_path Source path.
@@ -372,9 +371,10 @@ class manager_kernel {
   /// \param num_max_copy_threads The maximum number of copy threads to use.
   /// If <= 0 is given, the value is automatically determined.
   /// \return If succeeded, returns True; other false.
-  static bool copy(const char *source_dir_path,
-                   const char *destination_dir_path, const bool clone,
-                   const int num_max_copy_threads);
+  static void copy(std::filesystem::path const &source_dir_path,
+                   std::filesystem::path const &destination_dir_path,
+                   bool clone,
+                   int num_max_copy_threads);
 
   /// \brief Copies a data store asynchronously, keeping the same UUID.
   /// \param source_dir_path Source path.
@@ -384,27 +384,27 @@ class manager_kernel {
   /// If <= 0 is given, the value is automatically determined.
   /// \return Returns an object of std::future.
   /// If succeeded, its get() returns True; other false.
-  static std::future<bool> copy_async(const char *source_dir_path,
-                                      const char *destination_dir_path,
+  static std::future<void> copy_async(std::filesystem::path const &source_dir_path,
+                                      std::filesystem::path const &destination_dir_path,
                                       const bool clone,
                                       const int num_max_copy_threads);
 
   /// \brief Remove a data store synchronously
   /// \param base_dir_path
   /// \return If succeeded, returns True; other false
-  static bool remove(const char *base_dir_path);
+  static void remove(std::filesystem::path const &base_dir_path);
 
   /// \brief Remove a data store asynchronously
   /// \param base_dir_path
   /// \return Returns an object of std::future
   /// If succeeded, its get() returns True; other false
-  static std::future<bool> remove_async(const char *base_dir_path);
+  static std::future<void> remove_async(std::filesystem::path const &base_dir_path);
 
   /// \brief Check if the backing data store is consistent,
   /// i.e. it was closed properly.
   /// \param dir_path
   /// \return Return true if it is consistent; otherwise, returns false.
-  static bool consistent(const char *dir_path);
+  static bool consistent(std::filesystem::path const &dir_path);
 
   /// \brief Returns the UUID of the backing data store.
   /// \return Returns UUID in std::string; returns an empty string on error.
@@ -413,7 +413,7 @@ class manager_kernel {
   /// \brief Returns the UUID of the backing data store.
   /// \param dir_path Path to a data store.
   /// \return Returns UUID in std::string; returns an empty string on error.
-  static std::string get_uuid(const char *dir_path);
+  static std::string get_uuid(std::filesystem::path const &dir_path);
 
   /// \brief Gets the version number of the backing data store.
   /// \return Returns a version number; returns 0 on error.
@@ -422,57 +422,56 @@ class manager_kernel {
   /// \brief Gets the version number of the backing data store.
   /// \param dir_path Path to a data store.
   /// \return Returns a version number; returns 0 on error.
-  static version_type get_version(const char *dir_path);
+  static version_type get_version(std::filesystem::path const &dir_path);
 
   /// \brief Gets a description from a file.
   /// \param description A pointer to a string buffer.
   /// \return Returns false on error.
-  bool get_description(std::string *description) const;
+  std::string get_description() const;
 
   /// \brief Gets a description from a file.
   /// \param base_dir_path  Path to a data store.
   /// \param description A pointer to a string buffer.
   /// \return Returns false on error.
-  static bool get_description(const std::string &base_dir_path,
-                              std::string *description);
+  static std::string get_description(const std::filesystem::path &base_dir_path);
 
   /// \brief Sets a description to a file.
   /// \param description A description to write.
   /// \return Returns false on error.
-  bool set_description(const std::string &description);
+  void set_description(const std::string &description);
 
   /// \brief Sets a description to a file.
   /// \param base_dir_path Path to a data store.
   /// \param description A description to write.
   /// \return Returns false on error.
-  static bool set_description(const std::string &base_dir_path,
+  static void set_description(const std::filesystem::path &base_dir_path,
                               const std::string &description);
 
   /// \brief Returns an instance that provides access to the attribute of named
   /// objects. \param base_dir_path Path to a data store. \return Returns an
   /// instance of named_object_attr_accessor_type.
   static named_object_attr_accessor_type access_named_object_attribute(
-      const std::string &base_dir_path);
+      const std::filesystem::path &base_dir_path);
 
   /// \brief Returns an instance that provides access to the attribute of unique
   /// object. \param base_dir_path Path to a data store. \return Returns an
   /// instance of unique_object_attr_accessor_type.
   static unique_object_attr_accessor_type access_unique_object_attribute(
-      const std::string &base_dir_path);
+      const std::filesystem::path &base_dir_path);
 
   /// \brief Returns an instance that provides access to the attribute of
   /// anonymous object. \param base_dir_path Path to a data store. \return
   /// Returns an instance of anonymous_object_attr_accessor_type.
   static anonymous_object_attr_accessor_type access_anonymous_object_attribute(
-      const std::string &base_dir_path);
+      const std::filesystem::path &base_dir_path);
 
   /// \brief Checks if this kernel is open.
   /// \return Returns true if it is open; otherwise, returns false.
-  bool is_open() const noexcept;
+  [[nodiscard]] bool is_open() const noexcept;
 
   /// \brief Checks if the status of this kernel is good.
   /// \return Returns true if it is good; otherwise, returns false.
-  bool good() const noexcept;
+  [[nodiscard]] bool good() const noexcept;
 
   /// \brief Show some profile information.
   /// This method release object caches (which will slow down Metall).
@@ -487,7 +486,7 @@ class manager_kernel {
   // -------------------- //
 
   void priv_sanity_check() const;
-  bool priv_validate_runtime_configuration() const;
+  void priv_validate_runtime_configuration() const;
   difference_type priv_to_offset(const void *const ptr) const;
   void *priv_to_address(difference_type offset) const;
 
@@ -500,23 +499,19 @@ class manager_kernel {
   //      directories and files for allocation management
   //    segment_dir/
   //      directories and files for application data segment
-  static std::string priv_make_top_dir_path(const std::string &base_dir_path);
-  static std::string priv_make_top_level_file_name(
-      const std::string &base_dir_path, const std::string &item_name);
-  static std::string priv_make_management_dir_path(
-      const std::string &base_dir_path);
-  static std::string priv_make_management_file_name(
-      const std::string &base_dir_path, const std::string &item_name);
-  static std::string priv_make_segment_dir_path(
-      const std::string &base_dir_path);
-  static bool priv_init_datastore_directory(const std::string &base_dir_path);
+  static std::filesystem::path priv_make_top_dir_path(const std::filesystem::path &base_dir_path);
+  static std::filesystem::path priv_make_top_level_file_name(const std::filesystem::path &base_dir_path, const std::string &item_name);
+  static std::filesystem::path priv_make_management_dir_path(const std::filesystem::path &base_dir_path);
+  static std::filesystem::path priv_make_management_file_name(const std::filesystem::path &base_dir_path, const std::string &item_name);
+  static std::filesystem::path priv_make_segment_dir_path(const std::filesystem::path &base_dir_path);
+  static void priv_init_datastore_directory(const std::filesystem::path &base_dir_path);
 
   // ---------- For consistence support  ---------- //
-  static bool priv_consistent(const std::string &base_dir_path);
-  static bool priv_check_version(const json_store &metadata_json);
-  static bool priv_properly_closed(const std::string &base_dir_path);
-  static bool priv_mark_properly_closed(const std::string &base_dir_path);
-  static bool priv_unmark_properly_closed(const std::string &base_dir_path);
+  [[nodiscard]] static bool priv_consistent(const std::filesystem::path &base_dir_path);
+  [[nodiscard]] static bool priv_check_version(const json_store &metadata_json);
+  [[nodiscard]] static bool priv_properly_closed(const std::filesystem::path &base_dir_path);
+  static void priv_mark_properly_closed(const std::filesystem::path &base_dir_path);
+  static void priv_unmark_properly_closed(const std::filesystem::path &base_dir_path);
 
   // ---------- For constructed objects  ---------- //
   template <typename T>
@@ -524,49 +519,49 @@ class manager_kernel {
                             bool try2find, mdtl::in_place_interface &table);
 
   template <typename T>
-  bool priv_register_attr_object_no_mutex(char_ptr_holder_type name,
+  void priv_register_attr_object_no_mutex(char_ptr_holder_type name,
                                           difference_type offset,
                                           size_type length);
 
-  bool priv_remove_attr_object_no_mutex(const difference_type offset);
+  void priv_remove_attr_object_no_mutex(const difference_type offset);
 
   template <typename T>
   void priv_destruct_and_free_memory(const difference_type offset,
                                      const size_type length);
 
   // ---------- For segment  ---------- //
-  bool priv_reserve_vm_region(size_type nbytes);
-  bool priv_release_vm_region();
-  bool priv_allocate_segment_header(void *addr);
-  bool priv_deallocate_segment_header();
+  void priv_reserve_vm_region(size_type nbytes);
+  void priv_release_vm_region();
+  void priv_allocate_segment_header(void *addr);
+  void priv_deallocate_segment_header();
 
-  bool priv_open(const char *base_dir_path, bool read_only,
+  void priv_open(std::filesystem::path const &base_dir_path, bool read_only,
                  size_type vm_reserve_size_request = 0);
-  bool priv_create(const char *base_dir_path, size_type vm_reserve_size);
+  void priv_create(std::filesystem::path const &base_dir_path, size_type vm_reserve_size);
 
   // ---------- For serializing/deserializing  ---------- //
-  bool priv_serialize_management_data();
-  bool priv_deserialize_management_data();
+  void priv_serialize_management_data();
+  void priv_deserialize_management_data();
 
   // ---------- snapshot  ---------- //
   /// \brief Takes a snapshot. The snapshot has a different UUID.
-  bool priv_snapshot(const char *destination_base_dir_path, const bool clone,
+  void priv_snapshot(std::filesystem::path const &destination_base_dir_path, const bool clone,
                      const int num_max_copy_threads);
 
   // ---------- File operations  ---------- //
   /// \brief Copies all backing files using reflink if possible
-  static bool priv_copy_data_store(const std::string &src_base_dir_path,
-                                   const std::string &dst_base_dir_path,
+  static void priv_copy_data_store(const std::filesystem::path &src_base_dir_path,
+                                   const std::filesystem::path &dst_base_dir_path,
                                    const bool clone,
                                    const int num_max_copy_threads);
 
   /// \brief Removes all backing files
-  static bool priv_remove_data_store(const std::string &dir_path);
+  static void priv_remove_data_store(const std::filesystem::path &dir_path);
 
   // ---------- Management metadata  ---------- //
-  static bool priv_read_management_metadata(const std::string &base_dir_path,
+  static void priv_read_management_metadata(const std::filesystem::path &base_dir_path,
                                             json_store *json_root);
-  static bool priv_write_management_metadata(const std::string &base_dir_path,
+  static void priv_write_management_metadata(const std::filesystem::path &base_dir_path,
                                              const json_store &json_root);
 
   static version_type priv_get_version(const json_store &metadata_json);
@@ -576,16 +571,14 @@ class manager_kernel {
   static std::string priv_get_uuid(const json_store &metadata_json);
 
   // ---------- Description  ---------- //
-  static bool priv_read_description(const std::string &base_dir_path,
-                                    std::string *description);
-  static bool priv_write_description(const std::string &base_dir_path,
+  static std::string priv_read_description(const std::filesystem::path &base_dir_path);
+  static void priv_write_description(const std::filesystem::path &base_dir_path,
                                      const std::string &description);
 
   // -------------------- //
   // Private fields
   // -------------------- //
-  bool m_good{false};
-  std::string m_base_dir_path{};
+  std::filesystem::path m_base_dir_path{};
   size_type m_vm_region_size{0};
   void *m_vm_region{nullptr};
   segment_header_type *m_segment_header{nullptr};

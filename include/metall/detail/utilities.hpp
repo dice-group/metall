@@ -58,9 +58,10 @@ inline constexpr uint64_t next_power_of_2(const uint64_t n) noexcept {
 /// \param to_round
 /// \param base
 /// \return
-inline constexpr int64_t round_up(const int64_t to_round,
-                                  const int64_t base) noexcept {
-  return ((to_round + static_cast<int64_t>(to_round >= 0) * (base - 1)) /
+template<std::integral I>
+inline constexpr I round_up(const I to_round,
+                            const I base) noexcept {
+  return ((to_round + static_cast<I>(to_round >= 0) * (base - 1)) /
           base) *
          base;
 }

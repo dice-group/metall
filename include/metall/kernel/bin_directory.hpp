@@ -14,6 +14,7 @@
 #include <cassert>
 #include <functional>
 #include <memory>
+#include <filesystem>
 
 #include <boost/container/vector.hpp>
 #include <boost/container/scoped_allocator.hpp>
@@ -25,7 +26,7 @@
 #endif
 
 #include <metall/detail/utilities.hpp>
-#include <metall/logger.h>
+#include <metall/logger.hpp>
 
 namespace metall {
 namespace kernel {
@@ -195,41 +196,29 @@ class bin_directory {
 
   /// \brief
   /// \param path
-  bool serialize(const char *path) const {
+  void serialize(std::filesystem::path const &path) const {
     std::ofstream ofs(path);
     if (!ofs.is_open()) {
-      std::stringstream ss;
-      ss << "Cannot open: " << path;
-      METALL_ERROR(ss.str().c_str());
-      return false;
+      throw std::system_error{errno, std::generic_category(), "open file for serializing"};
     }
 
     for (uint64_t i = 0; i < m_table.size(); ++i) {
       for (const auto value : m_table[i]) {
-        ofs << static_cast<uint64_t>(i) << " " << static_cast<uint64_t>(value)
-            << "\n";
+        ofs << static_cast<uint64_t>(i) << " " << static_cast<uint64_t>(value) << "\n";
+
         if (!ofs) {
-          std::stringstream ss;
-          ss << "Something happened in the ofstream: " << path;
-          METALL_ERROR(ss.str().c_str());
-          return false;
+          throw std::system_error{errno, std::generic_category(), "serialize to file"};
         }
       }
     }
-    ofs.close();
-
-    return true;
   }
 
   /// \brief
   /// \param path
-  bool deserialize(const char *path) {
+  void deserialize(std::filesystem::path const &path) {
     std::ifstream ifs(path);
     if (!ifs.is_open()) {
-      std::stringstream ss;
-      ss << "Cannot open: " << path;
-      METALL_ERROR(ss.str().c_str());
-      return false;
+      throw std::system_error{errno, std::generic_category(), "open file for deserialize"};
     }
 
     uint64_t buf1;
@@ -241,8 +230,8 @@ class bin_directory {
       if (m_table.size() <= bin_no) {
         std::stringstream ss;
         ss << "Too large bin number is found: " << bin_no;
-        METALL_ERROR(ss.str().c_str());
-        return false;
+
+        throw std::runtime_error{ss.str()};
       }
 #ifdef METALL_USE_SORTED_BIN
       m_table[bin_no].insert(value);
@@ -252,15 +241,8 @@ class bin_directory {
     }
 
     if (!ifs.eof()) {
-      std::stringstream ss;
-      ss << "Something happened in the ifstream: " << path;
-      METALL_ERROR(ss.str().c_str());
-      return false;
+      throw std::system_error{errno, std::generic_category(), "io error while deserializing"};
     }
-
-    ifs.close();
-
-    return true;
   }
 
  private:

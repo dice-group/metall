@@ -47,19 +47,12 @@ class general_named_object_attr_accessor {
   general_named_object_attr_accessor() noexcept = default;
 
   explicit general_named_object_attr_accessor(
-      const std::string &object_attribute_file_path) noexcept {
+      const std::filesystem::path &object_attribute_file_path) {
     priv_alloc_core_data();
-    try {
-      m_core_data->object_attribute_file_path = object_attribute_file_path;
-      const bool succeeded = m_core_data->object_directory.deserialize(
-          m_core_data->object_attribute_file_path.c_str());
-      if (!succeeded) {
-        m_core_data.reset(nullptr);
-      }
-    } catch (...) {
-      METALL_ERROR("Filed to initialize the core data");
-      m_core_data.reset(nullptr);
-    }
+
+    m_core_data->object_attribute_file_path = object_attribute_file_path;
+    m_core_data->object_directory.deserialize(
+        m_core_data->object_attribute_file_path.c_str());
   }
 
   general_named_object_attr_accessor(
@@ -96,7 +89,7 @@ class general_named_object_attr_accessor {
   /// As object name must be unique, only 1 or 0 is returned.
   /// \param name A name of an object to count.
   /// \return Returns 1 if the object exist; otherwise, 0.
-  size_type count(const char *name) const noexcept {
+  size_type count(std::string const &name) const noexcept {
     if (!m_core_data) return 0;
     return m_core_data->object_directory.count(name);
   }
@@ -105,7 +98,7 @@ class general_named_object_attr_accessor {
   /// \param name A name of an object to find.
   /// \return Returns a const iterator that points the found object attribute.
   /// If not found, a returned iterator is equal to that of end().
-  const_iterator find(const char *name) const noexcept {
+  const_iterator find(std::string const &name) const noexcept {
     if (!m_core_data) return const_iterator();
 
     return m_core_data->object_directory.find(name);
@@ -135,20 +128,19 @@ class general_named_object_attr_accessor {
   /// \param description A description string in description_type.
   /// \return Returns true if a description is set (stored) successfully.
   /// Otherwise, false.
-  bool set_description(const_iterator position,
-                       const description_type &description) noexcept {
-    if (!m_core_data) return false;
-
-    if (position == end()) return false;
-
-    if (!m_core_data->object_directory.set_description(position, description) ||
-        !m_core_data->object_directory.serialize(
-            m_core_data->object_attribute_file_path.c_str())) {
-      METALL_ERROR("Filed to set description");
-      return false;
+  void set_description(const_iterator position,
+                       const description_type &description) {
+    if (position == end()) {
+      throw std::logic_error{"Cannot set description: position is end"};
     }
 
-    return true;
+    if (!m_core_data) {
+      throw std::runtime_error{"Cannot set description: Core data is null"};
+    }
+
+    m_core_data->object_directory.set_description(position, description);
+    m_core_data->object_directory.serialize(
+        m_core_data->object_attribute_file_path);
   }
 
   /// \brief Sets an description.
@@ -157,9 +149,9 @@ class general_named_object_attr_accessor {
   /// \param description A description string in description_type.
   /// \return Returns true if a description is set (stored) successfully.
   /// Otherwise, false.
-  bool set_description(const char *name,
-                       const description_type &description) noexcept {
-    return set_description(find(name), description);
+  void set_description(std::string const &name,
+                       const description_type &description) {
+    set_description(find(name), description);
   }
 
  private:
@@ -282,7 +274,7 @@ class unique_object_attr_accessor
   /// \return Returns true if a description is set (stored) successfully.
   /// Otherwise, false.
   bool set_description(const_iterator position,
-                       const description_type &description) noexcept {
+                       const description_type &description) {
     return base_type::set_description(position, description);
   }
 
@@ -292,9 +284,9 @@ class unique_object_attr_accessor
   /// \param description A description string in description_type.
   /// \return Returns true if a description is set (stored) successfully.
   /// Otherwise, false.
-  bool set_description(const char *name,
-                       const description_type &description) noexcept {
-    return base_type::set_description(name, description);
+  void set_description(const char *name,
+                       const description_type &description) {
+    base_type::set_description(name, description);
   }
 
   /// \brief Sets an description to the unique object of type T.
@@ -304,9 +296,9 @@ class unique_object_attr_accessor
   /// \return Returns true if a description is set (stored) successfully.
   /// Otherwise, false.
   template <typename T>
-  bool set_description(const decltype(unique_instance) &,
-                       const description_type &description) noexcept {
-    return base_type::set_description(typeid(T).name(), description);
+  void set_description(const decltype(unique_instance) &,
+                       const description_type &description) {
+    base_type::set_description(typeid(T).name(), description);
   }
 };
 
@@ -343,11 +335,8 @@ class anonymous_object_attr_accessor {
     priv_alloc_core_data();
     try {
       m_core_data->object_attribute_file_path = object_attribute_file_path;
-      const bool succeeded = m_core_data->object_directory.deserialize(
-          m_core_data->object_attribute_file_path.c_str());
-      if (!succeeded) {
-        m_core_data.reset(nullptr);
-      }
+      m_core_data->object_directory.deserialize(
+          m_core_data->object_attribute_file_path);
     } catch (...) {
       METALL_ERROR("Filed to initialize the core data");
       m_core_data.reset(nullptr);
