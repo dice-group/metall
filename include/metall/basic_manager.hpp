@@ -7,6 +7,7 @@
 #define METALL_BASIC_MANAGER_HPP
 
 #include <cstddef>
+#include <filesystem>
 #include <memory>
 
 #include <metall/tags.hpp>
@@ -116,7 +117,7 @@ class basic_manager {
 
   /// \brief Opens an existing data store.
   /// \param base_path Path to a data store.
-  basic_manager(open_only_t, const char *base_path) noexcept {
+  basic_manager(open_only_t, std::filesystem::path const &base_path) noexcept {
     try {
       m_kernel = std::make_unique<manager_kernel_type>();
       m_kernel->open(base_path);
@@ -129,7 +130,7 @@ class basic_manager {
   /// \brief Opens an existing data store with the read only mode.
   /// Write accesses will cause segmentation fault.
   /// \param base_path Path to a data store.
-  basic_manager(open_read_only_t, const char *base_path) noexcept {
+  basic_manager(open_read_only_t, std::filesystem::path const &base_path) noexcept {
     try {
       m_kernel = std::make_unique<manager_kernel_type>();
       m_kernel->open_read_only(base_path);
@@ -141,7 +142,7 @@ class basic_manager {
 
   /// \brief Creates a new data store (an existing data store will be
   /// overwritten). \param base_path Path to create a data store.
-  basic_manager(create_only_t, const char *base_path) noexcept {
+  basic_manager(create_only_t, std::filesystem::path const &base_path) noexcept {
     try {
       m_kernel = std::make_unique<manager_kernel_type>();
       m_kernel->create(base_path);
@@ -154,7 +155,7 @@ class basic_manager {
   /// \brief Creates a new data store (an existing data store will be
   /// overwritten). \param base_path Path to create a data store. \param
   /// capacity Maximum total allocation size.
-  basic_manager(create_only_t, const char *base_path,
+  basic_manager(create_only_t, std::filesystem::path const &base_path,
                 const size_type capacity) noexcept {
     try {
       m_kernel = std::make_unique<manager_kernel_type>();
@@ -1125,7 +1126,7 @@ class basic_manager {
   /// \param dir_path Path to a data store. \param description An std::string
   /// object that holds a description. \return Returns true on success;
   /// otherwise, false.
-  static bool set_description(const char *dir_path,
+  static bool set_description(std::filesystem::path const &dir_path,
                               const std::string &description) noexcept {
     try {
       return manager_kernel_type::set_description(dir_path, description);
@@ -1165,7 +1166,7 @@ class basic_manager {
   /// to an std::string object to store a description if it exists. \return
   /// Returns true on success; returns false on error. Trying to get a
   /// non-existent description is not considered as an error.
-  static bool get_description(const char *dir_path,
+  static bool get_description(std::filesystem::path const &dir_path,
                               std::string *description) noexcept {
     try {
       return manager_kernel_type::get_description(dir_path, description);
@@ -1183,7 +1184,7 @@ class basic_manager {
   /// \param dir_path Path to a data store. \return Returns an instance
   /// of named_object_attribute_accessor_type.
   static named_object_attribute_accessor_type access_named_object_attribute(
-      const char *dir_path) noexcept {
+      std::filesystem::path const &dir_path) noexcept {
     try {
       return manager_kernel_type::access_named_object_attribute(dir_path);
     } catch (...) {
@@ -1199,7 +1200,7 @@ class basic_manager {
   /// \param dir_path Path to a data store. \return Returns an instance
   /// of unique_object_attribute_accessor_type.
   static unique_object_attribute_accessor_type access_unique_object_attribute(
-      const char *dir_path) noexcept {
+      std::filesystem::path const &dir_path) noexcept {
     try {
       return manager_kernel_type::access_unique_object_attribute(dir_path);
     } catch (...) {
@@ -1215,7 +1216,7 @@ class basic_manager {
   /// \param dir_path Path to a data store. \return Returns an
   /// instance of anonymous_object_attribute_accessor_type.
   static anonymous_object_attribute_accessor_type
-  access_anonymous_object_attribute(const char *dir_path) noexcept {
+  access_anonymous_object_attribute(std::filesystem::path const &dir_path) noexcept {
     try {
       return manager_kernel_type::access_anonymous_object_attribute(dir_path);
     } catch (...) {

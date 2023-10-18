@@ -13,13 +13,13 @@
 
 namespace {
 
-std::string original_dir_path() {
-  const std::string path(test_utility::make_test_path("original"));
+std::filesystem::path original_dir_path() {
+  const std::filesystem::path path(test_utility::make_test_path("original"));
   return path;
 }
 
-std::string snapshot_dir_path() {
-  const std::string path(test_utility::make_test_path("snapshot"));
+std::filesystem::path snapshot_dir_path() {
+  const std::filesystem::path path(test_utility::make_test_path("snapshot"));
   return path;
 }
 
@@ -28,7 +28,7 @@ TEST(SnapshotTest, Snapshot) {
   metall::manager::remove(snapshot_dir_path().c_str());
 
   {
-    metall::manager manager(metall::create_only, original_dir_path().c_str());
+    metall::manager manager(metall::create_only, original_dir_path());
 
     [[maybe_unused]] auto a = manager.construct<uint32_t>("a")(1);
     [[maybe_unused]] auto b =
