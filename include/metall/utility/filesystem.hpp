@@ -13,8 +13,8 @@ namespace metall::utility::filesystem {
 /// \brief Remove a file or directory
 /// \return Upon successful completion, returns true; otherwise, false is
 /// returned. If the file or directory does not exist, true is returned.
-inline bool remove(std::string_view path) {
-  return metall::mtlldetail::remove_file(path.data());
+inline bool remove(std::filesystem::path const &path) {
+  return metall::mtlldetail::remove_file(path);
 }
 
 }  // namespace metall::utility::filesystem

@@ -6,6 +6,8 @@
 #ifndef METALL_DETAIL_UTILITY_PTREE_HPP
 #define METALL_DETAIL_UTILITY_PTREE_HPP
 
+#include <filesystem>
+
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
@@ -119,7 +121,7 @@ inline bool read_json(const std::string &file_name, node_type *root) {
   return true;
 }
 
-inline bool write_json(const node_type &root, const std::string &file_name) {
+inline bool write_json(const node_type &root, std::filesystem::path const &file_name) {
   try {
     bptree::write_json(file_name, root);
   } catch (const bptree::json_parser_error &e) {

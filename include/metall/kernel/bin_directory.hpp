@@ -9,6 +9,7 @@
 #include <iostream>
 #include <limits>
 #include <fstream>
+#include <filesystem>
 #include <string>
 #include <sstream>
 #include <cassert>
@@ -195,10 +196,10 @@ class bin_directory {
 
   /// \brief
   /// \param path
-  bool serialize(const char *path) const {
+  bool serialize(std::filesystem::path const &path) const {
     std::ofstream ofs(path);
     if (!ofs.is_open()) {
-      METALL_ERROR("Cannot open: {}", path);
+      METALL_ERROR("Cannot open: {}", path.c_str());
       return false;
     }
 
@@ -207,7 +208,7 @@ class bin_directory {
         ofs << static_cast<uint64_t>(i) << " " << static_cast<uint64_t>(value)
             << "\n";
         if (!ofs) {
-          METALL_ERROR("Something happened in the ofstream: {}", path);
+          METALL_ERROR("Something happened in the ofstream: {}", path.c_str());
           return false;
         }
       }
@@ -219,10 +220,10 @@ class bin_directory {
 
   /// \brief
   /// \param path
-  bool deserialize(const char *path) {
+  bool deserialize(std::filesystem::path const &path) {
     std::ifstream ifs(path);
     if (!ifs.is_open()) {
-      METALL_ERROR("Cannot open: {}", path);
+      METALL_ERROR("Cannot open: {}", path.c_str());
       return false;
     }
 
@@ -244,7 +245,7 @@ class bin_directory {
     }
 
     if (!ifs.eof()) {
-      METALL_ERROR("Something happened in the ifstream: {}", path);
+      METALL_ERROR("Something happened in the ifstream: {}", path.c_str());
       return false;
     }
 

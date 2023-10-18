@@ -8,6 +8,7 @@
 
 #include <limits>
 #include <fstream>
+#include <filesystem>
 #include <cassert>
 #include <type_traits>
 #include <vector>
@@ -294,10 +295,10 @@ class chunk_directory {
 
   /// \brief
   /// \param path
-  bool serialize(const char *path) const {
+  bool serialize(std::filesystem::path const &path) const {
     std::ofstream ofs(path);
     if (!ofs.is_open()) {
-      METALL_ERROR("Cannot open: {}", path);
+      METALL_ERROR("Cannot open: {}", path.c_str());
       return false;
     }
 
@@ -310,7 +311,7 @@ class chunk_directory {
           << static_cast<uint64_t>(m_table[chunk_no].bin_no) << " "
           << static_cast<uint64_t>(m_table[chunk_no].type);
       if (!ofs) {
-        METALL_ERROR("Something happened in the ofstream: {}", path);
+        METALL_ERROR("Something happened in the ofstream: {}", path.c_str());
         return false;
       }
 
@@ -321,7 +322,7 @@ class chunk_directory {
             << " " << m_table[chunk_no].slot_occupancy.serialize(num_slots)
             << "\n";
         if (!ofs) {
-          METALL_ERROR("Something happened in the ofstream: {}", path);
+          METALL_ERROR("Something happened in the ofstream: {}", path.c_str());
           return false;
         }
 
@@ -329,7 +330,7 @@ class chunk_directory {
                  m_table[chunk_no].type == chunk_type::large_chunk_body) {
         ofs << "\n";
         if (!ofs) {
-          METALL_ERROR("Something happened in the ofstream: {}", path);
+          METALL_ERROR("Something happened in the ofstream: {}", path.c_str());
           return false;
         }
 
@@ -347,10 +348,10 @@ class chunk_directory {
   /// \brief
   /// \param path
   /// \return
-  bool deserialize(const char *path) {
+  bool deserialize(std::filesystem::path const &path) {
     std::ifstream ifs(path);
     if (!ifs.is_open()) {
-      METALL_ERROR("Cannot open: {}", path);
+      METALL_ERROR("Cannot open: {}", path.c_str());
       return false;
     }
 
@@ -383,7 +384,7 @@ class chunk_directory {
             calc_num_slots(bin_no_mngr::to_object_size(bin_no));
         if (!(ifs >> buf1)) {
           std::stringstream ss;
-          METALL_ERROR("Cannot read a file: {}", path);
+          METALL_ERROR("Cannot read a file: {}", path.c_str());
           return false;
         }
         if (num_slots < buf1) {
@@ -416,7 +417,7 @@ class chunk_directory {
     }
 
     if (!ifs.eof()) {
-      METALL_ERROR("Something happened in the ifstream: {}", path);
+      METALL_ERROR("Something happened in the ifstream: {}", path.c_str());
       return false;
     }
 

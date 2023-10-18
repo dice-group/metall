@@ -916,7 +916,7 @@ class basic_manager {
   /// if it is available. \param num_max_copy_threads The maximum number of copy
   /// threads to use. If <= 0 is given, the value is automatically determined.
   /// \return Returns true on success; other false.
-  bool snapshot(const char_type *destination_dir_path, const bool clone = true,
+  bool snapshot(std::filesystem::path const &destination_dir_path, const bool clone = true,
                 const int num_max_copy_threads = 0) noexcept {
     if (!check_sanity()) {
       return false;
@@ -943,8 +943,8 @@ class basic_manager {
   /// \param num_max_copy_threads The maximum number of copy threads to use.
   /// If <= 0 is given, the value is automatically determined.
   /// \return If succeeded, returns true; other false.
-  static bool copy(const char_type *source_dir_path,
-                   const char_type *destination_dir_path,
+  static bool copy(std::filesystem::path const &source_dir_path,
+                   std::filesystem::path const &destination_dir_path,
                    const bool clone = true,
                    const int num_max_copy_threads = 0) noexcept {
     try {
@@ -969,8 +969,8 @@ class basic_manager {
   /// If <= 0 is given, the value is automatically determined.
   /// \return Returns an object of std::future.
   /// If succeeded, its get() returns true; other false.
-  static auto copy_async(const char_type *source_dir_path,
-                         const char_type *destination_dir_path,
+  static auto copy_async(std::filesystem::path const &source_dir_path,
+                         std::filesystem::path const &destination_dir_path,
                          const bool clone = true,
                          const int num_max_copy_threads = 0) noexcept {
     try {
@@ -988,7 +988,7 @@ class basic_manager {
   ///
   /// \param dir_path Path to a data store to remove. \return If
   /// succeeded, returns true; other false.
-  static bool remove(const char_type *dir_path) noexcept {
+  static bool remove(std::filesystem::path const &dir_path) noexcept {
     try {
       return manager_kernel_type::remove(dir_path);
     } catch (...) {
@@ -1004,7 +1004,7 @@ class basic_manager {
   /// \param dir_path Path to a data store to remove.
   /// \return Returns an object of std::future.
   /// If succeeded, its get() returns true; other false
-  static std::future<bool> remove_async(const char_type *dir_path) noexcept {
+  static std::future<bool> remove_async(std::filesystem::path const &dir_path) noexcept {
     try {
       return std::async(std::launch::async, remove, dir_path);
     } catch (...) {
@@ -1025,7 +1025,7 @@ class basic_manager {
   /// \param dir_path Path to a data store.
   /// \return Returns true if it exists and is consistent; otherwise, returns
   /// false.
-  static bool consistent(const char_type *dir_path) noexcept {
+  static bool consistent(std::filesystem::path const &dir_path) noexcept {
     try {
       return manager_kernel_type::consistent(dir_path);
     } catch (...) {
@@ -1055,7 +1055,7 @@ class basic_manager {
   ///
   /// \param dir_path Path to a data store.
   /// \return UUID in the std::string format; returns an empty string on error.
-  static std::string get_uuid(const char_type *dir_path) noexcept {
+  static std::string get_uuid(std::filesystem::path const &dir_path) noexcept {
     try {
       return manager_kernel_type::get_uuid(dir_path);
     } catch (...) {
@@ -1085,7 +1085,7 @@ class basic_manager {
   ///
   /// \param dir_path Path to a data store.
   /// \return Returns a version number; returns 0 on error.
-  static version_type get_version(const char_type *dir_path) noexcept {
+  static version_type get_version(std::filesystem::path const &dir_path) noexcept {
     try {
       return manager_kernel_type::get_version(dir_path);
     } catch (...) {

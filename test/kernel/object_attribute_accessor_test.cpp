@@ -15,24 +15,24 @@ using namespace metall;
 
 auto attr_accessor_named() {
   return manager::access_named_object_attribute(
-      test_utility::make_test_path().c_str());
+      test_utility::make_test_path());
 }
 
 auto attr_accessor_unique() {
   return manager::access_unique_object_attribute(
-      test_utility::make_test_path().c_str());
+      test_utility::make_test_path());
 }
 
 auto attr_accessor_anonymous() {
   return manager::access_anonymous_object_attribute(
-      test_utility::make_test_path().c_str());
+      test_utility::make_test_path());
 }
 
 TEST(ObjectAttributeAccessorTest, Constructor) {
-  manager::remove(test_utility::make_test_path().c_str());
+  manager::remove(test_utility::make_test_path());
 
   {
-    manager mngr(create_only, test_utility::make_test_path().c_str(),
+    manager mngr(create_only, test_utility::make_test_path(),
                  1ULL << 30ULL);
   }
 
@@ -42,10 +42,10 @@ TEST(ObjectAttributeAccessorTest, Constructor) {
 }
 
 TEST(ObjectAttributeAccessorTest, NumObjects) {
-  manager::remove(test_utility::make_test_path().c_str());
+  manager::remove(test_utility::make_test_path());
 
   {
-    manager mngr(create_only, test_utility::make_test_path().c_str(),
+    manager mngr(create_only, test_utility::make_test_path(),
                  1ULL << 30ULL);
   }
 
@@ -56,7 +56,7 @@ TEST(ObjectAttributeAccessorTest, NumObjects) {
   }
 
   {
-    manager mngr(open_only, test_utility::make_test_path().c_str());
+    manager mngr(open_only, test_utility::make_test_path());
     mngr.construct<int>("int1")();
     mngr.construct<int>("int2")();
     mngr.construct<float>(unique_instance)();
@@ -71,10 +71,10 @@ TEST(ObjectAttributeAccessorTest, NumObjects) {
 }
 
 TEST(ObjectAttributeAccessorTest, Count) {
-  manager::remove(test_utility::make_test_path().c_str());
+  manager::remove(test_utility::make_test_path());
 
   {
-    manager mngr(create_only, test_utility::make_test_path().c_str(),
+    manager mngr(create_only, test_utility::make_test_path(),
                  1ULL << 30ULL);
   }
 
@@ -84,7 +84,7 @@ TEST(ObjectAttributeAccessorTest, Count) {
   }
 
   {
-    manager mngr(open_only, test_utility::make_test_path().c_str());
+    manager mngr(open_only, test_utility::make_test_path());
     mngr.construct<int>("int1")();
     mngr.construct<float>(unique_instance)();
   }
@@ -97,10 +97,10 @@ TEST(ObjectAttributeAccessorTest, Count) {
 }
 
 TEST(ObjectAttributeAccessorTest, Find) {
-  manager::remove(test_utility::make_test_path().c_str());
+  manager::remove(test_utility::make_test_path());
 
   {
-    manager mngr(create_only, test_utility::make_test_path().c_str(),
+    manager mngr(create_only, test_utility::make_test_path(),
                  1ULL << 30ULL);
   }
 
@@ -113,7 +113,7 @@ TEST(ObjectAttributeAccessorTest, Find) {
   }
 
   {
-    manager mngr(open_only, test_utility::make_test_path().c_str());
+    manager mngr(open_only, test_utility::make_test_path());
     mngr.construct<int>("int1")();
     mngr.construct<float>(unique_instance)();
   }
@@ -127,10 +127,10 @@ TEST(ObjectAttributeAccessorTest, Find) {
 }
 
 TEST(ObjectAttributeAccessorTest, Iterator) {
-  manager::remove(test_utility::make_test_path().c_str());
+  manager::remove(test_utility::make_test_path());
 
   {
-    manager mngr(create_only, test_utility::make_test_path().c_str(),
+    manager mngr(create_only, test_utility::make_test_path(),
                  1ULL << 30ULL);
   }
 
@@ -148,7 +148,7 @@ TEST(ObjectAttributeAccessorTest, Iterator) {
   ptrdiff_t anony_off_obj1 = 0;
   ptrdiff_t anony_off_obj2 = 0;
   {
-    manager mngr(open_only, test_utility::make_test_path().c_str());
+    manager mngr(open_only, test_utility::make_test_path());
     mngr.construct<int>("int1")();
     mngr.construct<float>("float1")();
 
@@ -210,10 +210,10 @@ TEST(ObjectAttributeAccessorTest, Iterator) {
 }
 
 TEST(ObjectAttributeAccessorTest, Description) {
-  manager::remove(test_utility::make_test_path().c_str());
+  manager::remove(test_utility::make_test_path());
 
   {
-    manager mngr(create_only, test_utility::make_test_path().c_str(),
+    manager mngr(create_only, test_utility::make_test_path(),
                  1ULL << 30ULL);
   }
 
@@ -224,7 +224,7 @@ TEST(ObjectAttributeAccessorTest, Description) {
   }
 
   {
-    manager mngr(open_only, test_utility::make_test_path().c_str());
+    manager mngr(open_only, test_utility::make_test_path());
     mngr.construct<int>("int1")();
     mngr.construct<float>(unique_instance)();
   }
@@ -236,7 +236,7 @@ TEST(ObjectAttributeAccessorTest, Description) {
   }
 
   {
-    manager mngr(open_only, test_utility::make_test_path().c_str());
+    manager mngr(open_only, test_utility::make_test_path());
     std::string buf1;
     ASSERT_TRUE(
         mngr.get_instance_description(mngr.find<int>("int1").first, &buf1));

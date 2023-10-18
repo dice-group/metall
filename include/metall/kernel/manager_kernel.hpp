@@ -510,23 +510,23 @@ class manager_kernel {
   //      directories and files for allocation management
   //    segment_dir/
   //      directories and files for application data segment
-  static std::string priv_make_top_dir_path(const std::string &base_dir_path);
-  static std::string priv_make_top_level_file_name(
-      const std::string &base_dir_path, const std::string &item_name);
-  static std::string priv_make_management_dir_path(
-      const std::string &base_dir_path);
-  static std::string priv_make_management_file_name(
-      const std::string &base_dir_path, const std::string &item_name);
-  static std::string priv_make_segment_dir_path(
-      const std::string &base_dir_path);
-  static bool priv_init_datastore_directory(const std::string &base_dir_path);
+  static std::filesystem::path priv_make_top_dir_path(std::filesystem::path const &base_dir_path);
+  static std::filesystem::path priv_make_top_level_file_name(
+      std::filesystem::path const &base_dir_path, const std::string &item_name);
+  static std::filesystem::path priv_make_management_dir_path(
+      std::filesystem::path const &base_dir_path);
+  static std::filesystem::path priv_make_management_file_name(
+      std::filesystem::path const &base_dir_path, const std::string &item_name);
+  static std::filesystem::path priv_make_segment_dir_path(
+      std::filesystem::path const &base_dir_path);
+  static bool priv_init_datastore_directory(std::filesystem::path const &base_dir_path);
 
   // ---------- For consistence support  ---------- //
-  static bool priv_consistent(const std::string &base_dir_path);
+  static bool priv_consistent(std::filesystem::path const &base_dir_path);
   static bool priv_check_version(const json_store &metadata_json);
-  static bool priv_properly_closed(const std::string &base_dir_path);
-  static bool priv_mark_properly_closed(const std::string &base_dir_path);
-  static bool priv_unmark_properly_closed(const std::string &base_dir_path);
+  static bool priv_properly_closed(std::filesystem::path const &base_dir_path);
+  static bool priv_mark_properly_closed(std::filesystem::path const &base_dir_path);
+  static bool priv_unmark_properly_closed(std::filesystem::path const &base_dir_path);
 
   // ---------- For constructed objects  ---------- //
   template <typename T>
