@@ -12,7 +12,7 @@ void log_cerr() {
   logger::out(logger::level::silent, __FILE__, __LINE__, "silent logger");
   logger::out(logger::level::critical, __FILE__, __LINE__, "critical logger");
   METALL_ERROR("error logger");
-  logger::out(logger::level::warning, __FILE__, __LINE__, "warning logger");
+  METALL_WARN("warning logger");
   METALL_INFO("info logger");
   METALL_DEBUG("debug logger");
   METALL_TRACE("verbose logger");

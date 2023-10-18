@@ -210,10 +210,10 @@ class object_cache {
       return;
     }
     {
-      METALL_INFO("The number of cores is: {}", get_num_cores());
+      METALL_DEBUG("The number of cores is: {}", get_num_cores());
     }
     {
-      METALL_INFO("The number of caches is: {}", m_cache_table.size());
+      METALL_DEBUG("The number of caches is: {}", m_cache_table.size());
     }
     {
       std::stringstream ss;
@@ -223,7 +223,7 @@ class object_cache {
         if (b < single_cache_type::num_bins() - 1) ss << " ";
       }
 
-      METALL_INFO("{}", ss.str());
+      METALL_DEBUG("{}", ss.str());
     }
   }
 

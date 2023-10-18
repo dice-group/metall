@@ -36,7 +36,7 @@ class mmap_segment_storage {
   // -------------------- //
   mmap_segment_storage() {
 #ifdef METALL_USE_ANONYMOUS_NEW_MAP
-    METALL_INFO("METALL_USE_ANONYMOUS_NEW_MAP is defined");
+    METALL_DEBUG("METALL_USE_ANONYMOUS_NEW_MAP is defined");
 #endif
 
     if (!priv_set_system_page_size()) {
@@ -259,11 +259,11 @@ class mmap_segment_storage {
     }
 
     if (clone) {
-      METALL_INFO("Clone: {}", source_path);
+      METALL_TRACE("Clone: {}", source_path);
       return mdtl::clone_files_in_directory_in_parallel(
           source_path, destination_path, max_num_threads);
     } else {
-      METALL_INFO("Copy: {}", source_path);
+      METALL_TRACE("Copy: {}", source_path);
       return mdtl::copy_files_in_directory_in_parallel(
           source_path, destination_path, max_num_threads);
     }
@@ -277,7 +277,7 @@ class mmap_segment_storage {
     if (is_open())
       return false;  // Cannot open multiple segments simultaneously.
 
-    METALL_INFO("Create a segment under: {}", base_path);
+    METALL_TRACE("Create a segment under: {}", base_path);
 
     if (!mdtl::directory_exist(base_path)) {
       if (!mdtl::create_directory(base_path)) {
@@ -320,7 +320,7 @@ class mmap_segment_storage {
     if (is_open())
       return false;  // Cannot open multiple segments simultaneously.
 
-    METALL_INFO("Open a segment under: {}", base_path);
+    METALL_TRACE("Open a segment under: {}", base_path);
 
     m_base_path = base_path;
     m_vm_region_size = mdtl::round_down(vm_region_size, page_size());
@@ -417,7 +417,7 @@ class mmap_segment_storage {
     const std::string file_name =
         priv_make_block_file_name(base_path, block_number);
 
-    METALL_INFO("Create and extend a file {} with {} bytes", file_name, file_size);
+    METALL_TRACE("Create and extend a file {} with {} bytes", file_name, file_size);
 
     if (!mdtl::create_file(file_name)) return false;
     if (!mdtl::extend_file_size(file_name, file_size)) return false;
@@ -463,7 +463,7 @@ class mmap_segment_storage {
 
     const auto map_addr = static_cast<char *>(m_segment) + segment_offset;
 
-    METALL_INFO("Map a file {} at {} with {} bytes; read-only mode is {}",
+    METALL_TRACE("Map a file {} at {} with {} bytes; read-only mode is {}",
                 path,
                 segment_offset,
                 file_size,
@@ -493,7 +493,7 @@ class mmap_segment_storage {
     assert(segment_offset + region_size <= m_vm_region_size);
 
     const auto map_addr = static_cast<char *>(m_segment) + segment_offset;
-    METALL_INFO("Map an anonymous region at {} with size {}", segment_offset, region_size);
+    METALL_TRACE("Map an anonymous region at {} with size {}", segment_offset, region_size);
 
     const auto *addr =
         mdtl::map_anonymous_write_mode(map_addr, region_size, MAP_FIXED);
@@ -557,7 +557,7 @@ class mmap_segment_storage {
       return false;
     }
 
-    METALL_INFO("msync() for the application data segment");
+    METALL_TRACE("msync() for the application data segment");
     if (!priv_parallel_msync(sync)) {
       METALL_ERROR("Failed to msync the segment");
       return false;
@@ -597,7 +597,7 @@ class mmap_segment_storage {
     const auto num_threads =
         (int)std::min(m_block_fd_list.size(),
                       (std::size_t)std::thread::hardware_concurrency());
-    METALL_INFO("Sync files with {} threads", num_threads);
+    METALL_TRACE("Sync files with {} threads", num_threads);
     std::vector<std::unique_ptr<std::thread>> threads(num_threads);
     for (auto &th : threads) {
       th = std::make_unique<std::thread>(diff_sync);
@@ -651,27 +651,19 @@ class mmap_segment_storage {
 #ifdef METALL_USE_ANONYMOUS_NEW_MAP
   bool priv_sync_anonymous_map(const size_type block_no) {
     assert(m_anonymous_map_flag_list[block_no]);
-    {
-      std::string s("Sync anonymous map at block " + std::to_string(block_no));
-      METALL_INFO(s.c_str());
-    }
+    METALL_TRACE("Sync anonymous map at block {}", block_no);
 
     auto *const addr = static_cast<char *>(m_segment) + block_no * m_block_size;
     if (::write(m_block_fd_list[block_no], addr, m_block_size) !=
         (ssize_t)m_block_size) {
-      std::string s("Failed to write back a block");
-      METALL_ERRNO_ERROR(s.c_str());
+      METALL_ERRNO_ERROR("Failed to write back a block");
       priv_destroy_segment();
       priv_set_broken_status();
       return false;
     }
     m_anonymous_map_flag_list[block_no] = false;
 
-    {
-      std::string s("Map block " + std::to_string(block_no) +
-                    " as a non-anonymous map");
-      METALL_INFO(s.c_str());
-    }
+    METALL_TRACE("Map block {} as non-anonymous map", block_no);
     [[maybe_unused]] static constexpr int map_nosync =
 #ifdef MAP_NOSYNC
         MAP_NOSYNC;
@@ -682,8 +674,7 @@ class mmap_segment_storage {
         mdtl::map_file_write_mode(m_block_fd_list[block_no], addr, m_block_size,
                                   0, MAP_FIXED | map_nosync);
     if (!mapped_addr || mapped_addr != addr) {
-      std::string s("Failed to map a block");
-      METALL_ERROR(s.c_str());
+      METALL_ERROR("Failed to map a block");
       priv_destroy_segment();
       priv_set_broken_status();
       return false;
@@ -745,7 +736,7 @@ class mmap_segment_storage {
       return false;
     }
 
-    METALL_INFO("File free test result: {}", m_free_file_space ? "success" : "failed");
+    METALL_DEBUG("File free test result: {}", m_free_file_space ? "success" : "failed");
     return true;
   }
 

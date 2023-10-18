@@ -457,7 +457,7 @@ inline bool copy_file(const std::string &source_path,
     return file_copy_detail::copy_file_sparse_linux(source_path,
                                                     destination_path);
 #else
-    METALL_INFO("Sparse file copy is not available");
+    METALL_DEBUG("Sparse file copy is not available");
 #endif
   }
   return file_copy_detail::copy_file_dense(source_path, destination_path);
