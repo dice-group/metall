@@ -29,7 +29,7 @@ void open(const std::string &dir_path) {
   ASSERT_EQ(*b, 2);
 }
 
-std::filesystem::path const &original_dir_path() {
+const std::filesystem::path &original_dir_path() {
   const static std::filesystem::path path(test_utility::make_test_path("/original"));
   return path;
 }

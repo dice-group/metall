@@ -117,7 +117,7 @@ class basic_manager {
 
   /// \brief Opens an existing data store.
   /// \param base_path Path to a data store.
-  basic_manager(open_only_t, std::filesystem::path const &base_path) noexcept {
+  basic_manager(open_only_t, const std::filesystem::path &base_path) noexcept {
     try {
       m_kernel = std::make_unique<manager_kernel_type>();
       m_kernel->open(base_path);
@@ -130,7 +130,7 @@ class basic_manager {
   /// \brief Opens an existing data store with the read only mode.
   /// Write accesses will cause segmentation fault.
   /// \param base_path Path to a data store.
-  basic_manager(open_read_only_t, std::filesystem::path const &base_path) noexcept {
+  basic_manager(open_read_only_t, const std::filesystem::path &base_path) noexcept {
     try {
       m_kernel = std::make_unique<manager_kernel_type>();
       m_kernel->open_read_only(base_path);
@@ -142,7 +142,7 @@ class basic_manager {
 
   /// \brief Creates a new data store (an existing data store will be
   /// overwritten). \param base_path Path to create a data store.
-  basic_manager(create_only_t, std::filesystem::path const &base_path) noexcept {
+  basic_manager(create_only_t, const std::filesystem::path &base_path) noexcept {
     try {
       m_kernel = std::make_unique<manager_kernel_type>();
       m_kernel->create(base_path);
@@ -155,7 +155,7 @@ class basic_manager {
   /// \brief Creates a new data store (an existing data store will be
   /// overwritten). \param base_path Path to create a data store. \param
   /// capacity Maximum total allocation size.
-  basic_manager(create_only_t, std::filesystem::path const &base_path,
+  basic_manager(create_only_t, const std::filesystem::path &base_path,
                 const size_type capacity) noexcept {
     try {
       m_kernel = std::make_unique<manager_kernel_type>();
@@ -915,7 +915,7 @@ class basic_manager {
   /// if it is available. \param num_max_copy_threads The maximum number of copy
   /// threads to use. If <= 0 is given, the value is automatically determined.
   /// \return Returns true on success; other false.
-  bool snapshot(std::filesystem::path const &destination_dir_path,
+  bool snapshot(const std::filesystem::path &destination_dir_path,
                 const int num_max_copy_threads = 0) noexcept {
     if (!check_sanity()) {
       return false;
@@ -942,8 +942,8 @@ class basic_manager {
   /// \param num_max_copy_threads The maximum number of copy threads to use.
   /// If <= 0 is given, the value is automatically determined.
   /// \return If succeeded, returns true; other false.
-  static bool copy(std::filesystem::path const &source_dir_path,
-                   std::filesystem::path const &destination_dir_path,
+  static bool copy(const std::filesystem::path &source_dir_path,
+                   const std::filesystem::path &destination_dir_path,
                    const int num_max_copy_threads = 0) noexcept {
     try {
       return manager_kernel_type::copy(source_dir_path, destination_dir_path,
@@ -967,8 +967,8 @@ class basic_manager {
   /// If <= 0 is given, the value is automatically determined.
   /// \return Returns an object of std::future.
   /// If succeeded, its get() returns true; other false.
-  static auto copy_async(std::filesystem::path const &source_dir_path,
-                         std::filesystem::path const &destination_dir_path,
+  static auto copy_async(const std::filesystem::path &source_dir_path,
+                         const std::filesystem::path &destination_dir_path,
                          const int num_max_copy_threads = 0) noexcept {
     try {
       return manager_kernel_type::copy_async(
@@ -985,7 +985,7 @@ class basic_manager {
   ///
   /// \param dir_path Path to a data store to remove. \return If
   /// succeeded, returns true; other false.
-  static bool remove(std::filesystem::path const &dir_path) noexcept {
+  static bool remove(const std::filesystem::path &dir_path) noexcept {
     try {
       return manager_kernel_type::remove(dir_path);
     } catch (...) {
@@ -1001,7 +1001,7 @@ class basic_manager {
   /// \param dir_path Path to a data store to remove.
   /// \return Returns an object of std::future.
   /// If succeeded, its get() returns true; other false
-  static std::future<bool> remove_async(std::filesystem::path const &dir_path) noexcept {
+  static std::future<bool> remove_async(const std::filesystem::path &dir_path) noexcept {
     try {
       return std::async(std::launch::async, remove, dir_path);
     } catch (...) {
@@ -1022,7 +1022,7 @@ class basic_manager {
   /// \param dir_path Path to a data store.
   /// \return Returns true if it exists and is consistent; otherwise, returns
   /// false.
-  static bool consistent(std::filesystem::path const &dir_path) noexcept {
+  static bool consistent(const std::filesystem::path &dir_path) noexcept {
     try {
       return manager_kernel_type::consistent(dir_path);
     } catch (...) {
@@ -1052,7 +1052,7 @@ class basic_manager {
   ///
   /// \param dir_path Path to a data store.
   /// \return UUID in the std::string format; returns an empty string on error.
-  static std::string get_uuid(std::filesystem::path const &dir_path) noexcept {
+  static std::string get_uuid(const std::filesystem::path &dir_path) noexcept {
     try {
       return manager_kernel_type::get_uuid(dir_path);
     } catch (...) {
@@ -1082,7 +1082,7 @@ class basic_manager {
   ///
   /// \param dir_path Path to a data store.
   /// \return Returns a version number; returns 0 on error.
-  static version_type get_version(std::filesystem::path const &dir_path) noexcept {
+  static version_type get_version(const std::filesystem::path &dir_path) noexcept {
     try {
       return manager_kernel_type::get_version(dir_path);
     } catch (...) {
@@ -1123,7 +1123,7 @@ class basic_manager {
   /// \param dir_path Path to a data store. \param description An std::string
   /// object that holds a description. \return Returns true on success;
   /// otherwise, false.
-  static bool set_description(std::filesystem::path const &dir_path,
+  static bool set_description(const std::filesystem::path &dir_path,
                               const std::string &description) noexcept {
     try {
       return manager_kernel_type::set_description(dir_path, description);
@@ -1163,7 +1163,7 @@ class basic_manager {
   /// to an std::string object to store a description if it exists. \return
   /// Returns true on success; returns false on error. Trying to get a
   /// non-existent description is not considered as an error.
-  static bool get_description(std::filesystem::path const &dir_path,
+  static bool get_description(const std::filesystem::path &dir_path,
                               std::string *description) noexcept {
     try {
       return manager_kernel_type::get_description(dir_path, description);
@@ -1181,7 +1181,7 @@ class basic_manager {
   /// \param dir_path Path to a data store. \return Returns an instance
   /// of named_object_attribute_accessor_type.
   static named_object_attribute_accessor_type access_named_object_attribute(
-      std::filesystem::path const &dir_path) noexcept {
+      const std::filesystem::path &dir_path) noexcept {
     try {
       return manager_kernel_type::access_named_object_attribute(dir_path);
     } catch (...) {
@@ -1197,7 +1197,7 @@ class basic_manager {
   /// \param dir_path Path to a data store. \return Returns an instance
   /// of unique_object_attribute_accessor_type.
   static unique_object_attribute_accessor_type access_unique_object_attribute(
-      std::filesystem::path const &dir_path) noexcept {
+      const std::filesystem::path &dir_path) noexcept {
     try {
       return manager_kernel_type::access_unique_object_attribute(dir_path);
     } catch (...) {
@@ -1213,7 +1213,7 @@ class basic_manager {
   /// \param dir_path Path to a data store. \return Returns an
   /// instance of anonymous_object_attribute_accessor_type.
   static anonymous_object_attribute_accessor_type
-  access_anonymous_object_attribute(std::filesystem::path const &dir_path) noexcept {
+  access_anonymous_object_attribute(const std::filesystem::path &dir_path) noexcept {
     try {
       return manager_kernel_type::access_anonymous_object_attribute(dir_path);
     } catch (...) {

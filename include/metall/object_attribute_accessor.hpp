@@ -47,7 +47,7 @@ class general_named_object_attr_accessor {
   general_named_object_attr_accessor() noexcept = default;
 
   explicit general_named_object_attr_accessor(
-      std::filesystem::path const &object_attribute_file_path) noexcept {
+      const std::filesystem::path &object_attribute_file_path) noexcept {
     priv_alloc_core_data();
     try {
       m_core_data->object_attribute_file_path = object_attribute_file_path;
@@ -239,7 +239,7 @@ class unique_object_attr_accessor
   unique_object_attr_accessor() noexcept = default;
 
   explicit unique_object_attr_accessor(
-      std::filesystem::path const &object_attribute_file_path) noexcept
+      const std::filesystem::path &object_attribute_file_path) noexcept
       : base_type(object_attribute_file_path) {}
 
   /// \brief Counts the number of objects with the name.
@@ -339,7 +339,7 @@ class anonymous_object_attr_accessor {
   anonymous_object_attr_accessor() noexcept = default;
 
   explicit anonymous_object_attr_accessor(
-      std::filesystem::path const &object_attribute_file_path) noexcept {
+      const std::filesystem::path &object_attribute_file_path) noexcept {
     priv_alloc_core_data();
     try {
       m_core_data->object_attribute_file_path = object_attribute_file_path;

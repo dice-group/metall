@@ -39,20 +39,20 @@ manager_kernel<chnk_no, chnk_sz>::~manager_kernel() noexcept {
 // Public methods
 // -------------------- //
 template <typename chnk_no, std::size_t chnk_sz>
-bool manager_kernel<chnk_no, chnk_sz>::create(std::filesystem::path const &base_dir_path,
+bool manager_kernel<chnk_no, chnk_sz>::create(const std::filesystem::path &base_dir_path,
                                               const size_type vm_reserve_size) {
   return m_good = priv_create(base_dir_path, vm_reserve_size);
 }
 
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::open_read_only(
-    std::filesystem::path const &base_dir_path) {
+    const std::filesystem::path &base_dir_path) {
   return m_good = priv_open(base_dir_path, true, 0);
 }
 
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::open(
-    std::filesystem::path const &base_dir_path, const size_type vm_reserve_size_request) {
+    const std::filesystem::path &base_dir_path, const size_type vm_reserve_size_request) {
   return m_good = priv_open(base_dir_path, false, vm_reserve_size_request);
 }
 
@@ -448,14 +448,14 @@ manager_kernel<chnk_no, chnk_sz>::get_segment_size() const {
 
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::snapshot(
-    std::filesystem::path const &destination_base_dir_path,
+    const std::filesystem::path &destination_base_dir_path,
     const int num_max_copy_threads) {
   return priv_snapshot(destination_base_dir_path, num_max_copy_threads);
 }
 
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::copy(
-    std::filesystem::path const &source_base_dir_path, std::filesystem::path const &destination_base_dir_path,
+    const std::filesystem::path &source_base_dir_path, const std::filesystem::path &destination_base_dir_path,
     const int num_max_copy_threads) {
   return priv_copy_data_store(source_base_dir_path, destination_base_dir_path,
                               num_max_copy_threads);
@@ -463,25 +463,25 @@ bool manager_kernel<chnk_no, chnk_sz>::copy(
 
 template <typename chnk_no, std::size_t chnk_sz>
 std::future<bool> manager_kernel<chnk_no, chnk_sz>::copy_async(
-    std::filesystem::path const &source_dir_path, std::filesystem::path const &destination_dir_path,
+    const std::filesystem::path &source_dir_path, const std::filesystem::path &destination_dir_path,
     const int num_max_copy_threads) {
   return std::async(std::launch::async, copy, source_dir_path,
                     destination_dir_path, num_max_copy_threads);
 }
 
 template <typename chnk_no, std::size_t chnk_sz>
-bool manager_kernel<chnk_no, chnk_sz>::remove(std::filesystem::path const &base_dir_path) {
+bool manager_kernel<chnk_no, chnk_sz>::remove(const std::filesystem::path &base_dir_path) {
   return priv_remove_data_store(base_dir_path);
 }
 
 template <typename chnk_no, std::size_t chnk_sz>
 std::future<bool> manager_kernel<chnk_no, chnk_sz>::remove_async(
-    std::filesystem::path const &base_dir_path) {
+    const std::filesystem::path &base_dir_path) {
   return std::async(std::launch::async, remove, base_dir_path);
 }
 
 template <typename chnk_no, std::size_t chnk_sz>
-bool manager_kernel<chnk_no, chnk_sz>::consistent(std::filesystem::path const &dir_path) {
+bool manager_kernel<chnk_no, chnk_sz>::consistent(const std::filesystem::path &dir_path) {
   return priv_consistent(dir_path);
 }
 
@@ -491,7 +491,7 @@ std::string manager_kernel<chnk_no, chnk_sz>::get_uuid() const {
 }
 
 template <typename chnk_no, std::size_t chnk_sz>
-std::string manager_kernel<chnk_no, chnk_sz>::get_uuid(std::filesystem::path const &dir_path) {
+std::string manager_kernel<chnk_no, chnk_sz>::get_uuid(const std::filesystem::path &dir_path) {
   json_store meta_data;
   if (!priv_read_management_metadata(dir_path, &meta_data)) {
     METALL_ERROR("Cannot read management metadata in {}", dir_path.c_str());
@@ -507,7 +507,7 @@ version_type manager_kernel<chnk_no, chnk_sz>::get_version() const {
 
 template <typename chnk_no, std::size_t chnk_sz>
 version_type manager_kernel<chnk_no, chnk_sz>::get_version(
-    std::filesystem::path const &dir_path) {
+    const std::filesystem::path &dir_path) {
   json_store meta_data;
   if (!priv_read_management_metadata(dir_path, &meta_data)) {
     METALL_ERROR("Cannot read management metadata in {}", dir_path.c_str());
@@ -519,7 +519,7 @@ version_type manager_kernel<chnk_no, chnk_sz>::get_version(
 
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::get_description(
-    std::filesystem::path const &base_dir_path, std::string *description) {
+    const std::filesystem::path &base_dir_path, std::string *description) {
   return priv_read_description(base_dir_path, description);
 }
 
@@ -531,7 +531,7 @@ bool manager_kernel<chnk_no, chnk_sz>::get_description(
 
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::set_description(
-    std::filesystem::path const &base_dir_path, const std::string &description) {
+    const std::filesystem::path &base_dir_path, const std::string &description) {
   return priv_write_description(base_dir_path, description);
 }
 
@@ -544,7 +544,7 @@ bool manager_kernel<chnk_no, chnk_sz>::set_description(
 template <typename chnk_no, std::size_t chnk_sz>
 typename manager_kernel<chnk_no, chnk_sz>::named_object_attr_accessor_type
 manager_kernel<chnk_no, chnk_sz>::access_named_object_attribute(
-    std::filesystem::path const &base_dir_path) {
+    const std::filesystem::path &base_dir_path) {
   return named_object_attr_accessor_type(priv_make_management_file_name(
       base_dir_path, k_named_object_directory_prefix));
 }
@@ -552,7 +552,7 @@ manager_kernel<chnk_no, chnk_sz>::access_named_object_attribute(
 template <typename chnk_no, std::size_t chnk_sz>
 typename manager_kernel<chnk_no, chnk_sz>::unique_object_attr_accessor_type
 manager_kernel<chnk_no, chnk_sz>::access_unique_object_attribute(
-    std::filesystem::path const &base_dir_path) {
+    const std::filesystem::path &base_dir_path) {
   return unique_object_attr_accessor_type(priv_make_management_file_name(
       base_dir_path, k_unique_object_directory_prefix));
 }
@@ -560,7 +560,7 @@ manager_kernel<chnk_no, chnk_sz>::access_unique_object_attribute(
 template <typename chnk_no, std::size_t chnk_sz>
 typename manager_kernel<chnk_no, chnk_sz>::anonymous_object_attr_accessor_type
 manager_kernel<chnk_no, chnk_sz>::access_anonymous_object_attribute(
-    std::filesystem::path const &base_dir_path) {
+    const std::filesystem::path &base_dir_path) {
   return anonymous_object_attr_accessor_type(priv_make_management_file_name(
       base_dir_path, k_anonymous_object_directory_prefix));
 }
@@ -588,37 +588,37 @@ void *manager_kernel<chnk_no, chnk_sz>::priv_to_address(
 
 template <typename chnk_no, std::size_t chnk_sz>
 std::filesystem::path manager_kernel<chnk_no, chnk_sz>::priv_make_top_dir_path(
-    std::filesystem::path const &base_dir_path) {
+    const std::filesystem::path &base_dir_path) {
   return base_dir_path / k_datastore_top_dir_name;
 }
 
 template <typename chnk_no, std::size_t chnk_sz>
 std::filesystem::path manager_kernel<chnk_no, chnk_sz>::priv_make_top_level_file_name(
-    std::filesystem::path const &base_dir_path, const std::string &item_name) {
+    const std::filesystem::path &base_dir_path, const std::string &item_name) {
   return priv_make_top_dir_path(base_dir_path) / item_name;
 }
 
 template <typename chnk_no, std::size_t chnk_sz>
 std::filesystem::path manager_kernel<chnk_no, chnk_sz>::priv_make_management_dir_path(
-    std::filesystem::path const &base_dir_path) {
+    const std::filesystem::path &base_dir_path) {
   return priv_make_top_dir_path(base_dir_path) / k_datastore_management_dir_name;
 }
 
 template <typename chnk_no, std::size_t chnk_sz>
 std::filesystem::path manager_kernel<chnk_no, chnk_sz>::priv_make_management_file_name(
-    std::filesystem::path const &base_dir_path, const std::string &item_name) {
+    const std::filesystem::path &base_dir_path, const std::string &item_name) {
   return priv_make_management_dir_path(base_dir_path) / item_name;
 }
 
 template <typename chnk_no, std::size_t chnk_sz>
 std::filesystem::path manager_kernel<chnk_no, chnk_sz>::priv_make_segment_dir_path(
-    std::filesystem::path const &base_dir_path) {
+    const std::filesystem::path &base_dir_path) {
   return priv_make_top_dir_path(base_dir_path) / k_datastore_segment_dir_name;
 }
 
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::priv_init_datastore_directory(
-    std::filesystem::path const &base_dir_path) {
+    const std::filesystem::path &base_dir_path) {
   // Create the base directory if needed
   if (!mdtl::create_directory(base_dir_path)) {
     METALL_ERROR("Failed to create directory: {}", base_dir_path.c_str());
@@ -688,7 +688,7 @@ bool manager_kernel<chnk_no, chnk_sz>::priv_validate_runtime_configuration()
 
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::priv_consistent(
-    std::filesystem::path const &base_dir_path) {
+    const std::filesystem::path &base_dir_path) {
   json_store metadata;
   return priv_properly_closed(base_dir_path) &&
          (priv_read_management_metadata(base_dir_path, &metadata) &&
@@ -703,21 +703,21 @@ bool manager_kernel<chnk_no, chnk_sz>::priv_check_version(
 
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::priv_properly_closed(
-    std::filesystem::path const &base_dir_path) {
+    const std::filesystem::path &base_dir_path) {
   return mdtl::file_exist(priv_make_top_level_file_name(
       base_dir_path, k_properly_closed_mark_file_name));
 }
 
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::priv_mark_properly_closed(
-    std::filesystem::path const &base_dir_path) {
+    const std::filesystem::path &base_dir_path) {
   return mdtl::create_file(priv_make_top_level_file_name(
       base_dir_path, k_properly_closed_mark_file_name));
 }
 
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::priv_unmark_properly_closed(
-    std::filesystem::path const &base_dir_path) {
+    const std::filesystem::path &base_dir_path) {
   return mdtl::remove_file(priv_make_top_level_file_name(
       base_dir_path, k_properly_closed_mark_file_name));
 }
@@ -913,7 +913,7 @@ void manager_kernel<chnk_no, chnk_sz>::priv_destruct_and_free_memory(
 
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::priv_open(
-    std::filesystem::path const &base_dir_path, const bool read_only,
+    const std::filesystem::path &base_dir_path, const bool read_only,
     const size_type vm_reserve_size_request) {
   if (!priv_validate_runtime_configuration()) {
     return false;
@@ -984,7 +984,7 @@ bool manager_kernel<chnk_no, chnk_sz>::priv_open(
 
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::priv_create(
-    std::filesystem::path const &base_dir_path, const size_type vm_reserve_size) {
+    const std::filesystem::path &base_dir_path, const size_type vm_reserve_size) {
   if (!priv_validate_runtime_configuration()) {
     return false;
   }
@@ -1110,7 +1110,7 @@ bool manager_kernel<chnk_no, chnk_sz>::priv_deserialize_management_data() {
 // ---------- snapshot ---------- //
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::priv_snapshot(
-    std::filesystem::path const &destination_base_dir_path,
+    const std::filesystem::path &destination_base_dir_path,
     const int num_max_copy_threads) {
   priv_sanity_check();
   m_segment_storage.sync(true);
@@ -1171,7 +1171,7 @@ bool manager_kernel<chnk_no, chnk_sz>::priv_snapshot(
 // ---------- File operations ---------- //
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::priv_copy_data_store(
-    std::filesystem::path const &src_base_dir_path, std::filesystem::path const &dst_base_dir_path,
+    const std::filesystem::path &src_base_dir_path, const std::filesystem::path &dst_base_dir_path,
     const int num_max_copy_threads) {
   if (!consistent(src_base_dir_path)) {
     METALL_ERROR("Source directory is not consistent (may not have closed properly or may still be open): {}", src_base_dir_path.c_str());
@@ -1235,7 +1235,7 @@ bool manager_kernel<chnk_no, chnk_sz>::priv_remove_data_store(
 // ---------- Management metadata ---------- //
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::priv_write_management_metadata(
-    std::filesystem::path const &base_dir_path, const json_store &json_root) {
+    const std::filesystem::path &base_dir_path, const json_store &json_root) {
   if (!mdtl::ptree::write_json(
           json_root, priv_make_management_file_name(
                          base_dir_path, k_manager_metadata_file_name))) {
@@ -1248,7 +1248,7 @@ bool manager_kernel<chnk_no, chnk_sz>::priv_write_management_metadata(
 
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::priv_read_management_metadata(
-    std::filesystem::path const &base_dir_path, json_store *json_root) {
+    const std::filesystem::path &base_dir_path, json_store *json_root) {
   if (!mdtl::ptree::read_json(priv_make_management_file_name(
                                   base_dir_path, k_manager_metadata_file_name),
                               json_root)) {
@@ -1325,7 +1325,7 @@ bool manager_kernel<chnk_no, chnk_sz>::priv_set_uuid(
 
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::priv_read_description(
-    std::filesystem::path const &base_dir_path, std::string *description) {
+    const std::filesystem::path &base_dir_path, std::string *description) {
   const auto &file_name =
       priv_make_management_file_name(base_dir_path, k_description_file_name);
 
@@ -1349,7 +1349,7 @@ bool manager_kernel<chnk_no, chnk_sz>::priv_read_description(
 
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::priv_write_description(
-    std::filesystem::path const &base_dir_path, const std::string &description) {
+    const std::filesystem::path &base_dir_path, const std::string &description) {
   const auto &file_name =
       priv_make_management_file_name(base_dir_path, k_description_file_name);
 

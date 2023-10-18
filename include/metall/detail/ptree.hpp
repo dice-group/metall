@@ -121,7 +121,7 @@ inline bool read_json(const std::string &file_name, node_type *root) {
   return true;
 }
 
-inline bool write_json(const node_type &root, std::filesystem::path const &file_name) {
+inline bool write_json(const node_type &root, const std::filesystem::path &file_name) {
   try {
     bptree::write_json(file_name, root);
   } catch (const bptree::json_parser_error &e) {

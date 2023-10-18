@@ -94,20 +94,20 @@ class umap_sparse_segment_storage {
   // Public methods
   // -------------------- //
   /// \brief Check if there is a file that can be opened
-  static bool openable(std::filesystem::path const &base_path) {
+  static bool openable(const std::filesystem::path &base_path) {
     return mdtl::file_exist(priv_make_file_name(base_path));
   }
 
   /// \brief Gets the size of an existing segment.
   /// This is a static version of size() method.
-  static size_type get_size(std::filesystem::path const &base_path) {
+  static size_type get_size(const std::filesystem::path &base_path) {
     const auto directory_name = priv_make_file_name(base_path);
     return Umap::SparseStore::get_capacity(directory_name);
   }
 
   /// \brief Copies segment to another location.
-  static bool copy(std::filesystem::path const &source_path,
-                   std::filesystem::path const &destination_path, const bool clone,
+  static bool copy(const std::filesystem::path &source_path,
+                   const std::filesystem::path &destination_path, const bool clone,
                    [[maybe_unused]] const int max_num_threads) {
     // TODO: implement parallel copy version
 
@@ -128,7 +128,7 @@ class umap_sparse_segment_storage {
   /// \param vm_region The address of the VM region.
   /// \param initial_segment_size_hint Not used.
   /// \return Returns true on success; otherwise, false.
-  bool create(std::filesystem::path const &base_path, const size_type vm_region_size,
+  bool create(const std::filesystem::path &base_path, const size_type vm_region_size,
               void *const vm_region,
               [[maybe_unused]] const size_type initial_segment_size_hint) {
     assert(!priv_inited());
@@ -164,7 +164,7 @@ class umap_sparse_segment_storage {
   /// \param vm_region The address of the VM region.
   /// \param read_only If this option is true, opens the datastore with read
   /// only mode. \return Returns true on success; otherwise, false.
-  bool open(std::filesystem::path const &base_path, const size_type vm_region_size,
+  bool open(const std::filesystem::path &base_path, const size_type vm_region_size,
             void *const vm_region, const bool read_only) {
     assert(!priv_inited());
     // TODO: align those values to pge size
@@ -279,7 +279,7 @@ class umap_sparse_segment_storage {
             m_segment_size > 0 && m_segment && !m_base_path.empty());
   }
 
-  bool priv_create_and_map_file(std::filesystem::path const &base_path,
+  bool priv_create_and_map_file(const std::filesystem::path &base_path,
                                 const size_type file_size,
                                 void *const addr) const {
     assert(!m_segment ||
@@ -303,7 +303,7 @@ class umap_sparse_segment_storage {
     return file_granularity;
   }
 
-  bool priv_map_file_create(std::filesystem::path const &path, const size_type file_size,
+  bool priv_map_file_create(const std::filesystem::path &path, const size_type file_size,
                             void *const addr) const {
     assert(!path.empty());
     assert(file_size > 0);
@@ -333,7 +333,7 @@ class umap_sparse_segment_storage {
     return true;
   }
 
-  bool priv_map_file_open(std::filesystem::path const &path, const size_type file_size,
+  bool priv_map_file_open(const std::filesystem::path &path, const size_type file_size,
                           void *const addr, const bool read_only) {
     assert(!path.empty());
     assert(addr);

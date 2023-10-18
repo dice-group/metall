@@ -15,7 +15,7 @@
 template <typename T>
 using alloc_type = metall::manager::allocator_type<T>;
 
-std::filesystem::path const &dir_path() {
+const std::filesystem::path &dir_path() {
   const static std::filesystem::path path(test_utility::make_test_path());
   return path;
 }

@@ -49,7 +49,7 @@ inline bool os_fsync(const int fd) {
   return true;
 }
 
-inline bool fsync(std::filesystem::path const &path) {
+inline bool fsync(const std::filesystem::path &path) {
   const int fd = ::open(path.c_str(), O_RDONLY);
   if (fd == -1) {
     METALL_ERRNO_ERROR("open");
@@ -63,7 +63,7 @@ inline bool fsync(std::filesystem::path const &path) {
   return ret;
 }
 
-inline bool fsync_recursive(std::filesystem::path const &path) {
+inline bool fsync_recursive(const std::filesystem::path &path) {
   auto p = std::filesystem::canonical(path);
   while (true) {
     if (!fsync(p.string())) {
@@ -128,7 +128,7 @@ inline bool extend_file_size(const int fd, const size_t file_size,
   return ret;
 }
 
-inline bool extend_file_size(std::filesystem::path const &file_path,
+inline bool extend_file_size(const std::filesystem::path &file_path,
                              const size_t file_size,
                              const bool fill_with_zero = false) {
   const int fd = ::open(file_path.c_str(), O_RDWR);
@@ -149,14 +149,14 @@ inline bool extend_file_size(std::filesystem::path const &file_path,
 /// file_exist(path); // NFS creates metadata cache mpi_barrier(); if (mpi_rank
 /// == 0) create_directory(path); mpi_barrier(); if (mpi_rank == 1)
 /// assert(file_exist(path)); // Could fail due to the cached metadata.
-inline bool file_exist(std::filesystem::path const &file_name) {
+inline bool file_exist(const std::filesystem::path &file_name) {
   return (::access(file_name.c_str(), F_OK) == 0);
 }
 
 /// \brief Check if a directory exists
 /// \warning This implementation could return a wrong result due to metadata
 /// cache on NFS.
-inline bool directory_exist(std::filesystem::path const &dir_path) {
+inline bool directory_exist(const std::filesystem::path &dir_path) {
   struct stat stat_buf;
   if (::stat(dir_path.c_str(), &stat_buf) == -1) {
     return false;
@@ -164,7 +164,7 @@ inline bool directory_exist(std::filesystem::path const &dir_path) {
   return S_ISDIR(stat_buf.st_mode);
 }
 
-inline bool create_file(std::filesystem::path const &file_path) {
+inline bool create_file(const std::filesystem::path &file_path) {
   const int fd =
       ::open(file_path.c_str(), O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
   if (fd == -1) {
@@ -177,7 +177,7 @@ inline bool create_file(std::filesystem::path const &file_path) {
   return fsync_recursive(file_path);
 }
 
-inline bool create_directory(std::filesystem::path const &dir_path) {
+inline bool create_directory(const std::filesystem::path &dir_path) {
   bool success = true;
   try {
     std::error_code ec;
@@ -199,7 +199,7 @@ inline bool create_directory(std::filesystem::path const &dir_path) {
   return success;
 }
 
-inline ssize_t get_file_size(std::filesystem::path const &file_path) {
+inline ssize_t get_file_size(const std::filesystem::path &file_path) {
   std::ifstream ifs(file_path, std::ifstream::binary | std::ifstream::ate);
   ssize_t size = ifs.tellg();
   if (size == -1) {
@@ -212,7 +212,7 @@ inline ssize_t get_file_size(std::filesystem::path const &file_path) {
 /// \brief
 /// Note that, according to GCC,
 /// the file system may use some blocks for internal record keeping
-inline ssize_t get_actual_file_size(std::filesystem::path const &file_path) {
+inline ssize_t get_actual_file_size(const std::filesystem::path &file_path) {
   struct stat stat_buf;
   if (::stat(file_path.c_str(), &stat_buf) != 0) {
     METALL_ERRNO_ERROR("stat ({})", file_path.c_str());
@@ -224,7 +224,7 @@ inline ssize_t get_actual_file_size(std::filesystem::path const &file_path) {
 /// \brief Remove a file or directory
 /// \return Upon successful completion, returns true; otherwise, false is
 /// returned. If the file or directory does not exist, true is returned.
-inline bool remove_file(std::filesystem::path const &path) {
+inline bool remove_file(const std::filesystem::path &path) {
   std::error_code ec;
   std::filesystem::remove_all(path, ec);
   return !ec;
@@ -251,8 +251,8 @@ inline bool free_file_space([[maybe_unused]] const int fd,
 
 namespace file_copy_detail {
 
-inline bool copy_file_dense(std::filesystem::path const &source_path,
-                            std::filesystem::path const &destination_path) {
+inline bool copy_file_dense(const std::filesystem::path &source_path,
+                            const std::filesystem::path &destination_path) {
   bool success = true;
   try {
     if (!std::filesystem::copy_file(source_path, destination_path,
@@ -270,8 +270,8 @@ inline bool copy_file_dense(std::filesystem::path const &source_path,
 }
 
 #ifdef __linux__
-inline bool prepare_file_copy_linux(std::filesystem::path const &source_path,
-                                    std::filesystem::path const &destination_path,
+inline bool prepare_file_copy_linux(const std::filesystem::path &source_path,
+                                    const std::filesystem::path &destination_path,
                                     int *src,
                                     int *dst) {
   *src = ::open(source_path.c_str(), O_RDONLY);
@@ -322,8 +322,8 @@ inline bool copy_file_sparse_linux(int src, int dst) {
   return true;
 }
 
-inline bool copy_file_sparse_linux(std::filesystem::path const &source_path,
-                                   std::filesystem::path const &destination_path) {
+inline bool copy_file_sparse_linux(const std::filesystem::path &source_path,
+                                   const std::filesystem::path &destination_path) {
   int src;
   int dst;
   if (!prepare_file_copy_linux(source_path, destination_path, &src, &dst)) {
@@ -357,8 +357,8 @@ inline bool copy_file_sparse_linux(std::filesystem::path const &source_path,
 /// \param destination_path A destination path.
 /// \param sparse_copy If true is specified, tries to perform sparse file copy.
 /// \return  On success, returns true. On error, returns false.
-inline bool copy_file(std::filesystem::path const &source_path,
-                      std::filesystem::path const &destination_path,
+inline bool copy_file(const std::filesystem::path &source_path,
+                      const std::filesystem::path &destination_path,
                       const bool sparse_copy = true) {
   if (sparse_copy) {
 #ifdef __linux__
@@ -379,7 +379,7 @@ inline bool copy_file(std::filesystem::path const &source_path,
 /// \param file_list A buffer to put results.
 /// \return Returns true if there is no error (empty directory returns true as
 /// long as the operation does not fail). Returns false on error.
-inline bool get_regular_file_names(std::filesystem::path const &dir_path,
+inline bool get_regular_file_names(const std::filesystem::path &dir_path,
                                    std::vector<std::string> *file_list) {
   if (!directory_exist(dir_path)) {
     return false;
@@ -411,7 +411,7 @@ inline bool get_regular_file_names(std::filesystem::path const &dir_path,
 /// \return  On success, returns true. On error, returns false.
 template<typename F>
 inline bool copy_files_in_directory_in_parallel_helper(
-    std::filesystem::path const &source_dir_path, std::filesystem::path const &destination_dir_path,
+    const std::filesystem::path &source_dir_path, const std::filesystem::path &destination_dir_path,
     const int max_num_threads,
     F &&copy_func) {
   std::vector<std::string> src_file_names;
@@ -459,7 +459,7 @@ inline bool copy_files_in_directory_in_parallel_helper(
 /// \param sparse_copy Performs sparse file copy.
 /// \return  On success, returns true. On error, returns false.
 inline bool copy_files_in_directory_in_parallel(
-    std::filesystem::path const &source_dir_path, std::filesystem::path const &destination_dir_path,
+    const std::filesystem::path &source_dir_path, const std::filesystem::path &destination_dir_path,
     const int max_num_threads, const bool sparse_copy = true) {
   return copy_files_in_directory_in_parallel_helper(
       source_dir_path, destination_dir_path, max_num_threads,

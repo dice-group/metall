@@ -295,7 +295,7 @@ class chunk_directory {
 
   /// \brief
   /// \param path
-  bool serialize(std::filesystem::path const &path) const {
+  bool serialize(const std::filesystem::path &path) const {
     std::ofstream ofs(path);
     if (!ofs.is_open()) {
       METALL_ERROR("Cannot open: {}", path.c_str());
@@ -348,7 +348,7 @@ class chunk_directory {
   /// \brief
   /// \param path
   /// \return
-  bool deserialize(std::filesystem::path const &path) {
+  bool deserialize(const std::filesystem::path &path) {
     std::ifstream ifs(path);
     if (!ifs.is_open()) {
       METALL_ERROR("Cannot open: {}", path.c_str());

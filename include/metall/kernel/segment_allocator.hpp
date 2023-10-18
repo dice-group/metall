@@ -247,7 +247,7 @@ class segment_allocator {
   /// \brief
   /// \param base_path
   /// \return
-  bool serialize(std::filesystem::path const &base_path) {
+  bool serialize(const std::filesystem::path &base_path) {
 #ifndef METALL_DISABLE_OBJECT_CACHE
     priv_clear_object_cache();
 #endif
@@ -268,7 +268,7 @@ class segment_allocator {
   /// \brief
   /// \param base_path
   /// \return
-  bool deserialize(std::filesystem::path const &base_path) {
+  bool deserialize(const std::filesystem::path &base_path) {
     if (!m_non_full_chunk_bin.deserialize(
             priv_make_file_name(base_path, k_non_full_chunk_bin_file_name))) {
       METALL_ERROR("Failed to deserialize bin directory");

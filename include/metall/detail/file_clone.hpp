@@ -29,8 +29,8 @@ inline bool clone_file_linux(int src, int dst) {
 #endif  // defined(FICLONE)
 }
 
-inline bool clone_file_linux(std::filesystem::path const &source_path,
-                             std::filesystem::path const &destination_path) {
+inline bool clone_file_linux(const std::filesystem::path &source_path,
+                             const std::filesystem::path &destination_path) {
   int src;
   int dst;
   if (!file_copy_detail::prepare_file_copy_linux(source_path, destination_path, &src, &dst)) {
@@ -74,8 +74,8 @@ inline bool clone_file_linux(std::filesystem::path const &source_path,
 /// normally. \param source_path A path to the file to be cloned. \param
 /// destination_path A path to copy to. \return On success, returns true. On
 /// error, returns false.
-inline bool clone_file(std::filesystem::path const &source_path,
-                       std::filesystem::path const &destination_path) {
+inline bool clone_file(const std::filesystem::path &source_path,
+                       const std::filesystem::path &destination_path) {
 #if defined(__linux__)
   return file_clone_detail::clone_file_linux(source_path, destination_path);
 #else
@@ -92,7 +92,7 @@ inline bool clone_file(std::filesystem::path const &source_path,
 /// If <= 0 is given, it is automatically determined.
 /// \return  On success, returns true. On error, returns false.
 inline bool clone_files_in_directory_in_parallel(
-    std::filesystem::path const &source_dir_path, std::filesystem::path const &destination_dir_path,
+    const std::filesystem::path &source_dir_path, const std::filesystem::path &destination_dir_path,
     const int max_num_threads) {
   return copy_files_in_directory_in_parallel_helper(
       source_dir_path, destination_dir_path, max_num_threads, clone_file);

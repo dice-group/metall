@@ -105,7 +105,7 @@ class mmap_segment_storage {
   /// \brief Gets the size of an existing segment.
   /// This is a static version of size() method.
   /// \param base_path A path to a segment.
-  static size_type get_size(std::filesystem::path const &base_path) {
+  static size_type get_size(const std::filesystem::path &base_path) {
     int block_no = 0;
     size_type total_file_size = 0;
     while (true) {
@@ -122,7 +122,7 @@ class mmap_segment_storage {
   /// \brief Checks if a segment is openable.
   /// \param base_path A path to a segment.
   /// \return Return true if success; otherwise, false.
-  static bool openable(std::filesystem::path const &base_path) {
+  static bool openable(const std::filesystem::path &base_path) {
     const auto file_name = priv_make_block_file_name(base_path, 0);
     return mdtl::file_exist(file_name);
   }
@@ -134,8 +134,8 @@ class mmap_segment_storage {
   /// \param max_num_threads The maximum number of threads to use.
   /// If <= 0 is given, the value is automatically determined.
   /// \return Return true if success; otherwise, false.
-  static bool copy(std::filesystem::path const &source_path,
-                   std::filesystem::path const &destination_path,
+  static bool copy(const std::filesystem::path &source_path,
+                   const std::filesystem::path &destination_path,
                    const int max_num_threads) {
     return priv_copy(source_path, destination_path, max_num_threads);
   }
@@ -146,7 +146,7 @@ class mmap_segment_storage {
   /// vm_region_size The size of a reserved VM region. \param vm_region The
   /// address of a reserved VM region. \block_size The block size. \return
   /// Return true if success; otherwise, false.
-  bool create(std::filesystem::path const &base_path, const size_type vm_region_size,
+  bool create(const std::filesystem::path &base_path, const size_type vm_region_size,
               void *const vm_region, const size_type block_size) {
     return priv_create(base_path, vm_region_size, vm_region, block_size);
   }
@@ -157,7 +157,7 @@ class mmap_segment_storage {
   /// vm_region_size The size of a VM region. \param vm_region The address of a
   /// VM region. \param read_only If true, this segment is read only. \return
   /// Return true if success; otherwise, false.
-  bool open(std::filesystem::path const &base_path, const size_type vm_region_size,
+  bool open(const std::filesystem::path &base_path, const size_type vm_region_size,
             void *const vm_region, const bool read_only) {
     return priv_open(base_path, vm_region_size, vm_region, read_only);
   }
@@ -222,7 +222,7 @@ class mmap_segment_storage {
   // -------------------- //
   // Private methods
   // -------------------- //
-  static std::filesystem::path priv_make_block_file_name(std::filesystem::path const &base_path,
+  static std::filesystem::path priv_make_block_file_name(const std::filesystem::path &base_path,
                                                          const size_type n) {
     return base_path / std::format("block-{}", n);
   }
@@ -248,8 +248,8 @@ class mmap_segment_storage {
             m_block_size > 0);
   }
 
-  static bool priv_copy(std::filesystem::path const &source_path,
-                        std::filesystem::path const &destination_path,
+  static bool priv_copy(const std::filesystem::path &source_path,
+                        const std::filesystem::path &destination_path,
                         const int max_num_threads) {
     if (!mdtl::directory_exist(destination_path)) {
       if (!mdtl::create_directory(destination_path)) {
@@ -263,7 +263,7 @@ class mmap_segment_storage {
         source_path, destination_path, max_num_threads);
   }
 
-  bool priv_create(std::filesystem::path const &base_path, const size_type vm_region_size,
+  bool priv_create(const std::filesystem::path &base_path, const size_type vm_region_size,
                    void *const vm_region, const size_type block_size) {
     if (!check_sanity()) return false;
     if (is_open())
@@ -306,7 +306,7 @@ class mmap_segment_storage {
     return true;
   }
 
-  bool priv_open(std::filesystem::path const &base_path, const size_type vm_region_size,
+  bool priv_open(const std::filesystem::path &base_path, const size_type vm_region_size,
                  void *const vm_region, const bool read_only) {
     if (!check_sanity()) return false;
     if (is_open())
@@ -402,7 +402,7 @@ class mmap_segment_storage {
     return true;
   }
 
-  bool priv_create_new_map(std::filesystem::path const &base_path,
+  bool priv_create_new_map(const std::filesystem::path &base_path,
                            const size_type block_number,
                            const size_type file_size,
                            const different_type segment_offset) {
@@ -438,7 +438,7 @@ class mmap_segment_storage {
     return true;
   }
 
-  int priv_map_file(std::filesystem::path const &path, const size_type file_size,
+  int priv_map_file(const std::filesystem::path &path, const size_type file_size,
                     const different_type segment_offset,
                     const bool read_only) const {
     assert(!path.empty());
@@ -477,7 +477,7 @@ class mmap_segment_storage {
     return ret.first;
   }
 
-  int priv_map_anonymous(std::filesystem::path const &path, const size_type region_size,
+  int priv_map_anonymous(const std::filesystem::path &path, const size_type region_size,
                          const different_type segment_offset) const {
     assert(!path.empty());
     assert(region_size > 0);
@@ -684,7 +684,7 @@ class mmap_segment_storage {
     return true;
   }
 
-  bool priv_test_file_space_free(std::filesystem::path const &base_path) {
+  bool priv_test_file_space_free(const std::filesystem::path &base_path) {
 #ifdef METALL_DISABLE_FREE_FILE_SPACE
     m_free_file_space = false;
     return true;
