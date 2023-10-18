@@ -233,20 +233,20 @@ void manager_kernel<chnk_no, chnk_sz>::destroy_ptr(const T *ptr) {
 
 template <typename chnk_no, std::size_t chnk_sz>
 template <typename T>
-const typename manager_kernel<chnk_no, chnk_sz>::char_type *
+std::string_view
 manager_kernel<chnk_no, chnk_sz>::get_instance_name(const T *ptr) const {
   auto nitr = m_named_object_directory.find(priv_to_offset(ptr));
   if (nitr != m_named_object_directory.end()) {
-    return nitr->name().c_str();
+    return nitr->name();
   }
 
   auto uitr = m_unique_object_directory.find(priv_to_offset(ptr));
   if (uitr != m_unique_object_directory.end()) {
-    return uitr->name().c_str();
+    return uitr->name();
   }
 
-  return nullptr;  // This is not error, anonymous object or non-constructed
-                   // object
+  return "";  // This is not error, anonymous object or non-constructed
+              // object
 }
 
 template <typename chnk_no, std::size_t chnk_sz>
@@ -330,7 +330,7 @@ bool manager_kernel<chnk_no, chnk_sz>::is_instance_type(
 
 template <typename chnk_no, std::size_t chnk_sz>
 template <typename T>
-std::optional<std::string> manager_kernel<chnk_no, chnk_sz>::get_instance_description(const T *ptr) const {
+std::optional<std::string_view> manager_kernel<chnk_no, chnk_sz>::get_instance_description(const T *ptr) const {
   {
     auto itr = m_named_object_directory.find(priv_to_offset(ptr));
     if (itr != m_named_object_directory.end()) {
@@ -358,15 +358,17 @@ std::optional<std::string> manager_kernel<chnk_no, chnk_sz>::get_instance_descri
 template <typename chnk_no, std::size_t chnk_sz>
 template <typename T>
 void manager_kernel<chnk_no, chnk_sz>::set_instance_description(
-    const T *ptr, const std::string &description) {
+    const T *ptr, std::string_view description) {
   if (m_segment_storage.read_only()) {
     throw std::logic_error{"Cannot set description kernel is read only"};
   }
 
   m_named_object_directory.set_description(
-      m_named_object_directory.find(priv_to_offset(ptr)), description) ||
+      m_named_object_directory.find(priv_to_offset(ptr)), description);
+
   m_unique_object_directory.set_description(
-      m_unique_object_directory.find(priv_to_offset(ptr)), description) ||
+      m_unique_object_directory.find(priv_to_offset(ptr)), description);
+
   m_anonymous_object_directory.set_description(
       m_anonymous_object_directory.find(priv_to_offset(ptr)), description);
 }
@@ -587,7 +589,7 @@ std::filesystem::path manager_kernel<chnk_no, chnk_sz>::priv_make_top_dir_path(
 
 template <typename chnk_no, std::size_t chnk_sz>
 std::filesystem::path manager_kernel<chnk_no, chnk_sz>::priv_make_top_level_file_name(
-    std::filesystem::path const &base_dir_path, const std::string &item_name) {
+    std::filesystem::path const &base_dir_path, std::string_view item_name) {
   return priv_make_top_dir_path(base_dir_path) / item_name;
 }
 
@@ -599,7 +601,7 @@ std::filesystem::path manager_kernel<chnk_no, chnk_sz>::priv_make_management_dir
 
 template <typename chnk_no, std::size_t chnk_sz>
 std::filesystem::path manager_kernel<chnk_no, chnk_sz>::priv_make_management_file_name(
-    std::filesystem::path const &base_dir_path, const std::string &item_name) {
+    std::filesystem::path const &base_dir_path, std::string_view item_name) {
   return priv_make_management_dir_path(base_dir_path) / item_name;
 }
 

@@ -124,7 +124,7 @@ TEST(ChunkDirectoryTest, Serialize) {
 
   test_utility::create_test_dir();
   const auto file(test_utility::make_test_path());
-  directory.serialize(file.c_str());
+  directory.serialize(file);
 }
 
 TEST(ChunkDirectoryTest, Deserialize) {

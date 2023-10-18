@@ -58,50 +58,19 @@ class attributed_object_directory {
   using length_type = size_type;
   using type_id_type = decltype(gen_type_id<void>());
   using description_type = std::string;
+  using description_view = std::string_view;
 
-  class entry_type {
-   public:
-    entry_type() noexcept = default;
-    entry_type(const name_type &name, const offset_type &offset,
-               const length_type &length, const type_id_type &type_id,
-               const description_type &description)
-        : m_name(name),
-          m_offset(offset),
-          m_length(length),
-          m_type_id(type_id),
-          m_description(description) {}
-
-    ~entry_type() noexcept = default;
-
-    entry_type(const entry_type &) noexcept = default;
-    entry_type(entry_type &&) noexcept = default;
-
-    entry_type &operator=(const entry_type &) noexcept = default;
-    entry_type &operator=(entry_type &&) noexcept = default;
-
-    const auto &name() const noexcept { return m_name; }
-
-    const auto &offset() const noexcept { return m_offset; }
-
-    const auto &length() const noexcept { return m_length; }
-
-    const auto &type_id() const noexcept { return m_type_id; }
-
-    const auto &description() const noexcept { return m_description; }
-
-    auto &description() noexcept { return m_description; }
+  struct entry_type {
+    name_type name{};
+    offset_type offset{};
+    length_type length{};
+    type_id_type type_id{};
+    description_type description{};
 
     template <typename T>
-    bool is_type() const noexcept {
-      return m_type_id == gen_type_id<T>();
+    [[nodiscard]] bool is_type() const noexcept {
+      return type_id == gen_type_id<T>();
     }
-
-   private:
-    name_type m_name{};
-    offset_type m_offset{};
-    length_type m_length{};
-    type_id_type m_type_id{};
-    description_type m_description{};
   };
 
  private:
@@ -127,23 +96,25 @@ class attributed_object_directory {
   // -------------------- //
   // Constructor & assign operator
   // -------------------- //
-  attributed_object_directory() noexcept { priv_allocate_core_data(); }
+  attributed_object_directory() : m_entry_table{std::make_unique<entry_table_type>()},
+                                  m_offset_index_table{std::make_unique<offset_index_table_type>()},
+                                  m_name_index_table{std::make_unique<name_index_table_type>()} {
+  }
 
   ~attributed_object_directory() noexcept = default;
 
   attributed_object_directory(
-      const attributed_object_directory &other) noexcept {
-    if (priv_allocate_core_data()) {
-      priv_deep_copy(other);
-    }
+      const attributed_object_directory &other) : m_entry_table{std::make_unique<entry_table_type>(*other.m_entry_table)},
+                                                  m_offset_index_table{std::make_unique<offset_index_table_type>(*other.m_offset_index_table)},
+                                                  m_name_index_table{std::make_unique<name_index_table_type>(*other.m_name_index_table)}{
   }
 
-  attributed_object_directory(attributed_object_directory &&) noexcept =
-      default;
+  attributed_object_directory(attributed_object_directory &&) noexcept = default;
 
-  attributed_object_directory &operator=(
-      const attributed_object_directory &other) noexcept {
-    priv_deep_copy(other);
+  attributed_object_directory &operator=(const attributed_object_directory &other) {
+    *m_entry_table = *other.m_entry_table;
+    *m_offset_index_table = *other.m_offset_index_table;
+    *m_name_index_table = *other.m_name_index_table;
     return *this;
   }
 
@@ -153,10 +124,6 @@ class attributed_object_directory {
   // -------------------- //
   // Public methods
   // -------------------- //
-  bool good() const noexcept {
-    return m_entry_table && m_offset_index_table && m_name_index_table;
-  }
-
   /// \brief
   /// \param name (can be empty)
   /// \param offset
@@ -164,36 +131,31 @@ class attributed_object_directory {
   /// \param type_id
   /// \param description
   /// \return
-  bool insert(const name_type &name, const offset_type offset,
-              const length_type length, const type_id_type type_id,
-              const description_type &description = std::string()) noexcept {
-    if (!good()) return false;
-
-    if (m_offset_index_table->count(offset) > 0) {
-      assert(name.empty() || m_name_index_table->count(name) > 0);
+  bool insert(entry_type entry) {
+    if (m_offset_index_table->count(entry.offset) > 0) {
+      assert(entry.name.empty() || m_name_index_table->count(entry.name) > 0);
       return false;
     }
-    assert(name.empty() || m_name_index_table->count(name) == 0);
+    assert(entry.name.empty() || m_name_index_table->count(entry.name) == 0);
 
-    try {
-      auto inserted_itr = m_entry_table->emplace(
-          m_entry_table->end(),
-          entry_type{name, offset, length, type_id, description});
-      {
-        [[maybe_unused]] const auto ret =
-            m_offset_index_table->emplace(offset, inserted_itr);
-        assert(ret.first != m_offset_index_table->end());
-        assert(ret.second);
-      }
-      if (!name.empty()) {
-        [[maybe_unused]] const auto ret =
-            m_name_index_table->emplace(name, inserted_itr);
-        assert(ret.first != m_name_index_table->end());
-        assert(ret.second);
-      }
-    } catch (...) {
-      METALL_ERROR("Exception was thrown when inserting entry");
-      return false;
+    auto const name = entry.name;
+    auto const offset = entry.offset;
+
+    auto inserted_itr = m_entry_table->emplace(m_entry_table->end(),
+                                               std::move(entry));
+
+    {
+      [[maybe_unused]] const auto ret =
+          m_offset_index_table->emplace(offset, inserted_itr);
+      assert(ret.first != m_offset_index_table->end());
+      assert(ret.second);
+    }
+
+    if (!name.empty()) {
+      [[maybe_unused]] const auto ret =
+          m_name_index_table->emplace(name, inserted_itr);
+      assert(ret.first != m_name_index_table->end());
+      assert(ret.second);
     }
 
     return true;
@@ -203,51 +165,32 @@ class attributed_object_directory {
   /// \param position
   /// \param description
   /// \return
-  bool set_description(const_iterator position,
-                       const description_type &description) noexcept {
-    if (!good()) return false;
+  void set_description(const_iterator position,
+                       description_view description) {
+    assert(position != m_entry_table->end());
 
-    if (position == m_entry_table->cend()) return false;
+    auto entry_itr = m_offset_index_table->find(position->offset())->second;
+    assert(entry_itr != m_entry_table->end());
 
-    try {
-      auto entry_itr = m_offset_index_table->find(position->offset())->second;
-      assert(entry_itr != m_entry_table->end());
-
-      entry_itr->description() = description;
-    } catch (...) {
-      return false;
-    }
-
-    return true;
+    entry_itr->description().assign(description);
   }
 
   /// \brief
   /// \param position
   /// \param description
   /// \return
-  bool get_description(const_iterator position,
-                       description_type *description) const noexcept {
-    if (!good()) return false;
+  std::string_view get_description(const_iterator position) const noexcept {
+    assert(position != m_entry_table->cend());
 
-    if (position == m_entry_table->cend()) return false;
+    auto entry_itr = m_offset_index_table->find(position->offset())->second;
+    assert(entry_itr != m_entry_table->end());
 
-    try {
-      auto entry_itr = m_offset_index_table->find(position->offset())->second;
-      assert(entry_itr != m_entry_table->end());
-
-      description->assign(entry_itr->description());
-    } catch (...) {
-      return false;
-    }
-
-    return true;
+    return entry_itr->description();
   }
 
   /// \brief
   /// \return
   size_type size() const noexcept {
-    if (!good()) return 0;
-
     return m_entry_table->size();
   }
 
@@ -255,8 +198,6 @@ class attributed_object_directory {
   /// \param name
   /// \return
   size_type count(const name_type &name) const noexcept {
-    if (!good()) return 0;
-
     return m_name_index_table->count(name);
   }
 
@@ -264,8 +205,6 @@ class attributed_object_directory {
   /// \param offset
   /// \return
   size_type count(const offset_type &offset) const noexcept {
-    if (!good()) return 0;
-
     return m_offset_index_table->count(offset);
   }
 
@@ -273,30 +212,19 @@ class attributed_object_directory {
   /// \param name
   /// \return
   const_iterator find(const name_type &name) const noexcept {
-    if (!good()) {
-      const_iterator();
+    auto itr = m_name_index_table->find(name);
+    if (itr == m_name_index_table->end()) {
+      return m_entry_table->end();
     }
 
-    try {
-      if (count(name) > 0) {
-        auto itr = m_name_index_table->find(name);
-        assert(itr->second != m_entry_table->end());
-        return const_iterator(itr->second);
-      }
-    } catch (...) {
-      return const_iterator();
-    }
-    return m_entry_table->cend();
+    assert(itr->second != m_entry_table->end());
+    return itr->second;
   }
 
   /// \brief Finds by offset
   /// \param offset
   /// \return
   const_iterator find(const offset_type &offset) const noexcept {
-    if (!good()) {
-      const_iterator();
-    }
-
     try {
       if (count(offset) > 0) {
         auto itr = m_offset_index_table->find(offset);
@@ -313,20 +241,12 @@ class attributed_object_directory {
   /// \brief
   /// \return
   const_iterator begin() const noexcept {
-    if (!good()) {
-      const_iterator();
-    }
-
     return m_entry_table->cbegin();
   }
 
   /// \brief
   /// \return
   const_iterator end() const noexcept {
-    if (!good()) {
-      const_iterator();
-    }
-
     return m_entry_table->cend();
   }
 
@@ -334,10 +254,6 @@ class attributed_object_directory {
   /// \param position
   /// \return
   size_type erase(const_iterator position) noexcept {
-    if (!good()) {
-      return 0;
-    }
-
     if (position == m_entry_table->end()) {
       return 0;
     }
@@ -359,10 +275,6 @@ class attributed_object_directory {
   /// \param name
   /// \return
   size_type erase(const name_type &name) noexcept {
-    if (!good()) {
-      return 0;
-    }
-
     if (count(name) == 0) {
       return 0;
     }
@@ -384,10 +296,6 @@ class attributed_object_directory {
   /// \param offset
   /// \return
   size_type erase(const offset_type &offset) noexcept {
-    if (!good()) {
-      return false;
-    }
-
     if (count(offset) == 0) {
       return 0;
     }
@@ -408,10 +316,6 @@ class attributed_object_directory {
   /// \brief Clears tables
   /// \return
   bool clear() noexcept {
-    if (!good()) {
-      return false;
-    }
-
     try {
       m_offset_index_table->clear();
       m_name_index_table->clear();
@@ -461,41 +365,7 @@ class attributed_object_directory {
   // -------------------- //
   // Private methods
   // -------------------- //
-  bool priv_allocate_core_data() noexcept {
-    try {
-      m_entry_table = std::make_unique<entry_table_type>();
-      m_offset_index_table = std::make_unique<offset_index_table_type>();
-      m_name_index_table = std::make_unique<name_index_table_type>();
-    } catch (...) {
-      METALL_ERROR("Failed to allocate core data");
-      m_entry_table.reset(nullptr);
-      m_offset_index_table.reset(nullptr);
-      m_name_index_table.reset(nullptr);
-      return false;
-    }
-    return true;
-  }
-
-  bool priv_deep_copy(const attributed_object_directory &other) noexcept {
-    try {
-      *m_entry_table = *(other.m_entry_table);
-      *m_offset_index_table = *(other.m_offset_index_table);
-      *m_name_index_table = *(other.m_name_index_table);
-    } catch (...) {
-      METALL_ERROR("Failed to copy members");
-      m_entry_table.reset(nullptr);
-      m_offset_index_table.reset(nullptr);
-      m_name_index_table.reset(nullptr);
-      return false;
-    }
-    return true;
-  }
-
   void priv_serialize_throw(std::filesystem::path const &path) const {
-    if (!good()) {
-      throw std::runtime_error{"cannot serialize attributed object directory, not in good state"};
-    }
-
     json::node_type json_attributed_objects_list;
     for (const auto &item : *m_entry_table) {
       json::node_type json_named_object_entry;
@@ -529,10 +399,6 @@ class attributed_object_directory {
   }
 
   void priv_deserialize_throw(std::filesystem::path const &path) {
-    if (!good()) {
-      throw std::runtime_error{"cannot deserialize attributed object directory, not in good state"};
-    }
-
     json::node_type json_root;
     if (!json::read_json(path, &json_root)) {
       throw std::runtime_error{"Could not read json"};

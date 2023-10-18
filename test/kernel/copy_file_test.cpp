@@ -13,14 +13,14 @@
 namespace {
 
 void create(const std::string &dir_path) {
-  metall::manager manager(metall::create_only, dir_path.c_str());
+  metall::manager manager(metall::create_only, dir_path);
 
   manager.construct<uint32_t>("a")(1);
   manager.construct<uint64_t>("b")(2);
 }
 
 void open(const std::string &dir_path) {
-  metall::manager manager(metall::open_read_only, dir_path.c_str());
+  metall::manager manager(metall::open_read_only, dir_path);
 
   auto a = manager.find<uint32_t>("a").first;
   ASSERT_EQ(*a, 1);
@@ -52,13 +52,13 @@ TEST(CopyFileTest, SyncCopy) {
 }
 
 TEST(CopyFileTest, AsyncCopy) {
-  metall::manager::remove(original_dir_path().c_str());
-  metall::manager::remove(copy_dir_path().c_str());
+  metall::manager::remove(original_dir_path());
+  metall::manager::remove(copy_dir_path());
 
   create(original_dir_path());
 
-  auto handler = metall::manager::copy_async(original_dir_path().c_str(),
-                                             copy_dir_path().c_str());
+  auto handler = metall::manager::copy_async(original_dir_path(),
+                                             copy_dir_path());
   handler.get();
 
   open(copy_dir_path());

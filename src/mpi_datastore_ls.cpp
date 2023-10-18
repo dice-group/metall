@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
       metall::utility::mpi_datastore::make_local_dir_path(datastore_path,
                                                           mpi_rank);
 
-  if (!metall::manager::consistent(local_datastore_path.c_str())) {
+  if (!metall::manager::consistent(local_datastore_path)) {
     std::cerr << "Inconsistent datastore or invalid datastore path"
               << std::endl;
     std::abort();

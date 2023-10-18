@@ -29,7 +29,7 @@ class general_named_object_attr_accessor {
 
   struct core_data {
     object_directory_type object_directory{};
-    std::string object_attribute_file_path{};
+    std::filesystem::path object_attribute_file_path{};
   };
 
  public:
@@ -47,41 +47,30 @@ class general_named_object_attr_accessor {
   general_named_object_attr_accessor() noexcept = default;
 
   explicit general_named_object_attr_accessor(
-      const std::filesystem::path &object_attribute_file_path) {
-    priv_alloc_core_data();
-
+      const std::filesystem::path &object_attribute_file_path) : m_core_data{std::make_unique<core_data>()} {
     m_core_data->object_attribute_file_path = object_attribute_file_path;
-    m_core_data->object_directory.deserialize(
-        m_core_data->object_attribute_file_path.c_str());
+    m_core_data->object_directory.deserialize(m_core_data->object_attribute_file_path);
   }
 
   general_named_object_attr_accessor(
-      const general_named_object_attr_accessor &other) noexcept {
-    if (priv_alloc_core_data()) {
-      priv_copy_core_data(other);
-    }
+      const general_named_object_attr_accessor &other) : m_core_data{std::make_unique<core_data>(*other.m_core_data)} {
   }
 
   general_named_object_attr_accessor(
       general_named_object_attr_accessor &&) noexcept = default;
 
   general_named_object_attr_accessor &operator=(
-      const general_named_object_attr_accessor &other) noexcept {
-    priv_copy_core_data(other);
+      const general_named_object_attr_accessor &other) {
+    *m_core_data = *other.m_core_data;
     return *this;
   }
 
   general_named_object_attr_accessor &operator=(
       general_named_object_attr_accessor &&) noexcept = default;
 
-  /// \brief Returns if the internal state is good.
-  /// \return Returns true if good; otherwise, false.
-  bool good() const noexcept { return !!m_core_data; }
-
   /// \brief Returns the number of objects in the directory.
   /// \return Returns the number of objects in the directory.
   size_type num_objects() const noexcept {
-    if (!m_core_data) return 0;
     return m_core_data->object_directory.size();
   }
 
@@ -90,7 +79,6 @@ class general_named_object_attr_accessor {
   /// \param name A name of an object to count.
   /// \return Returns 1 if the object exist; otherwise, 0.
   size_type count(std::string const &name) const noexcept {
-    if (!m_core_data) return 0;
     return m_core_data->object_directory.count(name);
   }
 
@@ -99,8 +87,6 @@ class general_named_object_attr_accessor {
   /// \return Returns a const iterator that points the found object attribute.
   /// If not found, a returned iterator is equal to that of end().
   const_iterator find(std::string const &name) const noexcept {
-    if (!m_core_data) return const_iterator();
-
     return m_core_data->object_directory.find(name);
   }
 
@@ -108,8 +94,6 @@ class general_named_object_attr_accessor {
   /// attribute. \return Returns a const iterator that points the beginning of
   /// stored object attribute.
   const_iterator begin() const noexcept {
-    if (!m_core_data) return const_iterator();
-
     return m_core_data->object_directory.begin();
   }
 
@@ -117,8 +101,6 @@ class general_named_object_attr_accessor {
   /// attribute. \return Returns a const iterator that points the end of stored
   /// object attribute.
   const_iterator end() const noexcept {
-    if (!m_core_data) return const_iterator();
-
     return m_core_data->object_directory.end();
   }
 
@@ -134,13 +116,8 @@ class general_named_object_attr_accessor {
       throw std::logic_error{"Cannot set description: position is end"};
     }
 
-    if (!m_core_data) {
-      throw std::runtime_error{"Cannot set description: Core data is null"};
-    }
-
     m_core_data->object_directory.set_description(position, description);
-    m_core_data->object_directory.serialize(
-        m_core_data->object_attribute_file_path);
+    m_core_data->object_directory.serialize(m_core_data->object_attribute_file_path);
   }
 
   /// \brief Sets an description.
@@ -155,29 +132,7 @@ class general_named_object_attr_accessor {
   }
 
  private:
-  bool priv_alloc_core_data() noexcept {
-    try {
-      m_core_data = std::make_unique<core_data>();
-    } catch (...) {
-      m_core_data.reset(nullptr);
-      return false;
-    }
-    return true;
-  }
-
-  bool priv_copy_core_data(
-      const general_named_object_attr_accessor &other) noexcept {
-    try {
-      m_core_data = other.m_core_data;
-    } catch (...) {
-      METALL_ERROR("Filed to copy the core data");
-      m_core_data.reset(nullptr);
-      return false;
-    }
-    return true;
-  }
-
-  std::unique_ptr<core_data> m_core_data{nullptr};
+  std::unique_ptr<core_data> m_core_data;
 };
 }  // namespace attraccs_detail
 
@@ -201,10 +156,10 @@ class named_object_attr_accessor
   using description_type = typename base_type::description_type;
   using const_iterator = typename base_type::const_iterator;
 
-  named_object_attr_accessor() noexcept = default;
+  named_object_attr_accessor() = default;
 
   explicit named_object_attr_accessor(
-      const std::string &object_attribute_file_path) noexcept
+      const std::filesystem::path &object_attribute_file_path) noexcept
       : base_type(object_attribute_file_path) {}
 };
 
@@ -228,10 +183,10 @@ class unique_object_attr_accessor
   using description_type = typename base_type::description_type;
   using const_iterator = typename base_type::const_iterator;
 
-  unique_object_attr_accessor() noexcept = default;
+  unique_object_attr_accessor() = default;
 
   explicit unique_object_attr_accessor(
-      const std::string &object_attribute_file_path) noexcept
+      const std::filesystem::path &object_attribute_file_path)
       : base_type(object_attribute_file_path) {}
 
   /// \brief Counts the number of objects with the name.
@@ -273,9 +228,9 @@ class unique_object_attr_accessor
   /// \param description A description string in description_type.
   /// \return Returns true if a description is set (stored) successfully.
   /// Otherwise, false.
-  bool set_description(const_iterator position,
-                       const description_type &description) {
-    return base_type::set_description(position, description);
+  void set_description(const_iterator position,
+                  const description_type &description) {
+    base_type::set_description(position, description);
   }
 
   /// \brief Sets an description.
@@ -313,7 +268,7 @@ class anonymous_object_attr_accessor {
 
   struct core_data {
     object_directory_type object_directory{};
-    std::string object_attribute_file_path{};
+    std::filesystem::path object_attribute_file_path{};
   };
 
  public:
@@ -331,45 +286,30 @@ class anonymous_object_attr_accessor {
   anonymous_object_attr_accessor() noexcept = default;
 
   explicit anonymous_object_attr_accessor(
-      const std::string &object_attribute_file_path) noexcept {
-    priv_alloc_core_data();
-    try {
-      m_core_data->object_attribute_file_path = object_attribute_file_path;
-      m_core_data->object_directory.deserialize(
-          m_core_data->object_attribute_file_path);
-    } catch (...) {
-      METALL_ERROR("Filed to initialize the core data");
-      m_core_data.reset(nullptr);
-    }
+      const std::filesystem::path &object_attribute_file_path) : m_core_data{std::make_unique<core_data>()} {
+    m_core_data->object_attribute_file_path = object_attribute_file_path;
+    m_core_data->object_directory.deserialize(m_core_data->object_attribute_file_path);
   }
 
   anonymous_object_attr_accessor(
-      const anonymous_object_attr_accessor &other) noexcept {
-    if (priv_alloc_core_data()) {
-      priv_copy_core_data(other);
-    }
+      const anonymous_object_attr_accessor &other) : m_core_data{std::make_unique<core_data>(*other.m_core_data)} {
   }
 
   anonymous_object_attr_accessor(anonymous_object_attr_accessor &&) noexcept =
       default;
 
   anonymous_object_attr_accessor &operator=(
-      const anonymous_object_attr_accessor &other) noexcept {
-    priv_copy_core_data(other);
+      const anonymous_object_attr_accessor &other) {
+    *m_core_data = *other.m_core_data;
     return *this;
   }
 
   anonymous_object_attr_accessor &operator=(
       anonymous_object_attr_accessor &&) noexcept = default;
 
-  /// \brief Returns if the internal state is good.
-  /// \return Returns true if good; otherwise, false.
-  bool good() const noexcept { return !!m_core_data; }
-
   /// \brief Returns the number of objects in the directory.
   /// \return Returns the number of objects in the directory.
   size_type num_objects() const noexcept {
-    if (!m_core_data) return 0;
     return m_core_data->object_directory.size();
   }
 
@@ -377,7 +317,6 @@ class anonymous_object_attr_accessor {
   /// attribute. \return Returns a const iterator that points the beginning of
   /// stored object attribute.
   const_iterator begin() const noexcept {
-    if (!m_core_data) return const_iterator();
     return m_core_data->object_directory.begin();
   }
 
@@ -385,7 +324,6 @@ class anonymous_object_attr_accessor {
   /// attribute. \return Returns a const iterator that points the end of stored
   /// object attribute.
   const_iterator end() const noexcept {
-    if (!m_core_data) return const_iterator();
     return m_core_data->object_directory.end();
   }
 
@@ -395,46 +333,18 @@ class anonymous_object_attr_accessor {
   /// \param description A description string in description_type.
   /// \return Returns true if a description is set (stored) successfully.
   /// Otherwise, false.
-  bool set_description(const_iterator position,
-                       const description_type &description) noexcept {
-    if (!m_core_data) return false;
-
-    if (position == end()) return false;
-
-    if (!m_core_data->object_directory.set_description(position, description) ||
-        !m_core_data->object_directory.serialize(
-            m_core_data->object_attribute_file_path.c_str())) {
-      METALL_ERROR("Filed to set description");
-      return false;
+  void set_description(const_iterator position,
+                       const description_type &description) {
+    if (position == end()) {
+      throw std::logic_error{"Cannot set description: position is end"};
     }
 
-    return true;
+    m_core_data->object_directory.set_description(position, description);
+    m_core_data->object_directory.serialize(m_core_data->object_attribute_file_path);
   }
 
  private:
-  bool priv_alloc_core_data() noexcept {
-    try {
-      m_core_data = std::make_unique<core_data>();
-    } catch (...) {
-      m_core_data.reset(nullptr);
-      return false;
-    }
-    return true;
-  }
-
-  bool priv_copy_core_data(
-      const anonymous_object_attr_accessor &other) noexcept {
-    try {
-      m_core_data = other.m_core_data;
-    } catch (...) {
-      METALL_ERROR("Filed to copy the core data");
-      m_core_data.reset(nullptr);
-      return false;
-    }
-    return true;
-  }
-
-  std::unique_ptr<core_data> m_core_data{nullptr};
+  std::unique_ptr<core_data> m_core_data;
 };
 }  // namespace metall
 

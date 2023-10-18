@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
   }
 
   {
-    // bip::file_mapping::remove(option.segment_file_name.c_str());
+    // bip::file_mapping::remove(option.segment_file_name);
 
     bip::managed_mapped_file mfile(bip::create_only,
                                    option.datastore_path_list[0].c_str(),

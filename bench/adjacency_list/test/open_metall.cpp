@@ -31,9 +31,9 @@ int main(int argc, char *argv[]) {
 
   {
     metall::manager manager(metall::open_read_only,
-                            option.datastore_path_list[0].c_str());
+                            option.datastore_path_list[0]);
     const auto ret =
-        manager.find<adjacency_list_type>(option.adj_list_key_name.c_str());
+        manager.find<adjacency_list_type>(option.adj_list_key_name);
     if (!ret.first) {
       std::cerr << "Cannot find an object " << option.adj_list_key_name
                 << std::endl;

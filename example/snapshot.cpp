@@ -15,21 +15,21 @@ int main() {
 
   {
     // Create the master data
-    metall::manager manager(metall::create_only, master_path.c_str());
+    metall::manager manager(metall::create_only, master_path);
     int *a = manager.construct<int>(metall::unique_instance)(0);
 
     // Take a snapshot before updating to '1'
-    manager.snapshot(snapshot_name0.c_str());
+    manager.snapshot(snapshot_name0);
     *a = 1;
 
     // Take a snapshot before updating to '2'
-    manager.snapshot(snapshot_name1.c_str());
+    manager.snapshot(snapshot_name1);
     *a = 2;
   }
 
   // Open snapshot 0 if it is consistent, i.e., it was closed properly.
-  if (metall::manager::consistent(snapshot_name0.c_str())) {
-    metall::manager manager(metall::open_read_only, snapshot_name0.c_str());
+  if (metall::manager::consistent(snapshot_name0)) {
+    metall::manager manager(metall::open_read_only, snapshot_name0);
     int *a = manager.find<int>(metall::unique_instance).first;
     std::cout << *a << std::endl;  // Print 0
   } else {
@@ -37,8 +37,8 @@ int main() {
   }
 
   // Open snapshot 1 if it is consistent, i.e., it was closed properly.
-  if (metall::manager::consistent(snapshot_name1.c_str())) {
-    metall::manager manager(metall::open_read_only, snapshot_name1.c_str());
+  if (metall::manager::consistent(snapshot_name1)) {
+    metall::manager manager(metall::open_read_only, snapshot_name1);
     int *a = manager.find<int>(metall::unique_instance).first;
     std::cout << *a << std::endl;  // Print 1
   } else {

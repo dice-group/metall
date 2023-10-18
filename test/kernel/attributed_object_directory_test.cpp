@@ -16,8 +16,8 @@ using directory_type =
 TEST(AttributedObjectDirectoryTest, Insert) {
   directory_type obj;
 
-  ASSERT_TRUE(obj.insert("item1", 1, 2, 5));
-  ASSERT_TRUE(obj.insert("item2", 3, 4, 6, "description2"));
+  ASSERT_TRUE(obj.insert("item1", directory_type::entry_type{1, 2, 5}));
+  ASSERT_TRUE(obj.insert("item2", directory_type::entry_type{3, 4, 6, "description2"}));
 }
 
 // Should insert uniquely
@@ -176,7 +176,7 @@ TEST(AttributedObjectDirectoryTest, Serialize) {
   test_utility::create_test_dir();
   const auto file(test_utility::make_test_path());
 
-  obj.serialize(file.c_str());
+  obj.serialize(file);
 }
 
 TEST(AttributedObjectDirectoryTest, Deserialize) {

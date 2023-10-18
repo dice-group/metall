@@ -31,9 +31,9 @@ int main(int argc, char *argv[]) {
 
   {
     bip::managed_mapped_file mfile(bip::open_only,
-                                   option.graph_file_name_list[0].c_str());
+                                   option.graph_file_name_list[0]);
     auto adj_list =
-        mfile.find<adjacency_list_type>(option.graph_key_name.c_str()).first;
+        mfile.find<adjacency_list_type>(option.graph_key_name).first;
 
     run_bench(*adj_list, option);
   }

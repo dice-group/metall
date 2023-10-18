@@ -79,9 +79,9 @@ class manager_kernel {
   // Private types and static values
   // -------------------- //
   using self_type = manager_kernel<_chunk_no_type, _chunk_size>;
-  static constexpr const char *k_datastore_top_dir_name = "metall_datastore";
-  static constexpr const char *k_datastore_management_dir_name = "management";
-  static constexpr const char *k_datastore_segment_dir_name = "segment";
+  static constexpr std::string_view k_datastore_top_dir_name = "metall_datastore";
+  static constexpr std::string_view k_datastore_management_dir_name = "management";
+  static constexpr std::string_view k_datastore_segment_dir_name = "segment";
 
   // For segment
   static constexpr size_type k_default_vm_reserve_size =
@@ -112,8 +112,8 @@ class manager_kernel {
 #endif
 
   // For actual memory allocation layer
-  static constexpr const char *k_segment_memory_allocator_prefix =
-      "segment_memory_allocator";
+  static constexpr std::string_view k_segment_memory_allocator_prefix = "segment_memory_allocator";
+
   using segment_memory_allocator =
       segment_allocator<chunk_no_type, size_type, difference_type, k_chunk_size,
                         k_max_segment_size, segment_storage_type>;
@@ -121,23 +121,23 @@ class manager_kernel {
   // For attributed object directory
   using attributed_object_directory_type =
       attributed_object_directory<difference_type, size_type>;
-  static constexpr const char *k_named_object_directory_prefix =
+  static constexpr std::string_view k_named_object_directory_prefix =
       "named_object_directory";
-  static constexpr const char *k_unique_object_directory_prefix =
+  static constexpr std::string_view k_unique_object_directory_prefix =
       "unique_object_directory";
-  static constexpr const char *k_anonymous_object_directory_prefix =
+  static constexpr std::string_view k_anonymous_object_directory_prefix =
       "anonymous_object_directory";
 
-  static constexpr const char *k_properly_closed_mark_file_name =
+  static constexpr std::string_view k_properly_closed_mark_file_name =
       "properly_closed_mark";
 
   // For manager metadata data
-  static constexpr const char *k_manager_metadata_file_name =
+  static constexpr std::string_view k_manager_metadata_file_name =
       "manager_metadata";
-  static constexpr const char *k_manager_metadata_key_for_version = "version";
-  static constexpr const char *k_manager_metadata_key_for_uuid = "uuid";
+  static constexpr char const *k_manager_metadata_key_for_version = "version";
+  static constexpr char const *k_manager_metadata_key_for_uuid = "uuid";
 
-  static constexpr const char *k_description_file_name = "description";
+  static constexpr std::string_view k_description_file_name = "description";
 
   using json_store = mdtl::ptree::node_type;
 
@@ -258,7 +258,7 @@ class manager_kernel {
   /// instance or a memory not allocated by construct/find_or_construct
   /// functions, 0 is returned. \tparam T \param ptr \return
   template <class T>
-  const char_type *get_instance_name(const T *ptr) const;
+  std::string_view get_instance_name(const T *ptr) const;
 
   /// \brief Returns is the kind of an object created with
   /// construct/find_or_construct functions. \tparam T \param ptr \return
@@ -282,13 +282,13 @@ class manager_kernel {
   /// A pointer to the object. \param description A pointer to a string buffer.
   /// \return
   template <class T>
-  std::optional<std::string> get_instance_description(const T *ptr) const;
+  std::optional<std::string_view> get_instance_description(const T *ptr) const;
 
   /// \brief Sets a description to an object created with
   /// construct/find_or_construct. \tparam T The type of the object. \param ptr
   /// A pointer to the object. \param description A description to set. \return
   template <class T>
-  void set_instance_description(const T *ptr, const std::string &description);
+  void set_instance_description(const T *ptr, std::string_view description);
 
   /// \brief Returns Returns the number of named objects stored in the managed
   /// segment. \return
@@ -386,8 +386,8 @@ class manager_kernel {
   /// If succeeded, its get() returns True; other false.
   static std::future<void> copy_async(std::filesystem::path const &source_dir_path,
                                       std::filesystem::path const &destination_dir_path,
-                                      const bool clone,
-                                      const int num_max_copy_threads);
+                                      bool clone,
+                                      int num_max_copy_threads);
 
   /// \brief Remove a data store synchronously
   /// \param base_dir_path
@@ -500,9 +500,9 @@ class manager_kernel {
   //    segment_dir/
   //      directories and files for application data segment
   static std::filesystem::path priv_make_top_dir_path(const std::filesystem::path &base_dir_path);
-  static std::filesystem::path priv_make_top_level_file_name(const std::filesystem::path &base_dir_path, const std::string &item_name);
+  static std::filesystem::path priv_make_top_level_file_name(const std::filesystem::path &base_dir_path, std::string_view item_name);
   static std::filesystem::path priv_make_management_dir_path(const std::filesystem::path &base_dir_path);
-  static std::filesystem::path priv_make_management_file_name(const std::filesystem::path &base_dir_path, const std::string &item_name);
+  static std::filesystem::path priv_make_management_file_name(const std::filesystem::path &base_dir_path, std::string_view item_name);
   static std::filesystem::path priv_make_segment_dir_path(const std::filesystem::path &base_dir_path);
   static void priv_init_datastore_directory(const std::filesystem::path &base_dir_path);
 

@@ -445,7 +445,7 @@ class basic_manager {
   /// If ptr points to an anonymous instance or memory not allocated by
   /// construct/find_or_construct functions, nullptr is returned.
   template <class T>
-  const char_type *get_instance_name(const T *ptr) const {
+  std::string_view get_instance_name(const T *ptr) const {
     return m_kernel->get_instance_name(ptr);
   }
 
@@ -522,7 +522,7 @@ class basic_manager {
   /// \param description A pointer to a string buffer.
   /// \return Returns false on error.
   template <class T>
-  std::optional<std::string> get_instance_description(const T *ptr) const {
+  std::optional<std::string_view> get_instance_description(const T *ptr) const {
     return m_kernel->get_instance_description(ptr);
   }
 
@@ -543,7 +543,7 @@ class basic_manager {
   /// \return Returns false on error.
   template <class T>
   void set_instance_description(const T *ptr,
-                                const std::string &description) {
+                                std::string_view description) {
     m_kernel->set_instance_description(ptr, description);
   }
 
@@ -836,7 +836,7 @@ class basic_manager {
   ///
   /// \param dir_path Path to a data store.
   /// \return Returns a version number; returns 0 on error.
-  static version_type get_version(const char_type *dir_path) {
+  static version_type get_version(std::filesystem::path const &dir_path) {
     return manager_kernel_type::get_version(dir_path);
   }
 

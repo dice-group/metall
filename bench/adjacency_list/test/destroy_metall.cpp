@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
 
   {
     metall::manager manager(metall::open_only,
-                            option.datastore_path_list[0].c_str());
+                            option.datastore_path_list[0]);
     manager.destroy<adjacency_list_type>(option.adj_list_key_name.c_str());
 
     if (!manager.all_memory_deallocated()) {
