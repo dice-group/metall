@@ -13,7 +13,7 @@
 #include <new>
 
 #include <metall/offset_ptr.hpp>
-#include <metall/logger.h>
+#include <metall/logger.hpp>
 
 namespace metall {
 

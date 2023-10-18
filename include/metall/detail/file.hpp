@@ -49,7 +49,7 @@
 
 #endif  // #ifdef __has_include
 
-#include <metall/logger.h>
+#include <metall/logger.hpp>
 
 namespace metall::mtlldetail {
 
@@ -257,11 +257,11 @@ inline bool create_directory(const std::string &dir_path) {
         return true;
       }
 
-      METALL_ERROR(ec.message().c_str());
+      METALL_ERROR("{}", ec.message());
       success = false;
     }
   } catch (fs::filesystem_error &e) {
-    METALL_ERROR(e.what());
+    METALL_ERROR("{}", e.what());
     success = false;
   }
 
@@ -282,9 +282,7 @@ inline ssize_t get_file_size(const std::string &file_path) {
   std::ifstream ifs(file_path, std::ifstream::binary | std::ifstream::ate);
   ssize_t size = ifs.tellg();
   if (size == -1) {
-    std::stringstream ss;
-    ss << "Failed to get file size: " << file_path;
-    METALL_ERROR(ss.str().c_str());
+    METALL_ERROR("Failed to get file size: {}", file_path);
   }
 
   return size;
@@ -296,8 +294,7 @@ inline ssize_t get_file_size(const std::string &file_path) {
 inline ssize_t get_actual_file_size(const std::string &file_path) {
   struct stat stat_buf;
   if (::stat(file_path.c_str(), &stat_buf) != 0) {
-    std::string s("stat (" + file_path + ")");
-    METALL_ERRNO_ERROR(s.c_str());
+    METALL_ERRNO_ERROR("stat ({})", file_path);
     return -1;
   }
   return stat_buf.st_blocks * 512LL;
@@ -349,14 +346,11 @@ inline bool copy_file_dense(const std::string &source_path,
   try {
     if (!fs::copy_file(source_path, destination_path,
                        fs::copy_options::overwrite_existing)) {
-      std::stringstream ss;
-      ss << "Failed copying file: " << source_path << " -> "
-         << destination_path;
-      METALL_ERROR(ss.str().c_str());
+      METALL_ERROR("Failed copying file {} -> {}", source_path, destination_path);
       success = false;
     }
   } catch (fs::filesystem_error &e) {
-    METALL_ERROR(e.what());
+    METALL_ERROR("{}", e.what());
     success = false;
   }
 
@@ -441,9 +435,7 @@ inline bool copy_file_sparse_linux(const std::string &source_path,
   const int status = std::system(command.c_str());
   const bool success = (status != -1) && !!(WIFEXITED(status));
   if (!success) {
-    std::stringstream ss;
-    ss << "Failed copying file: " << source_path << " -> " << destination_path;
-    METALL_ERROR(ss.str().c_str());
+    METALL_ERROR("Failed copying file {} -> {}", source_path, destination_path);
     return false;
   }
   return success;

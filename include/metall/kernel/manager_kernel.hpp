@@ -19,7 +19,7 @@
 #include <sstream>
 #include <typeinfo>
 
-#include <metall/logger.h>
+#include <metall/logger.hpp>
 #include <metall/offset_ptr.hpp>
 #include <metall/version.hpp>
 #include <metall/kernel/manager_kernel_fwd.hpp>

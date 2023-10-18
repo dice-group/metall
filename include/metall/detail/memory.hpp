@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
-#include <metall/logger.h>
+#include <metall/logger.hpp>
 
 namespace metall::mtlldetail {
 
@@ -126,7 +126,7 @@ inline std::pair<std::size_t, std::size_t> get_num_page_faults() {
                         &minflt, &majflt)) != 2) {
       std::stringstream ss;
       ss << "Failed to reading #of page faults " << ret;
-      METALL_ERROR(ss.str().c_str());
+      METALL_ERROR("{}", ss.str());
       minflt = majflt = 0;
     }
   }

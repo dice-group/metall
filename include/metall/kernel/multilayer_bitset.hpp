@@ -22,7 +22,7 @@
 #include <metall/detail/utilities.hpp>
 #include <metall/detail/bitset.hpp>
 #include <metall/detail/builtin_functions.hpp>
-#include <metall/logger.h>
+#include <metall/logger.hpp>
 
 namespace metall {
 namespace kernel {

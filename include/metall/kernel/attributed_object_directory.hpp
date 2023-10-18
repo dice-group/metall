@@ -20,7 +20,7 @@
 #include <boost/unordered_map.hpp>
 #include <boost/container/list.hpp>
 
-#include <metall/logger.h>
+#include <metall/logger.hpp>
 #include <metall/detail/ptree.hpp>
 #include <metall/detail/hash.hpp>
 

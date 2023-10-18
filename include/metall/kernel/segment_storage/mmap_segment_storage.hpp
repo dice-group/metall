@@ -17,7 +17,7 @@
 #include <metall/detail/file_clone.hpp>
 #include <metall/detail/mmap.hpp>
 #include <metall/detail/utilities.hpp>
-#include <metall/logger.h>
+#include <metall/logger.hpp>
 
 namespace metall {
 namespace kernel {
@@ -253,20 +253,17 @@ class mmap_segment_storage {
                         const int max_num_threads) {
     if (!mdtl::directory_exist(destination_path)) {
       if (!mdtl::create_directory(destination_path)) {
-        std::string s("Cannot create a directory: " + destination_path);
-        logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+        METALL_ERROR("Cannot create a directory: {}", destination_path);
         return false;
       }
     }
 
     if (clone) {
-      std::string s("Clone: " + source_path);
-      logger::out(logger::level::info, __FILE__, __LINE__, s.c_str());
+      METALL_INFO("Clone: {}", source_path);
       return mdtl::clone_files_in_directory_in_parallel(
           source_path, destination_path, max_num_threads);
     } else {
-      std::string s("Copy: " + source_path);
-      logger::out(logger::level::info, __FILE__, __LINE__, s.c_str());
+      METALL_INFO("Copy: {}", source_path);
       return mdtl::copy_files_in_directory_in_parallel(
           source_path, destination_path, max_num_threads);
     }
@@ -280,15 +277,11 @@ class mmap_segment_storage {
     if (is_open())
       return false;  // Cannot open multiple segments simultaneously.
 
-    {
-      std::string s("Create a segment under: " + base_path);
-      logger::out(logger::level::info, __FILE__, __LINE__, s.c_str());
-    }
+    METALL_INFO("Create a segment under: {}", base_path);
 
     if (!mdtl::directory_exist(base_path)) {
       if (!mdtl::create_directory(base_path)) {
-        std::string s("Cannot create a directory: " + base_path);
-        logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+        METALL_ERROR("Cannot create a directory: {}", base_path);
         // As no internal value has been changed, m_broken is still false.
         return false;
       }
@@ -312,8 +305,7 @@ class mmap_segment_storage {
     m_num_blocks = 1;
 
     if (!priv_test_file_space_free(base_path)) {
-      std::string s("Failed to test file space free: " + base_path);
-      METALL_ERROR(s.c_str());
+      METALL_ERROR("Failed to test file space free: {}", base_path);
       priv_destroy_segment();
       priv_set_broken_status();
       return false;
@@ -328,8 +320,7 @@ class mmap_segment_storage {
     if (is_open())
       return false;  // Cannot open multiple segments simultaneously.
 
-    std::string s("Open a segment under: " + base_path);
-    METALL_INFO(s.c_str());
+    METALL_INFO("Open a segment under: {}", base_path);
 
     m_base_path = base_path;
     m_vm_region_size = mdtl::round_down(vm_region_size, page_size());
@@ -360,9 +351,7 @@ class mmap_segment_storage {
       const auto fd = priv_map_file(file_name, m_block_size,
                                     m_current_segment_size, read_only);
       if (fd == -1) {
-        std::stringstream ss;
-        ss << "Failed to map a file " << file_name;
-        METALL_ERROR(ss.str().c_str());
+        METALL_ERROR("Failed to map a file {}", file_name);
         priv_destroy_segment();
         priv_set_broken_status();
         return false;
@@ -376,8 +365,7 @@ class mmap_segment_storage {
     }
 
     if (!read_only && !priv_test_file_space_free(base_path)) {
-      std::string s("Failed to test file space free: " + base_path);
-      METALL_ERROR(s.c_str());
+      METALL_ERROR("Failed to test file space free: {}", base_path);
       priv_destroy_segment();
       priv_set_broken_status();
       return false;
@@ -428,17 +416,13 @@ class mmap_segment_storage {
                            const different_type segment_offset) {
     const std::string file_name =
         priv_make_block_file_name(base_path, block_number);
-    {
-      std::string s("Create and extend a file " + file_name + " with " +
-                    std::to_string(file_size) + " bytes");
-      METALL_INFO(s.c_str());
-    }
+
+    METALL_INFO("Create and extend a file {} with {} bytes", file_name, file_size);
 
     if (!mdtl::create_file(file_name)) return false;
     if (!mdtl::extend_file_size(file_name, file_size)) return false;
     if (static_cast<size_type>(mdtl::get_file_size(file_name)) < file_size) {
-      std::string s("Failed to create and extend file: " + file_name);
-      METALL_ERROR(s.c_str());
+      METALL_ERROR("Failed to create and extend file: {}", file_name);
       return false;
     }
 
@@ -479,13 +463,11 @@ class mmap_segment_storage {
 
     const auto map_addr = static_cast<char *>(m_segment) + segment_offset;
 
-    {
-      std::stringstream ss;
-      ss << "Map a file " << path << " at " << segment_offset << " with "
-         << file_size << " bytes; read-only mode is "
-         << std::to_string(read_only);
-      METALL_INFO(ss.str().c_str());
-    }
+    METALL_INFO("Map a file {} at {} with {} bytes; read-only mode is {}",
+                path,
+                segment_offset,
+                file_size,
+                read_only);
 
     const auto ret =
         (read_only)
@@ -493,8 +475,7 @@ class mmap_segment_storage {
             : mdtl::map_file_write_mode(path, map_addr, file_size, 0,
                                         MAP_FIXED | map_nosync);
     if (ret.first == -1 || !ret.second) {
-      std::string s("Failed to map a file: " + path);
-      METALL_ERROR(s.c_str());
+      METALL_ERROR("Failed to map a file: {}", path);
       if (ret.first != -1) {
         mdtl::os_close(ret.first);
       }
@@ -512,19 +493,12 @@ class mmap_segment_storage {
     assert(segment_offset + region_size <= m_vm_region_size);
 
     const auto map_addr = static_cast<char *>(m_segment) + segment_offset;
-    {
-      std::string s("Map an anonymous region at " +
-                    std::to_string(segment_offset) + " with " +
-                    std::to_string(region_size));
-      METALL_INFO(s.c_str());
-    }
+    METALL_INFO("Map an anonymous region at {} with size {}", segment_offset, region_size);
 
     const auto *addr =
         mdtl::map_anonymous_write_mode(map_addr, region_size, MAP_FIXED);
     if (!addr) {
-      std::string s("Failed to map an anonymous region at " +
-                    std::to_string(segment_offset));
-      METALL_ERROR(s.c_str());
+      METALL_ERROR("Failed to map an anonymous region at {}", segment_offset);
       return -1;
     }
 
@@ -533,8 +507,7 @@ class mmap_segment_storage {
     const auto fd = ::open(path.c_str(), O_RDWR);
     if (fd == -1) {
       METALL_ERRNO_ERROR("open");
-      std::string s("Failed to open a file " + path);
-      METALL_ERROR(s.c_str());
+      METALL_ERROR("Failed to open a file {}", path);
       // Destroy the map by overwriting PROT_NONE map since the VM region is
       // managed by another class.
       mdtl::map_with_prot_none(static_cast<char *>(m_segment) + segment_offset,
@@ -624,11 +597,7 @@ class mmap_segment_storage {
     const auto num_threads =
         (int)std::min(m_block_fd_list.size(),
                       (std::size_t)std::thread::hardware_concurrency());
-    {
-      std::stringstream ss;
-      ss << "Sync files with " << num_threads << " threads";
-      METALL_INFO(ss.str().c_str());
-    }
+    METALL_INFO("Sync files with {} threads", num_threads);
     std::vector<std::unique_ptr<std::thread>> threads(num_threads);
     for (auto &th : threads) {
       th = std::make_unique<std::thread>(diff_sync);
@@ -749,8 +718,7 @@ class mmap_segment_storage {
     const auto ret =
         mdtl::map_file_write_mode(file_path, nullptr, file_size, 0);
     if (ret.first == -1 || !ret.second) {
-      std::string s("Failed to map file: " + file_path);
-      METALL_ERROR(s.c_str());
+      METALL_ERROR("Failed to map file: {}", file_path);
       if (ret.first != -1) mdtl::os_close(ret.first);
       return false;
     }
@@ -766,25 +734,18 @@ class mmap_segment_storage {
     }
 
     if (!mdtl::os_close(ret.first)) {
-      std::string s("Failed to close file: " + file_path);
-      METALL_ERROR(s.c_str());
+      METALL_WARN("Failed to close file: {}", file_path);
       return false;
     }
 
     // Closing
     mdtl::munmap(ret.second, file_size, false);
     if (!mdtl::remove_file(file_path)) {
-      std::string s("Failed to remove a file: " + file_path);
-      METALL_ERROR(s.c_str());
+      METALL_WARN("Failed to remove a file: {}", file_path);
       return false;
     }
 
-    {
-      std::string s("File free test result: ");
-      s += m_free_file_space ? "success" : "failed";
-      METALL_INFO(s.c_str());
-    }
-
+    METALL_INFO("File free test result: {}", m_free_file_space ? "success" : "failed");
     return true;
   }
 

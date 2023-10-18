@@ -17,7 +17,7 @@
 #include <metall/kernel/multilayer_bitset.hpp>
 #include <metall/kernel/bin_number_manager.hpp>
 #include <metall/kernel/object_size_manager.hpp>
-#include <metall/logger.h>
+#include <metall/logger.hpp>
 
 namespace metall {
 namespace kernel {
@@ -297,9 +297,7 @@ class chunk_directory {
   bool serialize(const char *path) const {
     std::ofstream ofs(path);
     if (!ofs.is_open()) {
-      std::stringstream ss;
-      ss << "Cannot open: " << path;
-      METALL_ERROR(ss.str().c_str());
+      METALL_ERROR("Cannot open: {}", path);
       return false;
     }
 
@@ -312,9 +310,7 @@ class chunk_directory {
           << static_cast<uint64_t>(m_table[chunk_no].bin_no) << " "
           << static_cast<uint64_t>(m_table[chunk_no].type);
       if (!ofs) {
-        std::stringstream ss;
-        ss << "Something happened in the ofstream: " << path;
-        METALL_ERROR(ss.str().c_str());
+        METALL_ERROR("Something happened in the ofstream: {}", path);
         return false;
       }
 
@@ -325,9 +321,7 @@ class chunk_directory {
             << " " << m_table[chunk_no].slot_occupancy.serialize(num_slots)
             << "\n";
         if (!ofs) {
-          std::stringstream ss;
-          ss << "Something happened in the ofstream: " << path;
-          METALL_ERROR(ss.str().c_str());
+          METALL_ERROR("Something happened in the ofstream: {}", path);
           return false;
         }
 
@@ -335,9 +329,7 @@ class chunk_directory {
                  m_table[chunk_no].type == chunk_type::large_chunk_body) {
         ofs << "\n";
         if (!ofs) {
-          std::stringstream ss;
-          ss << "Something happened in the ofstream: " << path;
-          METALL_ERROR(ss.str().c_str());
+          METALL_ERROR("Something happened in the ofstream: {}", path);
           return false;
         }
 
@@ -358,9 +350,7 @@ class chunk_directory {
   bool deserialize(const char *path) {
     std::ifstream ifs(path);
     if (!ifs.is_open()) {
-      std::stringstream ss;
-      ss << "Cannot open: " << path;
-      METALL_ERROR(ss.str().c_str());
+      METALL_ERROR("Cannot open: {}", path);
       return false;
     }
 
@@ -393,14 +383,11 @@ class chunk_directory {
             calc_num_slots(bin_no_mngr::to_object_size(bin_no));
         if (!(ifs >> buf1)) {
           std::stringstream ss;
-          ss << "Cannot read a file: " << path;
-          METALL_ERROR(ss.str().c_str());
+          METALL_ERROR("Cannot read a file: {}", path);
           return false;
         }
         if (num_slots < buf1) {
-          std::stringstream ss;
-          ss << "Invalid num_occupied_slots: " << std::to_string(buf1);
-          METALL_ERROR(ss.str().c_str());
+          METALL_ERROR("Invalid num_occupied_slots: {}", buf1);
           return false;
         }
         m_table[chunk_no].num_occupied_slots = buf1;
@@ -408,9 +395,7 @@ class chunk_directory {
         std::string bitset_buf;
         std::getline(ifs, bitset_buf);
         if (bitset_buf.empty() || bitset_buf[0] != ' ') {
-          std::stringstream ss;
-          ss << "Invalid input for slot_occupancy: " << bitset_buf;
-          METALL_ERROR(ss.str().c_str());
+          METALL_ERROR("Invalid input for slot_occupancy: {}", bitset_buf);
           return false;
         }
         bitset_buf.erase(0, 1);
@@ -422,9 +407,7 @@ class chunk_directory {
 
         if (!m_table[chunk_no].slot_occupancy.deserialize(num_slots,
                                                           bitset_buf)) {
-          std::stringstream ss;
-          ss << "Invalid input for slot_occupancy: " << bitset_buf;
-          METALL_ERROR(ss.str().c_str());
+          METALL_ERROR("Invalid input for slot_occupancy: {}", bitset_buf);
           return false;
         }
       }
@@ -433,9 +416,7 @@ class chunk_directory {
     }
 
     if (!ifs.eof()) {
-      std::stringstream ss;
-      ss << "Something happened in the ifstream: " << path;
-      METALL_ERROR(ss.str().c_str());
+      METALL_ERROR("Something happened in the ifstream: {}", path);
       return false;
     }
 

@@ -22,7 +22,7 @@
 #include <metall/kernel/object_size_manager.hpp>
 #include <metall/detail/char_ptr_holder.hpp>
 #include <metall/detail/utilities.hpp>
-#include <metall/logger.h>
+#include <metall/logger.hpp>
 
 #ifndef METALL_DISABLE_CONCURRENCY
 #define METALL_ENABLE_MUTEX_IN_SEGMENT_ALLOCATOR
@@ -506,10 +506,7 @@ class segment_allocator {
     }
 
     if (!m_segment_storage->extend(required_segment_size)) {
-      std::stringstream ss;
-      ss << "Failed to extend the segment to " << required_segment_size
-         << " bytes";
-      METALL_ERROR(ss.str().c_str());
+      METALL_ERROR("Failed to extend the segment to {} bytes", required_segment_size);
       return false;
     }
 

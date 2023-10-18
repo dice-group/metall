@@ -206,19 +206,14 @@ class object_cache {
 
   void priv_const_helper() {
     if (get_num_cores() == 0) {
-      logger::out(logger::level::critical, __FILE__, __LINE__,
-                  "The achieved number of cores is zero");
+      METALL_ERROR("The achieved number of cores is zero");
       return;
     }
     {
-      std::stringstream ss;
-      ss << "The number of cores: " << get_num_cores();
-      logger::out(logger::level::info, __FILE__, __LINE__, ss.str().c_str());
+      METALL_INFO("The number of cores is: {}", get_num_cores());
     }
     {
-      std::stringstream ss;
-      ss << "#of caches: " << m_cache_table.size();
-      logger::out(logger::level::info, __FILE__, __LINE__, ss.str().c_str());
+      METALL_INFO("The number of caches is: {}", m_cache_table.size());
     }
     {
       std::stringstream ss;
@@ -227,7 +222,8 @@ class object_cache {
         ss << single_cache_type::bin_capacity(b);
         if (b < single_cache_type::num_bins() - 1) ss << " ";
       }
-      logger::out(logger::level::info, __FILE__, __LINE__, ss.str().c_str());
+
+      METALL_INFO("{}", ss.str());
     }
   }
 

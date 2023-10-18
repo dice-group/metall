@@ -23,7 +23,7 @@
 #include <metall/detail/memory.hpp>
 #include <metall/detail/file.hpp>
 #include <metall/detail/utilities.hpp>
-#include <metall/logger.h>
+#include <metall/logger.hpp>
 
 namespace metall::mtlldetail {
 
@@ -45,18 +45,12 @@ inline void *os_mmap(void *const addr, const size_t length,
   }
 
   if ((ptrdiff_t)addr % page_size != 0) {
-    std::stringstream ss;
-    ss << "address (" << addr << ") is not page aligned ("
-       << ::sysconf(_SC_PAGE_SIZE) << ")";
-    METALL_ERROR(ss.str().c_str());
+    METALL_ERROR("address ({}) is not page aligned ({})", addr, ::sysconf(_SC_PAGE_SIZE));
     return nullptr;
   }
 
   if (offset % page_size != 0) {
-    std::stringstream ss;
-    ss << "offset (" << offset << ") is not a multiple of the page size ("
-       << ::sysconf(_SC_PAGE_SIZE) << ")";
-    METALL_ERROR(ss.str().c_str());
+    METALL_ERROR("offset ({}) is not a multiple of the page size ({})", offset, ::sysconf(_SC_PAGE_SIZE));
     return nullptr;
   }
 
@@ -68,10 +62,7 @@ inline void *os_mmap(void *const addr, const size_t length,
   }
 
   if ((ptrdiff_t)mapped_addr % page_size != 0) {
-    std::stringstream ss;
-    ss << "mapped address (" << mapped_addr << ") is not page aligned ("
-       << ::sysconf(_SC_PAGE_SIZE) << ")";
-    METALL_ERROR(ss.str().c_str());
+    METALL_ERROR("mapped address ({}) is not page aligned ({})", mapped_addr, ::sysconf(_SC_PAGE_SIZE));
     return nullptr;
   }
 
@@ -356,18 +347,12 @@ inline void *reserve_aligned_vm_region(const size_t alignment,
   }
 
   if (alignment % page_size != 0) {
-    std::stringstream ss;
-    ss << "alignment (" << alignment << ") is not a multiple of the page size ("
-       << ::sysconf(_SC_PAGE_SIZE) << ")";
-    METALL_ERROR(ss.str().c_str());
+    METALL_ERROR("alignment ({}) is not a multiple of the page size ({})", alignment, ::sysconf(_SC_PAGE_SIZE));
     return nullptr;
   }
 
   if (length % alignment != 0) {
-    std::stringstream ss;
-    ss << "length (" << length << ") is not a multiple of alignment ("
-       << ::sysconf(_SC_PAGE_SIZE) << ")";
-    METALL_ERROR(ss.str().c_str());
+    METALL_ERROR("length ({}) is not a multiple of the alignment ({})", length, alignment);
     return nullptr;
   }
 
@@ -408,7 +393,7 @@ class pagemap_reader {
   pagemap_reader() : m_fd(-1) {
     m_fd = ::open("/proc/self/pagemap", O_RDONLY);
     if (m_fd < 0) {
-      METALL_ERROR("Cannot open /proc/self/pagemap\n");
+      METALL_ERROR("Cannot open /proc/self/pagemap");
       METALL_ERRNO_ERROR("open");
     }
   }
