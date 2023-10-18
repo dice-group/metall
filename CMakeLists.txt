@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.21)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(FetchContent)
 
@@ -249,17 +249,6 @@ function(common_setup_for_metall_executable name)
     foreach(X ${COMPILER_DEFS})
          target_compile_definitions(${name} PRIVATE ${X})
     endforeach()
-    # --------------------
-
-    # ----- CXX17 Filesystem Lib----- #
-    # include_cxx_filesystem_library module must be executed first
-    if (FOUND_CXX17_FILESYSTEM_LIB)
-        if (REQUIRE_LIB_STDCXX_FS)
-            target_link_libraries(${name} PRIVATE stdc++fs)
-        endif()
-    elseif()
-        target_compile_definitions(${name} PRIVATE "METALL_DISABLE_CXX17_FILESYSTEM_LIB")
-    endif()
     # --------------------
 
     # ----- Umap----- #

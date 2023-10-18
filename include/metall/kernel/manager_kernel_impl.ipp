@@ -448,25 +448,25 @@ manager_kernel<chnk_no, chnk_sz>::get_segment_size() const {
 
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::snapshot(
-    std::filesystem::path const &destination_base_dir_path, const bool clone,
+    std::filesystem::path const &destination_base_dir_path,
     const int num_max_copy_threads) {
-  return priv_snapshot(destination_base_dir_path, clone, num_max_copy_threads);
+  return priv_snapshot(destination_base_dir_path, num_max_copy_threads);
 }
 
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::copy(
     std::filesystem::path const &source_base_dir_path, std::filesystem::path const &destination_base_dir_path,
-    const bool clone, const int num_max_copy_threads) {
+    const int num_max_copy_threads) {
   return priv_copy_data_store(source_base_dir_path, destination_base_dir_path,
-                              clone, num_max_copy_threads);
+                              num_max_copy_threads);
 }
 
 template <typename chnk_no, std::size_t chnk_sz>
 std::future<bool> manager_kernel<chnk_no, chnk_sz>::copy_async(
     std::filesystem::path const &source_dir_path, std::filesystem::path const &destination_dir_path,
-    const bool clone, const int num_max_copy_threads) {
+    const int num_max_copy_threads) {
   return std::async(std::launch::async, copy, source_dir_path,
-                    destination_dir_path, clone, num_max_copy_threads);
+                    destination_dir_path, num_max_copy_threads);
 }
 
 template <typename chnk_no, std::size_t chnk_sz>
@@ -1110,7 +1110,7 @@ bool manager_kernel<chnk_no, chnk_sz>::priv_deserialize_management_data() {
 // ---------- snapshot ---------- //
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::priv_snapshot(
-    std::filesystem::path const &destination_base_dir_path, const bool clone,
+    std::filesystem::path const &destination_base_dir_path,
     const int num_max_copy_threads) {
   priv_sanity_check();
   m_segment_storage.sync(true);
@@ -1130,7 +1130,7 @@ bool manager_kernel<chnk_no, chnk_sz>::priv_snapshot(
     METALL_ERROR("Failed to create directory: {}", dst_seg_dir.c_str());
     return false;
   }
-  if (!m_segment_storage.copy(src_seg_dir, dst_seg_dir, clone,
+  if (!m_segment_storage.copy(src_seg_dir, dst_seg_dir,
                               num_max_copy_threads)) {
     METALL_ERROR("Failed to copy {} to {}", src_seg_dir.c_str(), dst_seg_dir.c_str());
     return false;
@@ -1172,7 +1172,7 @@ bool manager_kernel<chnk_no, chnk_sz>::priv_snapshot(
 template <typename chnk_no, std::size_t chnk_sz>
 bool manager_kernel<chnk_no, chnk_sz>::priv_copy_data_store(
     std::filesystem::path const &src_base_dir_path, std::filesystem::path const &dst_base_dir_path,
-    const bool use_clone, const int num_max_copy_threads) {
+    const int num_max_copy_threads) {
   if (!consistent(src_base_dir_path)) {
     METALL_ERROR("Source directory is not consistent (may not have closed properly or may still be open): {}", src_base_dir_path.c_str());
     return false;
@@ -1196,7 +1196,7 @@ bool manager_kernel<chnk_no, chnk_sz>::priv_copy_data_store(
     METALL_ERROR("Failed to create directory: {}", dst_seg_dir.c_str());
     return false;
   }
-  if (!segment_storage_type::copy(src_seg_dir, dst_seg_dir, use_clone,
+  if (!segment_storage_type::copy(src_seg_dir, dst_seg_dir,
                                   num_max_copy_threads)) {
     METALL_ERROR("Failed to copy {} to {}", src_seg_dir.c_str(), dst_seg_dir.c_str());
     return false;

@@ -368,35 +368,31 @@ class manager_kernel {
 
   /// \brief Takes a snapshot. The snapshot has a different UUID.
   /// \param destination_dir_path Destination path
-  /// \param clone Use clone (reflink) to copy data.
   /// \param num_max_copy_threads The maximum number of copy threads to use.
   /// If <= 0 is given, the value is automatically determined.
   /// \return If succeeded, returns True; other false
-  bool snapshot(std::filesystem::path const &destination_dir_path, const bool clone,
+  bool snapshot(std::filesystem::path const &destination_dir_path,
                 const int num_max_copy_threads);
 
   /// \brief Copies a data store synchronously, keeping the same UUID.
   /// \param source_dir_path Source path.
   /// \param destination_dir_path Destination path.
-  /// \param clone Use clone (reflink) to copy data.
   /// \param num_max_copy_threads The maximum number of copy threads to use.
   /// If <= 0 is given, the value is automatically determined.
   /// \return If succeeded, returns True; other false.
   static bool copy(std::filesystem::path const &source_dir_path,
-                   std::filesystem::path const &destination_dir_path, const bool clone,
+                   std::filesystem::path const &destination_dir_path,
                    const int num_max_copy_threads);
 
   /// \brief Copies a data store asynchronously, keeping the same UUID.
   /// \param source_dir_path Source path.
   /// \param destination_dir_path Destination path.
-  /// \param clone Use clone (reflink) to copy data.
   /// \param num_max_copy_threads The maximum number of copy threads to use.
   /// If <= 0 is given, the value is automatically determined.
   /// \return Returns an object of std::future.
   /// If succeeded, its get() returns True; other false.
   static std::future<bool> copy_async(std::filesystem::path const &source_dir_path,
                                       std::filesystem::path const &destination_dir_path,
-                                      const bool clone,
                                       const int num_max_copy_threads);
 
   /// \brief Remove a data store synchronously
@@ -560,14 +556,13 @@ class manager_kernel {
 
   // ---------- snapshot  ---------- //
   /// \brief Takes a snapshot. The snapshot has a different UUID.
-  bool priv_snapshot(std::filesystem::path const &destination_base_dir_path, const bool clone,
+  bool priv_snapshot(std::filesystem::path const &destination_base_dir_path,
                      const int num_max_copy_threads);
 
   // ---------- File operations  ---------- //
   /// \brief Copies all backing files using reflink if possible
   static bool priv_copy_data_store(std::filesystem::path const &src_base_dir_path,
                                    std::filesystem::path const &dst_base_dir_path,
-                                   const bool clone,
                                    const int num_max_copy_threads);
 
   /// \brief Removes all backing files

@@ -130,9 +130,4 @@ clang++ -std=c++17 [tutorial_program.cpp] -I../../include -I${BOOST_ROOT}
 **On macOS < 10.15**
 
 The C++17 <filesystem> library is not available on macOS < 10.15.
-One has to stop using C++17 <filesystem> library in Metall.
-If METALL_DISABLE_CXX17_FILESYSTEM_LIB macro is defined, Metall uses its own file system operation implementation.
-
-```bash
-clang++ -std=c++17 [tutorial_program.cpp] -I../../include -I${BOOST_ROOT} -DMETALL_DISABLE_CXX17_FILESYSTEM_LIB
-```
+Metall does not compile without <filesystem>.

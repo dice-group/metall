@@ -135,9 +135,9 @@ class mmap_segment_storage {
   /// If <= 0 is given, the value is automatically determined.
   /// \return Return true if success; otherwise, false.
   static bool copy(std::filesystem::path const &source_path,
-                   std::filesystem::path const &destination_path, const bool clone,
+                   std::filesystem::path const &destination_path,
                    const int max_num_threads) {
-    return priv_copy(source_path, destination_path, clone, max_num_threads);
+    return priv_copy(source_path, destination_path, max_num_threads);
   }
 
   /// \brief Creates a new segment.
@@ -250,7 +250,6 @@ class mmap_segment_storage {
 
   static bool priv_copy(std::filesystem::path const &source_path,
                         std::filesystem::path const &destination_path,
-                        const bool clone,
                         const int max_num_threads) {
     if (!mdtl::directory_exist(destination_path)) {
       if (!mdtl::create_directory(destination_path)) {
@@ -259,17 +258,9 @@ class mmap_segment_storage {
       }
     }
 
-    if (clone) {
-      METALL_TRACE("Clone: {}", source_path.c_str());
-      return mdtl::clone_files_in_directory_in_parallel(
-          source_path, destination_path, max_num_threads);
-    } else {
-      METALL_TRACE("Copy: {}", source_path.c_str());
-      return mdtl::copy_files_in_directory_in_parallel(
-          source_path, destination_path, max_num_threads);
-    }
-    assert(false);
-    return false;
+    METALL_TRACE("Clone: {}", source_path.c_str());
+    return mdtl::clone_files_in_directory_in_parallel(
+        source_path, destination_path, max_num_threads);
   }
 
   bool priv_create(std::filesystem::path const &base_path, const size_type vm_region_size,

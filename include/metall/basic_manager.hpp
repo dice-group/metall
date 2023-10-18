@@ -912,17 +912,16 @@ class basic_manager {
   /// \copydoc doc_single_thread
   ///
   /// \param destination_dir_path Path to store a snapshot.
-  /// \param clone Use the file clone mechanism (reflink) instead of normal copy
   /// if it is available. \param num_max_copy_threads The maximum number of copy
   /// threads to use. If <= 0 is given, the value is automatically determined.
   /// \return Returns true on success; other false.
-  bool snapshot(std::filesystem::path const &destination_dir_path, const bool clone = true,
+  bool snapshot(std::filesystem::path const &destination_dir_path,
                 const int num_max_copy_threads = 0) noexcept {
     if (!check_sanity()) {
       return false;
     }
     try {
-      return m_kernel->snapshot(destination_dir_path, clone,
+      return m_kernel->snapshot(destination_dir_path,
                                 num_max_copy_threads);
     } catch (...) {
       m_kernel.reset(nullptr);
@@ -945,11 +944,10 @@ class basic_manager {
   /// \return If succeeded, returns true; other false.
   static bool copy(std::filesystem::path const &source_dir_path,
                    std::filesystem::path const &destination_dir_path,
-                   const bool clone = true,
                    const int num_max_copy_threads = 0) noexcept {
     try {
       return manager_kernel_type::copy(source_dir_path, destination_dir_path,
-                                       clone, num_max_copy_threads);
+                                       num_max_copy_threads);
     } catch (...) {
       METALL_ERROR("An exception has been thrown");
     }
@@ -971,11 +969,10 @@ class basic_manager {
   /// If succeeded, its get() returns true; other false.
   static auto copy_async(std::filesystem::path const &source_dir_path,
                          std::filesystem::path const &destination_dir_path,
-                         const bool clone = true,
                          const int num_max_copy_threads = 0) noexcept {
     try {
       return manager_kernel_type::copy_async(
-          source_dir_path, destination_dir_path, clone, num_max_copy_threads);
+          source_dir_path, destination_dir_path, num_max_copy_threads);
     } catch (...) {
       METALL_ERROR("An exception has been thrown");
     }

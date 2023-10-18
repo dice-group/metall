@@ -12,11 +12,6 @@
 #include <linux/fs.h>
 #endif
 
-#ifdef __APPLE__
-#include <sys/attr.h>
-#include <sys/clonefile.h>
-#endif
-
 #include <cstdlib>
 #include <metall/detail/file.hpp>
 #include <metall/logger.hpp>
@@ -25,27 +20,54 @@ namespace metall::mtlldetail {
 
 namespace file_clone_detail {
 #ifdef __linux__
+
+inline bool clone_file_linux(int src, int dst) {
+#ifdef FICLONE
+  return ::ioctl(dst, FICLONE, src) != -1;
+#else
+  return false;
+#endif  // defined(FICLONE)
+}
+
 inline bool clone_file_linux(std::filesystem::path const &source_path,
                              std::filesystem::path const &destination_path) {
-  /*std::string command("cp --reflink=auto -R " + source_path + " " +
-                      destination_path);
-  const int status = std::system(command.c_str());
-  return (status != -1) && !!(WIFEXITED(status));*/
+  int src;
+  int dst;
+  if (!file_copy_detail::prepare_file_copy_linux(source_path, destination_path, &src, &dst)) {
+    METALL_ERROR("Unable to prepare for file copy");
+    return false;
+  }
 
-  METALL_ERROR("TODO"); // TODO;
+  auto close_fsync_all = [&]() {
+    os_fsync(dst);
+    os_close(src);
+    os_close(dst);
+  };
+
+  if (clone_file_linux(src, dst)) {
+    close_fsync_all();
+    return true;
+  }
+
+  METALL_WARN("Unable to clone {} to {}, falling back to sparse copy", source_path.c_str(), destination_path.c_str());
+
+  if (file_copy_detail::copy_file_sparse_linux(src, dst)) {
+    close_fsync_all();
+    return true;
+  }
+
+  METALL_WARN("Unable to sparse copy {} to {}, falling back to normal copy", source_path.c_str(), destination_path.c_str());
+  os_close(src);
+  os_close(dst);
+
+  if (file_copy_detail::copy_file_dense(source_path, destination_path)) {
+    return true;
+  }
+
+  METALL_ERROR("Unable to copy {} to {}", source_path.c_str(), destination_path.c_str());
   return false;
 }
-#endif
-
-#ifdef __APPLE__
-inline bool clone_file_macos(std::filesystem::path const &source_path,
-                             std::filesystem::path const &destination_path) {
-  std::string command("cp -cR " + source_path + " " + destination_path);
-  const int status = std::system(command.c_str());
-  return (status != -1) && !!(WIFEXITED(status));
-  // TODO
-}
-#endif
+#endif  // __linux__
 }  // namespace file_clone_detail
 
 /// \brief Clones a file. If file cloning is not supported, copies the file
@@ -54,37 +76,12 @@ inline bool clone_file_macos(std::filesystem::path const &source_path,
 /// error, returns false.
 inline bool clone_file(std::filesystem::path const &source_path,
                        std::filesystem::path const &destination_path) {
-  bool ret = false;
 #if defined(__linux__)
-  ret = file_clone_detail::clone_file_linux(source_path, destination_path);
-  if (!ret) {
-    METALL_ERROR("On Linux, failed to clone {} to {}", source_path.c_str(), destination_path.c_str());
-  }
-#elif defined(__APPLE__)
-  ret = file_clone_detail::clone_file_macos(source_path, destination_path);
-  if (!ret) {
-    std::string s("On MacOS, Failed to clone " + source_path + " to " +
-                  destination_path);
-    METALL_ERROR(s.c_str());
-  }
+  return file_clone_detail::clone_file_linux(source_path, destination_path);
 #else
-#ifdef METALL_VERBOSE_SYSTEM_SUPPORT_WARNING
-#warning "Copy file normally instead of cloning"
+  METALL_WARN("Cloning is only supported on linux, falling back to copying");
+  return mtlldetail::copy_file(source_path, destination_path);
 #endif
-  logger::out(logger::level::warning, __FILE__, __LINE__,
-              "Use normal copy instead of clone");
-  ret = copy_file(source_path, destination_path);  // Copy normally
-  if (!ret) {
-    std::string s("Failed to copy " + source_path + " to " + destination_path);
-    METALL_ERROR(s.c_str());
-  }
-#endif
-
-  if (ret) {
-    ret &= metall::mtlldetail::fsync(destination_path);
-  }
-
-  return ret;
 }
 
 /// \brief Clone files in a directory.
