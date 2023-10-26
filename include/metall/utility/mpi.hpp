@@ -12,7 +12,7 @@
 
 #include <mpi.h>
 
-#include <metall/logger.h>
+#include <metall/logger.hpp>
 #include <metall/detail/file.hpp>
 #include <metall/detail/mmap.hpp>
 

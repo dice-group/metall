@@ -1,4 +1,4 @@
-#include "metall/logger.hpp"
+#include <metall/logger_interface.h>
 
 #include <iostream>
 
@@ -22,6 +22,6 @@ static char const *log_level_to_string(metall_log_level lvl) noexcept {
   }
 }
 
-extern "C" void metall_log([[maybe_unused]] metall_log_level lvl, char const *function, char const *message) {
+extern "C" void metall_log(metall_log_level lvl, char const *function, char const *message) {
   std::cerr << log_level_to_string(lvl) << " (" << function << "): " << message << std::endl;
 }
