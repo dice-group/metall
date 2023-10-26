@@ -21,6 +21,10 @@ namespace metall::mtlldetail {
 namespace file_clone_detail {
 #ifdef __linux__
 
+/**
+ * Clone file using
+ * https://man7.org/linux/man-pages/man2/ioctl_ficlone.2.html
+ */
 inline bool clone_file_linux(int src, int dst) {
 #ifdef FICLONE
   return ::ioctl(dst, FICLONE, src) != -1;
