@@ -5,18 +5,20 @@
 extern "C" {
 #endif
 
-/// \brief Log message level
+/**
+ * Level of log messages
+ */
 typedef enum metall_log_level {
-  /// \brief Error logger message
-  METALL_LL_ERROR = 4,
-  /// \brief Warning logger message
-  METALL_LL_WARN = 3,
-  /// \brief Info logger message
+  /// Errors
+  METALL_LL_ERROR = 0,
+  /// Warnings
+  METALL_LL_WARN = 1,
+  /// Informational
   METALL_LL_INFO = 2,
-  /// \brief Debug logger message
-  METALL_LL_DEBUG = 1,
-  /// \brief Verbose (lowest priority) logger message
-  METALL_LL_TRACE = 0,
+  /// Verbose logging
+  METALL_LL_DEBUG = 3,
+  /// Very Verbose logging
+  METALL_LL_TRACE = 4,
 } metall_log_level;
 
 /// \brief Log a message

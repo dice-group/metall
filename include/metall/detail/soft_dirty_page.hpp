@@ -6,10 +6,11 @@
 #ifndef METALL_DETAIL_UTILITY_SOFT_DIRTY_PAGE_HPP
 #define METALL_DETAIL_UTILITY_SOFT_DIRTY_PAGE_HPP
 
+#include <cstdint>
 #include <iostream>
 #include <fstream>
 #include <metall/detail/memory.hpp>
-#include <metall/logger.h>
+#include <metall/logger.hpp>
 
 namespace metall::mtlldetail {
 

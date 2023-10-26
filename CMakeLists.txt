@@ -31,11 +31,17 @@ target_include_directories(${PROJECT_NAME}
         INTERFACE $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
+# ---------- Logger ---------- #
+add_library(${PROJECT_NAME}_DefaultLogger src/default_logger.cpp)
+add_library(${PROJECT_NAME}::DefaultLogger ALIAS ${PROJECT_NAME}_DefaultLogger)
+target_link_libraries(${PROJECT_NAME}_DefaultLogger PUBLIC ${PROJECT_NAME}::${PROJECT_NAME})
+set_target_properties(${PROJECT_NAME}_DefaultLogger PROPERTIES CXX_STANDARD 20)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_DefaultLogger
         EXPORT ${PROJECT_NAME}_Targets
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -231,16 +237,18 @@ endfunction()
 function(common_setup_for_metall_executable name)
     target_include_directories(${name} PRIVATE ${Boost_INCLUDE_DIRS})
 
-    target_link_libraries(${name} PRIVATE Threads::Threads)
+    target_link_libraries(${name} PRIVATE Threads::Threads ${PROJECT_NAME}::DefaultLogger)
 
     # ----- Compile Options ----- #
     add_common_compile_options(${name})
+
+    # -------------------- #
 
     # ----- Compile Definitions ----- #
     foreach(X ${COMPILER_DEFS})
          target_compile_definitions(${name} PRIVATE ${X})
     endforeach()
-    # --------------------
+    # -------------------- #
 
     # ----- Umap----- #
     if (UMAP_ROOT)
