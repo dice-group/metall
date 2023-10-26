@@ -255,15 +255,13 @@ class segment_allocator {
     if (!m_non_full_chunk_bin.serialize(
             priv_make_file_name(base_path, k_non_full_chunk_bin_file_name)
                 .c_str())) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Failed to serialize bin directory");
+      METALL_ERROR("Failed to serialize bin directory");
       return false;
     }
     if (!m_chunk_directory.serialize(
             priv_make_file_name(base_path, k_chunk_directory_file_name)
                 .c_str())) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Failed to serialize chunk directory");
+      METALL_ERROR("Failed to serialize chunk directory");
       return false;
     }
     return true;
@@ -276,15 +274,13 @@ class segment_allocator {
     if (!m_non_full_chunk_bin.deserialize(
             priv_make_file_name(base_path, k_non_full_chunk_bin_file_name)
                 .c_str())) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Failed to deserialize bin directory");
+      METALL_ERROR("Failed to deserialize bin directory");
       return false;
     }
     if (!m_chunk_directory.deserialize(
             priv_make_file_name(base_path, k_chunk_directory_file_name)
                 .c_str())) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Failed to deserialize chunk directory");
+      METALL_ERROR("Failed to deserialize chunk directory");
       return false;
     }
     return true;
@@ -510,10 +506,7 @@ class segment_allocator {
     }
 
     if (!m_segment_storage->extend(required_segment_size)) {
-      std::stringstream ss;
-      ss << "Failed to extend the segment to " << required_segment_size
-         << " bytes";
-      logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+      METALL_ERROR("Failed to extend the segment to {} bytes", required_segment_size);
       return false;
     }
 

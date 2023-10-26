@@ -198,9 +198,7 @@ class bin_directory {
   bool serialize(const char *path) const {
     std::ofstream ofs(path);
     if (!ofs.is_open()) {
-      std::stringstream ss;
-      ss << "Cannot open: " << path;
-      logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+      METALL_ERROR("Cannot open: {}", path);
       return false;
     }
 
@@ -209,10 +207,7 @@ class bin_directory {
         ofs << static_cast<uint64_t>(i) << " " << static_cast<uint64_t>(value)
             << "\n";
         if (!ofs) {
-          std::stringstream ss;
-          ss << "Something happened in the ofstream: " << path;
-          logger::out(logger::level::error, __FILE__, __LINE__,
-                      ss.str().c_str());
+          METALL_ERROR("Something happened in the ofstream: {}", path);
           return false;
         }
       }
@@ -227,9 +222,7 @@ class bin_directory {
   bool deserialize(const char *path) {
     std::ifstream ifs(path);
     if (!ifs.is_open()) {
-      std::stringstream ss;
-      ss << "Cannot open: " << path;
-      logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+      METALL_ERROR("Cannot open: {}", path);
       return false;
     }
 
@@ -240,9 +233,7 @@ class bin_directory {
       const auto value = static_cast<value_type>(buf2);
 
       if (m_table.size() <= bin_no) {
-        std::stringstream ss;
-        ss << "Too large bin number is found: " << bin_no;
-        logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+        METALL_ERROR("Too large bin number was found: {}", bin_no);
         return false;
       }
 #ifdef METALL_USE_SORTED_BIN
@@ -253,9 +244,7 @@ class bin_directory {
     }
 
     if (!ifs.eof()) {
-      std::stringstream ss;
-      ss << "Something happened in the ifstream: " << path;
-      logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+      METALL_ERROR("Something happened in the ifstream: {}", path);
       return false;
     }
 

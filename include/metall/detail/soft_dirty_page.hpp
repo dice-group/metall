@@ -6,6 +6,7 @@
 #ifndef METALL_DETAIL_UTILITY_SOFT_DIRTY_PAGE_HPP
 #define METALL_DETAIL_UTILITY_SOFT_DIRTY_PAGE_HPP
 
+#include <cstdint>
 #include <iostream>
 #include <fstream>
 #include <metall/detail/memory.hpp>
@@ -16,8 +17,7 @@ namespace metall::mtlldetail {
 inline bool reset_soft_dirty_bit() {
   std::ofstream ofs("/proc/self/clear_refs");
   if (!ofs.is_open()) {
-    logger::out(logger::level::error, __FILE__, __LINE__,
-                "Cannot open file clear_refs");
+    METALL_ERROR("Cannot open file clear_refs");
     return false;
   }
 
@@ -25,8 +25,7 @@ inline bool reset_soft_dirty_bit() {
   ofs.close();
 
   if (!ofs) {
-    logger::out(logger::level::error, __FILE__, __LINE__,
-                "Cannot write to /proc/self/clear_refs");
+    METALL_ERROR("Cannot write to /proc/self/clear_refs");
     return false;
   }
 

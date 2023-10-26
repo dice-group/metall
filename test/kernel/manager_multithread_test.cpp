@@ -102,7 +102,6 @@ void run_alloc_dealloc_separated_test(const list_type &allocation_size_list) {
   manager_type manager(metall::create_only, dir.c_str());
 
   // Main loop
-  std::pair<void *, void *> previous_allocation_rage(nullptr, nullptr);
   for (int k = 0; k < 2; ++k) {
     std::vector<std::pair<void *, std::size_t>> addr_and_size_array(
         allocation_size_list.size(), {nullptr, 0});

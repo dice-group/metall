@@ -56,6 +56,16 @@ export METALL_INCLUDE=$PWD/metall/include
 g++ -std=c++17 your_program.cpp -lstdc++fs -I${BOOST_ROOT} -I${METALL_INCLUDE}
 ```
 
+### Defining a sink for the logger
+To Use Metall your application must define a logger sink for Metall.
+The interface you need to implement is defined in `include/logger_interface.h`.
+For an example how to define such a sink see `src/default_logger.cpp`.
+
+If you don't you will get the following linker error:
+```
+Error: Undefined reference to `metall_log`
+```
+
 ### Unofficial Support For Clang
 Clang can be used instead of GCC to build Metall.
 However, we haven't tested it intensively.

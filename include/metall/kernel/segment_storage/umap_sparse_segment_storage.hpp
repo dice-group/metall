@@ -112,12 +112,10 @@ class umap_sparse_segment_storage {
     // TODO: implement parallel copy version
 
     if (clone) {
-      std::string s("Clone: " + source_path);
-      logger::out(logger::level::info, __FILE__, __LINE__, s.c_str());
+      METALL_TRACE("Clone: {}", source_path);
       return mdtl::clone_file(source_path, destination_path);
     } else {
-      std::string s("Copy: " + source_path);
-      logger::out(logger::level::info, __FILE__, __LINE__, s.c_str());
+      METALL_TRACE("Copy: {}", source_path);
       return mdtl::copy_file(source_path, destination_path);
     }
     assert(false);
