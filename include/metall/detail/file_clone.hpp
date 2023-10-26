@@ -38,7 +38,7 @@ inline bool clone_file_linux(const std::filesystem::path &source_path,
     return false;
   }
 
-  auto close_fsync_all = [&]() {
+  auto close_fsync_all = [&]() noexcept {
     os_fsync(dst);
     os_close(src);
     os_close(dst);

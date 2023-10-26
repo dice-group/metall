@@ -33,6 +33,10 @@
 
 namespace metall::mtlldetail {
 
+/**
+ * Calls ::close, logs a warning on error
+ * @return true if ::close() succeeded, false otherwise
+ */
 inline bool os_close(const int fd) {
   if (::close(fd) == -1) {
     METALL_ERRNO_WARN("close");
@@ -41,6 +45,10 @@ inline bool os_close(const int fd) {
   return true;
 }
 
+/**
+ * Calls ::fsync, logs a warning on error
+ * @return true if ::fsync() succeeded, false otherwise
+ */
 inline bool os_fsync(const int fd) {
   if (::fsync(fd) != 0) {
     METALL_ERRNO_WARN("fsync");
@@ -304,6 +312,12 @@ inline bool prepare_file_copy_linux(const std::filesystem::path &source_path,
   return true;
 }
 
+/**
+ * Performs a sparse copy from src to dst, i.e. only copies actual data while skipping
+ * over potential holes in src.
+ *
+ * Note: dst will be synced
+ */
 inline bool copy_file_sparse_linux(int src, int dst) {
   off64_t off = 0;
   while ((off = ::lseek64(src, off, SEEK_DATA)) != -1) {
