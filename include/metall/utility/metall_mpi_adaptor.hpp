@@ -173,7 +173,7 @@ class metall_mpi_adaptor {
         ss << "Source directory is not consistnt (may not have closed properly "
               "or may still be open): "
            << source_dir_path;
-        logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+        METALL_ERROR(ss.str().c_str());
       }
       return false;
     }
@@ -232,7 +232,7 @@ class metall_mpi_adaptor {
       if (rank == 0) {
         std::string s("This is not a Metall datastore: " +
                       ds::make_root_dir_path(root_dir_prefix));
-        logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+        METALL_ERROR("{}", s);
       }
       return false;
     }
@@ -250,7 +250,7 @@ class metall_mpi_adaptor {
                 ds::make_root_dir_path(root_dir_prefix))) {
           std::string s("Failed to remove directory: " +
                         ds::make_root_dir_path(root_dir_prefix));
-          logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+          METALL_ERROR(s.c_str());
           ret = false;
         }
       }
@@ -320,7 +320,7 @@ class metall_mpi_adaptor {
         std::string s(
             "Root directory (or a file with the same name) already exists: " +
             root_dir_path);
-        logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+        METALL_ERROR(s.c_str());
         ::MPI_Abort(comm, -1);
       }
     }
@@ -330,7 +330,7 @@ class metall_mpi_adaptor {
       if (i == rank && !metall::mtlldetail::directory_exist(root_dir_path)) {
         if (!metall::mtlldetail::create_directory(root_dir_path)) {
           std::string s("Failed to create directory: " + root_dir_path);
-          logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+          METALL_ERROR(s.c_str());
           ::MPI_Abort(comm, -1);
         }
 
@@ -338,7 +338,7 @@ class metall_mpi_adaptor {
             root_dir_path + "/" + k_datastore_mark_file_name;
         if (!metall::mtlldetail::create_file(mark_file)) {
           std::string s("Failed to create file: " + mark_file);
-          logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+          METALL_ERROR(s.c_str());
           ::MPI_Abort(comm, -1);
         }
 
@@ -357,13 +357,13 @@ class metall_mpi_adaptor {
     std::ofstream ofs(path);
     if (!ofs) {
       std::string s("Failed to create a file: " + path);
-      logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+      METALL_ERROR(s.c_str());
       ::MPI_Abort(comm, -1);
     }
     ofs << size;
     if (!ofs) {
       std::string s("Failed to write data to a file: " + path);
-      logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+      METALL_ERROR(s.c_str());
       ::MPI_Abort(comm, -1);
     }
     ofs.close();
@@ -376,13 +376,13 @@ class metall_mpi_adaptor {
     std::ifstream ifs(path);
     if (!ifs) {
       std::string s("Failed to open a file: " + path);
-      logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+      METALL_ERROR(s.c_str());
       ::MPI_Abort(comm, -1);
     }
     int read_size = -1;
     if (!(ifs >> read_size)) {
       std::string s("Failed to read data from: " + path);
-      logger::out(logger::level::error, __FILE__, __LINE__, s.c_str());
+      METALL_ERROR(s.c_str());
       ::MPI_Abort(comm, -1);
     }
 
@@ -402,7 +402,7 @@ class metall_mpi_adaptor {
         std::stringstream ss;
         ss << "Invalid number of MPI processes (provided " << size << ", "
            << "expected " << read_size << ")";
-        logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+        METALL_ERROR("{}", ss.str());
       }
     }
     return priv_global_and(correct_mpi_size, comm);
@@ -449,8 +449,7 @@ class metall_mpi_adaptor {
   static int priv_determine_local_root_rank(const MPI_Comm &comm) {
     const int rank = mpi::determine_local_root(comm);
     if (rank == -1) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Failed at determining a local root rank");
+      METALL_ERROR("Failed at determining a local root rank");
       ::MPI_Abort(comm, -1);
     }
     return rank;

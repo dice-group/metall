@@ -191,8 +191,7 @@ class attributed_object_directory {
         assert(ret.second);
       }
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Exception was thrown when inserting entry");
+      METALL_ERROR("Exception was thrown when inserting entry");
       return false;
     }
 
@@ -348,8 +347,7 @@ class attributed_object_directory {
         m_name_index_table->erase(position->name());
       m_entry_table->erase(position);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Exception was thrown when erasing an entry");
+      METALL_ERROR("Exception was thrown when erasing an entry");
       return 0;
     }
 
@@ -374,8 +372,7 @@ class attributed_object_directory {
       m_entry_table->erase(itr);
       if (!name.empty()) m_name_index_table->erase(name);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Exception was thrown when erasing an entry");
+      METALL_ERROR("Exception was thrown when erasing an entry");
       return 0;
     }
 
@@ -400,8 +397,7 @@ class attributed_object_directory {
       if (!itr->name().empty()) m_name_index_table->erase(itr->name());
       m_entry_table->erase(itr);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Exception was thrown when erasing an entry");
+      METALL_ERROR("Exception was thrown when erasing an entry");
       return 0;
     }
 
@@ -420,8 +416,7 @@ class attributed_object_directory {
       m_name_index_table->clear();
       m_entry_table->clear();
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Exception was thrown when clearing entries");
+      METALL_ERROR("Exception was thrown when clearing entries");
       return false;
     }
     return true;
@@ -481,8 +476,7 @@ class attributed_object_directory {
       m_offset_index_table = std::make_unique<offset_index_table_type>();
       m_name_index_table = std::make_unique<name_index_table_type>();
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Failed to allocate core data");
+      METALL_ERROR("Failed to allocate core data");
       m_entry_table.reset(nullptr);
       m_offset_index_table.reset(nullptr);
       m_name_index_table.reset(nullptr);
@@ -497,8 +491,7 @@ class attributed_object_directory {
       *m_offset_index_table = *(other.m_offset_index_table);
       *m_name_index_table = *(other.m_name_index_table);
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Failed to copy members");
+      METALL_ERROR("Failed to copy members");
       m_entry_table.reset(nullptr);
       m_offset_index_table.reset(nullptr);
       m_name_index_table.reset(nullptr);
@@ -579,14 +572,12 @@ class attributed_object_directory {
       }
 
       if (count(name) > 0) {
-        logger::out(logger::level::error, __FILE__, __LINE__,
-                    "Failed to reconstruct object table");
+        METALL_ERROR("Failed to reconstruct object table");
         return false;
       }
 
       if (!insert(name, offset, length, type_id, description)) {
-        logger::out(logger::level::error, __FILE__, __LINE__,
-                    "Failed to reconstruct object table");
+        METALL_ERROR("Failed to reconstruct object table");
         return false;
       }
     }

@@ -29,8 +29,7 @@ int main(int argc, char *argv[]) {
   const int fd =
       ::open(file_name.c_str(), O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
   if (fd == -1) {
-    metall::logger::perror(metall::logger::level::critical, __FILE__, __LINE__,
-                           "open");
+    METALL_ERRNO_ERROR("open");
     std::abort();
   }
 
@@ -45,14 +44,12 @@ int main(int argc, char *argv[]) {
   } else {
     std::cerr << "Requested write size " << size << std::endl;
     std::cerr << "Actually written size " << written_size << std::endl;
-    metall::logger::perror(metall::logger::level::critical, __FILE__, __LINE__,
-                           "write");
+    METALL_ERRNO_ERROR("write");
     std::abort();
   }
 
   if (::close(fd) == -1) {
-    metall::logger::perror(metall::logger::level::critical, __FILE__, __LINE__,
-                           "close");
+    METALL_ERRNO_ERROR("close");
     std::abort();
   }
 

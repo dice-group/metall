@@ -62,7 +62,7 @@ namespace fs = std::filesystem;
 
 inline bool os_close(const int fd) {
   if (::close(fd) == -1) {
-    logger::perror(logger::level::error, __FILE__, __LINE__, "close");
+    METALL_ERRNO_ERROR("close");
     return false;
   }
   return true;
@@ -70,7 +70,7 @@ inline bool os_close(const int fd) {
 
 inline bool os_fsync(const int fd) {
   if (::fsync(fd) != 0) {
-    logger::perror(logger::level::error, __FILE__, __LINE__, "fsync");
+    METALL_ERRNO_ERROR("fsync");
     return false;
   }
   return true;
@@ -79,7 +79,7 @@ inline bool os_fsync(const int fd) {
 inline bool fsync(const std::string &path) {
   const int fd = ::open(path.c_str(), O_RDONLY);
   if (fd == -1) {
-    logger::perror(logger::level::error, __FILE__, __LINE__, "open");
+    METALL_ERRNO_ERROR("open");
     return false;
   }
 
@@ -146,13 +146,12 @@ inline bool extend_file_size(const int fd, const size_t file_size,
   if (fill_with_zero) {
 #ifdef __APPLE__
     if (!extend_file_size_manually(fd, 0, file_size)) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Failed to extend file size manually, filling zero");
+      METALL_ERROR("Failed to extend file size manually, filling zero");
       return false;
     }
 #else
     if (::posix_fallocate(fd, 0, file_size) == -1) {
-      logger::perror(logger::level::error, __FILE__, __LINE__, "fallocate");
+      METALL_ERRNO_ERROR("fallocate");
       return false;
     }
 #endif
@@ -161,12 +160,12 @@ inline bool extend_file_size(const int fd, const size_t file_size,
     // ----- //
     struct stat stat_buf;
     if (::fstat(fd, &stat_buf) == -1) {
-      logger::perror(logger::level::error, __FILE__, __LINE__, "fstat");
+      METALL_ERRNO_ERROR("fstat");
       return false;
     }
     if (::llabs(stat_buf.st_size) < static_cast<ssize_t>(file_size)) {
       if (::ftruncate(fd, file_size) == -1) {
-        logger::perror(logger::level::error, __FILE__, __LINE__, "ftruncate");
+        METALL_ERRNO_ERROR("ftruncate");
         return false;
       }
     }
@@ -181,7 +180,7 @@ inline bool extend_file_size(const std::string &file_path,
                              const bool fill_with_zero = false) {
   const int fd = ::open(file_path.c_str(), O_RDWR);
   if (fd == -1) {
-    logger::perror(logger::level::error, __FILE__, __LINE__, "open");
+    METALL_ERRNO_ERROR("open");
     return false;
   }
 
@@ -220,7 +219,7 @@ inline bool create_file(const std::string &file_path) {
   const int fd =
       ::open(file_path.c_str(), O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
   if (fd == -1) {
-    logger::perror(logger::level::error, __FILE__, __LINE__, "open");
+    METALL_ERRNO_ERROR("open");
     return false;
   }
 
@@ -258,12 +257,11 @@ inline bool create_directory(const std::string &dir_path) {
         return true;
       }
 
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  ec.message().c_str());
+      METALL_ERROR("{}", ec.message());
       success = false;
     }
   } catch (fs::filesystem_error &e) {
-    logger::out(logger::level::error, __FILE__, __LINE__, e.what());
+    METALL_ERROR("{}", e.what());
     success = false;
   }
 
@@ -284,9 +282,7 @@ inline ssize_t get_file_size(const std::string &file_path) {
   std::ifstream ifs(file_path, std::ifstream::binary | std::ifstream::ate);
   ssize_t size = ifs.tellg();
   if (size == -1) {
-    std::stringstream ss;
-    ss << "Failed to get file size: " << file_path;
-    logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+    METALL_ERROR("Failed to get file size: {}", file_path);
   }
 
   return size;
@@ -298,8 +294,7 @@ inline ssize_t get_file_size(const std::string &file_path) {
 inline ssize_t get_actual_file_size(const std::string &file_path) {
   struct stat stat_buf;
   if (::stat(file_path.c_str(), &stat_buf) != 0) {
-    std::string s("stat (" + file_path + ")");
-    logger::perror(logger::level::error, __FILE__, __LINE__, s.c_str());
+    METALL_ERRNO_ERROR("stat ({})", file_path);
     return -1;
   }
   return stat_buf.st_blocks * 512LL;
@@ -328,7 +323,7 @@ inline bool free_file_space([[maybe_unused]] const int fd,
 #if defined(FALLOC_FL_PUNCH_HOLE) && defined(FALLOC_FL_KEEP_SIZE)
   if (::fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, off, len) ==
       -1) {
-    logger::perror(logger::level::warning, __FILE__, __LINE__, "fallocate");
+    METALL_ERRNO_WARN("fallocate");
     return false;
   }
   return true;
@@ -351,14 +346,11 @@ inline bool copy_file_dense(const std::string &source_path,
   try {
     if (!fs::copy_file(source_path, destination_path,
                        fs::copy_options::overwrite_existing)) {
-      std::stringstream ss;
-      ss << "Failed copying file: " << source_path << " -> "
-         << destination_path;
-      logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+      METALL_ERROR("Failed copying file {} -> {}", source_path, destination_path);
       success = false;
     }
   } catch (fs::filesystem_error &e) {
-    logger::out(logger::level::error, __FILE__, __LINE__, e.what());
+    METALL_ERROR("{}", e.what());
     success = false;
   }
 
@@ -392,7 +384,7 @@ inline bool copy_file_dense(const std::string &source_path,
     if (!source.is_open()) {
       std::stringstream ss;
       ss << "Cannot open: " << source_path;
-      logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+      METALL_ERROR(ss.str().c_str());
       return false;
     }
 
@@ -400,7 +392,7 @@ inline bool copy_file_dense(const std::string &source_path,
     if (!destination.is_open()) {
       std::stringstream ss;
       ss << "Cannot open: " << destination_path;
-      logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+      METALL_ERROR(ss.str().c_str());
       return false;
     }
 
@@ -408,7 +400,7 @@ inline bool copy_file_dense(const std::string &source_path,
     if (!destination) {
       std::stringstream ss;
       ss << "Something happened in the ofstream: " << destination_path;
-      logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+      METALL_ERROR(ss.str().c_str());
       return false;
     }
 
@@ -426,7 +418,7 @@ inline bool copy_file_dense(const std::string &source_path,
     if (s1 < 0 || s1 != s2) {
       std::stringstream ss;
       ss << "Something wrong in file sizes: " << s1 << " " << s2;
-      logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+      METALL_ERROR(ss.str().c_str());
       return false;
     }
   }
@@ -443,9 +435,7 @@ inline bool copy_file_sparse_linux(const std::string &source_path,
   const int status = std::system(command.c_str());
   const bool success = (status != -1) && !!(WIFEXITED(status));
   if (!success) {
-    std::stringstream ss;
-    ss << "Failed copying file: " << source_path << " -> " << destination_path;
-    logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+    METALL_ERROR("Failed copying file {} -> {}", source_path, destination_path);
     return false;
   }
   return success;
@@ -467,8 +457,7 @@ inline bool copy_file(const std::string &source_path,
     return file_copy_detail::copy_file_sparse_linux(source_path,
                                                     destination_path);
 #else
-    logger::out(logger::level::info, __FILE__, __LINE__,
-                "Sparse file copy is not available");
+    METALL_DEBUG("Sparse file copy is not available");
 #endif
   }
   return file_copy_detail::copy_file_dense(source_path, destination_path);
@@ -498,8 +487,7 @@ inline bool get_regular_file_names(const std::string &dir_path,
       }
     }
   } catch (...) {
-    logger::out(logger::level::error, __FILE__, __LINE__,
-                "Exception was thrown");
+    METALL_ERROR("Exception was thrown");
     return false;
   }
 
@@ -538,8 +526,7 @@ inline bool copy_files_in_directory_in_parallel_helper(
         &copy_func) {
   std::vector<std::string> src_file_names;
   if (!get_regular_file_names(source_dir_path, &src_file_names)) {
-    logger::out(logger::level::error, __FILE__, __LINE__,
-                "Failed to get file list");
+    METALL_ERROR("Failed to get file list");
     return false;
   }
 

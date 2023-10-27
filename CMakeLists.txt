@@ -31,11 +31,17 @@ target_include_directories(${PROJECT_NAME}
         INTERFACE $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-set(CMAKE_CXX_STANDARD 17)
+# ---------- Logger ---------- #
+add_library(${PROJECT_NAME}_DefaultLogger src/default_logger.cpp)
+add_library(${PROJECT_NAME}::DefaultLogger ALIAS ${PROJECT_NAME}_DefaultLogger)
+target_link_libraries(${PROJECT_NAME}_DefaultLogger PUBLIC ${PROJECT_NAME}::${PROJECT_NAME})
+set_target_properties(${PROJECT_NAME}_DefaultLogger PROPERTIES CXX_STANDARD 20)
+
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_DefaultLogger
         EXPORT ${PROJECT_NAME}_Targets
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -231,36 +237,17 @@ endfunction()
 function(common_setup_for_metall_executable name)
     target_include_directories(${name} PRIVATE ${Boost_INCLUDE_DIRS})
 
-    target_link_libraries(${name} PRIVATE Threads::Threads)
+    target_link_libraries(${name} PRIVATE Threads::Threads ${PROJECT_NAME}::DefaultLogger)
 
     # ----- Compile Options ----- #
     add_common_compile_options(${name})
-
-    # Memo:
-    # On macOS and FreeBSD libc++ is the default standard library and the -stdlib=libc++ is not required.
-    # https://libcxx.llvm.org/docs/UsingLibcxx.html
-    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND
-            NOT (CMAKE_CXX_COMPILER_ID MATCHES "Darwin" OR CMAKE_CXX_COMPILER_ID MATCHES "FreeBSD"))
-        target_compile_options(${name} PRIVATE -stdlib=libc++)
-    endif ()
-    # --------------------
+    # -------------------- #
 
     # ----- Compile Definitions ----- #
     foreach(X ${COMPILER_DEFS})
          target_compile_definitions(${name} PRIVATE ${X})
     endforeach()
-    # --------------------
-
-    # ----- CXX17 Filesystem Lib----- #
-    # include_cxx_filesystem_library module must be executed first
-    if (FOUND_CXX17_FILESYSTEM_LIB)
-        if (REQUIRE_LIB_STDCXX_FS)
-            target_link_libraries(${name} PRIVATE stdc++fs)
-        endif()
-    elseif()
-        target_compile_definitions(${name} PRIVATE "METALL_DISABLE_CXX17_FILESYSTEM_LIB")
-    endif()
-    # --------------------
+    # -------------------- #
 
     # ----- Umap----- #
     if (UMAP_ROOT)

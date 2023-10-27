@@ -57,8 +57,7 @@ class general_named_object_attr_accessor {
         m_core_data.reset(nullptr);
       }
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Filed to initialize the core data");
+      METALL_ERROR("Filed to initialize the core data");
       m_core_data.reset(nullptr);
     }
   }
@@ -145,8 +144,7 @@ class general_named_object_attr_accessor {
     if (!m_core_data->object_directory.set_description(position, description) ||
         !m_core_data->object_directory.serialize(
             m_core_data->object_attribute_file_path.c_str())) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Filed to set description");
+      METALL_ERROR("Filed to set description");
       return false;
     }
 
@@ -180,8 +178,7 @@ class general_named_object_attr_accessor {
     try {
       m_core_data = other.m_core_data;
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Filed to copy the core data");
+      METALL_ERROR("Filed to copy the core data");
       m_core_data.reset(nullptr);
       return false;
     }
@@ -352,8 +349,7 @@ class anonymous_object_attr_accessor {
         m_core_data.reset(nullptr);
       }
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Filed to initialize the core data");
+      METALL_ERROR("Filed to initialize the core data");
       m_core_data.reset(nullptr);
     }
   }
@@ -419,8 +415,7 @@ class anonymous_object_attr_accessor {
     if (!m_core_data->object_directory.set_description(position, description) ||
         !m_core_data->object_directory.serialize(
             m_core_data->object_attribute_file_path.c_str())) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Filed to set description");
+      METALL_ERROR("Filed to set description");
       return false;
     }
 
@@ -443,8 +438,7 @@ class anonymous_object_attr_accessor {
     try {
       m_core_data = other.m_core_data;
     } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Filed to copy the core data");
+      METALL_ERROR("Filed to copy the core data");
       m_core_data.reset(nullptr);
       return false;
     }
