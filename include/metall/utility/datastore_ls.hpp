@@ -62,10 +62,10 @@ inline void aligned_show(const std::vector<std::vector<std::string>> &buf) {
 }  // namespace datastore_ls_detail
 #endif  // DOXYGEN_SKIP
 
-inline void ls_named_object(const std::string &datastore_path) {
+inline void ls_named_object(const std::filesystem::path &datastore_path) {
   std::cout << "[Named Object]" << std::endl;
   auto accessor =
-      metall::manager::access_named_object_attribute(datastore_path.c_str());
+      metall::manager::access_named_object_attribute(datastore_path);
   if (!accessor.good()) {
     std::cerr << "Failed to open datastore" << std::endl;
     std::abort();
@@ -86,10 +86,10 @@ inline void ls_named_object(const std::string &datastore_path) {
   datastore_ls_detail::aligned_show(buf);
 }
 
-inline void ls_unique_object(const std::string &datastore_path) {
+inline void ls_unique_object(const std::filesystem::path &datastore_path) {
   std::cout << "[Unique Object]" << std::endl;
   auto accessor =
-      metall::manager::access_unique_object_attribute(datastore_path.c_str());
+      metall::manager::access_unique_object_attribute(datastore_path);
   if (!accessor.good()) {
     std::cerr << "Failed to open datastore" << std::endl;
     std::abort();
@@ -110,7 +110,7 @@ inline void ls_unique_object(const std::string &datastore_path) {
   datastore_ls_detail::aligned_show(buf);
 }
 
-inline void ls_anonymous_object(const std::string &datastore_path) {
+inline void ls_anonymous_object(const std::filesystem::path &datastore_path) {
   std::cout << "[Anonymous Object]" << std::endl;
   auto accessor = metall::manager::access_anonymous_object_attribute(
       datastore_path.c_str());

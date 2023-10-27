@@ -133,13 +133,13 @@ class metall_mpi_adaptor {
 
   /// \brief Returns the root path of a Metall datastore
   /// \return A root path of a Metall datastore.
-  std::string root_dir_path() const {
+  std::filesystem::path root_dir_path() const {
     return ds::make_root_dir_path(m_root_dir_prefix);
   }
 
   /// \brief Returns the path of the sub-Metall datastore of the process.
   /// \return A path of a sub-Metall datastore.
-  std::string local_dir_path() const {
+  std::filesystem::path local_dir_path() const {
     return ds::make_local_dir_path(ds::make_root_dir_path(m_root_dir_prefix),
                                    priv_mpi_comm_rank(m_mpi_comm));
   }

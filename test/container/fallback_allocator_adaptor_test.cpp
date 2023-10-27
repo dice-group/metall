@@ -199,7 +199,7 @@ TEST(FallbackAllocatorAdaptorTest, PersistentConstructFind) {
       boost::interprocess::vector<element_type, fb_alloc_type<element_type>>;
 
   {
-    metall::manager manager(metall::create_only, dir_path().c_str(),
+    metall::manager manager(metall::create_only, dir_path(),
                             1UL << 27UL);
 
     int *a = manager.construct<int>("int")(10);
@@ -212,7 +212,7 @@ TEST(FallbackAllocatorAdaptorTest, PersistentConstructFind) {
   }
 
   {
-    metall::manager manager(metall::open_only, dir_path().c_str());
+    metall::manager manager(metall::open_only, dir_path());
 
     const auto ret1 = manager.find<int>("int");
     ASSERT_NE(ret1.first, nullptr);
@@ -229,7 +229,7 @@ TEST(FallbackAllocatorAdaptorTest, PersistentConstructFind) {
   }
 
   {
-    metall::manager manager(metall::open_only, dir_path().c_str());
+    metall::manager manager(metall::open_only, dir_path());
     ASSERT_TRUE(manager.destroy<int>("int"));
     ASSERT_FALSE(manager.destroy<int>("int"));
 
@@ -244,7 +244,7 @@ TEST(FallbackAllocatorAdaptorTest, PersistentConstructOrFind) {
       boost::interprocess::vector<element_type, fb_alloc_type<element_type>>;
 
   {
-    metall::manager manager(metall::create_only, dir_path().c_str(),
+    metall::manager manager(metall::create_only, dir_path(),
                             1UL << 27UL);
     int *a = manager.find_or_construct<int>("int")(10);
     ASSERT_EQ(*a, 10);
@@ -256,7 +256,7 @@ TEST(FallbackAllocatorAdaptorTest, PersistentConstructOrFind) {
   }
 
   {
-    metall::manager manager(metall::open_only, dir_path().c_str());
+    metall::manager manager(metall::open_only, dir_path());
 
     int *a = manager.find_or_construct<int>("int")(20);
     ASSERT_EQ(*a, 10);
@@ -268,7 +268,7 @@ TEST(FallbackAllocatorAdaptorTest, PersistentConstructOrFind) {
   }
 
   {
-    metall::manager manager(metall::open_only, dir_path().c_str());
+    metall::manager manager(metall::open_only, dir_path());
     ASSERT_TRUE(manager.destroy<int>("int"));
     ASSERT_FALSE(manager.destroy<int>("int"));
 
@@ -291,7 +291,7 @@ TEST(FallbackAllocatorAdaptorTest, PersistentNestedContainer) {
                            map_alloc_type>;
 
   {
-    metall::manager manager(metall::create_only, dir_path().c_str(),
+    metall::manager manager(metall::create_only, dir_path(),
                             1UL << 27UL);
     map_type *map =
         manager.construct<map_type>("map")(manager.get_allocator<>());
@@ -300,7 +300,7 @@ TEST(FallbackAllocatorAdaptorTest, PersistentNestedContainer) {
   }
 
   {
-    metall::manager manager(metall::open_only, dir_path().c_str());
+    metall::manager manager(metall::open_only, dir_path());
     map_type *map;
     std::size_t n;
     std::tie(map, n) = manager.find<map_type>("map");
@@ -311,7 +311,7 @@ TEST(FallbackAllocatorAdaptorTest, PersistentNestedContainer) {
   }
 
   {
-    metall::manager manager(metall::open_read_only, dir_path().c_str());
+    metall::manager manager(metall::open_read_only, dir_path());
     map_type *map;
     std::size_t n;
     std::tie(map, n) = manager.find<map_type>("map");

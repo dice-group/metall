@@ -12,13 +12,13 @@ namespace {
 using segment_storage_type =
     metall::kernel::mmap_segment_storage<std::ptrdiff_t, std::size_t>;
 
-const std::string &test_dir() {
-  const static std::string path(test_utility::make_test_path());
+const std::filesystem::path &test_dir() {
+  const static auto path = test_utility::make_test_path();
   return path;
 }
 
-const std::string &test_file_prefix() {
-  const static std::string path(test_dir() + "/backing_file");
+const std::filesystem::path &test_file_prefix() {
+  const static auto path = test_dir() / "backing_file";
   return path;
 }
 
@@ -141,7 +141,7 @@ TEST(MultifileSegmentStorageTest, Openable) {
   ASSERT_TRUE(metall::mtlldetail::munmap(addr, vm_size, true));
 
   ASSERT_TRUE(segment_storage_type::openable(test_file_prefix()));
-  ASSERT_FALSE(segment_storage_type::openable(test_file_prefix() + "_dummy"));
+  ASSERT_FALSE(segment_storage_type::openable(test_file_prefix() / "dummy"));
 }
 
 TEST(MultifileSegmentStorageTest, Open) {

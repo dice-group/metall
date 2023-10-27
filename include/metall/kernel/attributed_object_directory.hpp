@@ -424,7 +424,7 @@ class attributed_object_directory {
 
   /// \brief
   /// \param path
-  bool serialize(const char *const path) const noexcept {
+  bool serialize(const std::filesystem::path &path) const noexcept {
     try {
       return priv_serialize_throw(path);
     } catch (...) {
@@ -435,7 +435,7 @@ class attributed_object_directory {
 
   /// \brief
   /// \param path
-  bool deserialize(const char *const path) noexcept {
+  bool deserialize(const std::filesystem::path &path) noexcept {
     try {
       return priv_deserialize_throw(path);
     } catch (...) {
@@ -500,7 +500,7 @@ class attributed_object_directory {
     return true;
   }
 
-  bool priv_serialize_throw(const char *const path) const {
+  bool priv_serialize_throw(const std::filesystem::path &path) const {
     if (!good()) {
       return false;
     }
@@ -539,7 +539,7 @@ class attributed_object_directory {
     return true;
   }
 
-  bool priv_deserialize_throw(const char *const path) {
+  bool priv_deserialize_throw(const std::filesystem::path &path) {
     if (!good()) {
       return false;
     }

@@ -15,8 +15,8 @@
 template <typename T>
 using alloc_type = metall::manager::allocator_type<T>;
 
-const std::string &dir_path() {
-  const static std::string path(test_utility::make_test_path());
+const std::filesystem::path &dir_path() {
+  const static std::filesystem::path path(test_utility::make_test_path());
   return path;
 }
 
@@ -100,7 +100,7 @@ TEST(StlAllocatorTest, Types) {
     };
     using alloc_t = alloc_type<T>;
 
-    metall::manager manager(metall::create_only, dir_path().c_str(),
+    metall::manager manager(metall::create_only, dir_path(),
                             1UL << 24UL);
     alloc_t alloc = manager.get_allocator<T>();
 
@@ -130,7 +130,7 @@ TEST(StlAllocatorTest, Types) {
 }
 
 TEST(StlAllocatorTest, Exception) {
-  metall::manager manager(metall::create_only, dir_path().c_str(), 1UL << 24UL);
+  metall::manager manager(metall::create_only, dir_path(), 1UL << 24UL);
 
   alloc_type<int> allocator = manager.get_allocator<int>();
 
@@ -144,7 +144,7 @@ TEST(StlAllocatorTest, Exception) {
 
 TEST(StlAllocatorTest, Container) {
   {
-    metall::manager manager(metall::create_only, dir_path().c_str(),
+    metall::manager manager(metall::create_only, dir_path(),
                             1UL << 27UL);
     using element_type = std::pair<uint64_t, uint64_t>;
 
@@ -172,7 +172,7 @@ TEST(StlAllocatorTest, NestedContainer) {
           alloc_type<std::pair<const element_type, vector_type>>>>;
 
   {
-    metall::manager manager(metall::create_only, dir_path().c_str(),
+    metall::manager manager(metall::create_only, dir_path(),
                             1UL << 27UL);
 
     map_type map(manager.get_allocator<>());
@@ -192,7 +192,7 @@ TEST(StlAllocatorTest, PersistentConstructFind) {
       boost::interprocess::vector<element_type, alloc_type<element_type>>;
 
   {
-    metall::manager manager(metall::create_only, dir_path().c_str(),
+    metall::manager manager(metall::create_only, dir_path(),
                             1UL << 27UL);
 
     int *a = manager.construct<int>("int")(10);
@@ -205,7 +205,7 @@ TEST(StlAllocatorTest, PersistentConstructFind) {
   }
 
   {
-    metall::manager manager(metall::open_only, dir_path().c_str());
+    metall::manager manager(metall::open_only, dir_path());
 
     const auto ret1 = manager.find<int>("int");
     ASSERT_NE(ret1.first, nullptr);
@@ -222,7 +222,7 @@ TEST(StlAllocatorTest, PersistentConstructFind) {
   }
 
   {
-    metall::manager manager(metall::open_only, dir_path().c_str());
+    metall::manager manager(metall::open_only, dir_path());
     ASSERT_TRUE(manager.destroy<int>("int"));
     ASSERT_FALSE(manager.destroy<int>("int"));
 
@@ -237,7 +237,7 @@ TEST(StlAllocatorTest, PersistentConstructOrFind) {
       boost::interprocess::vector<element_type, alloc_type<element_type>>;
 
   {
-    metall::manager manager(metall::create_only, dir_path().c_str(),
+    metall::manager manager(metall::create_only, dir_path(),
                             1UL << 27UL);
     int *a = manager.find_or_construct<int>("int")(10);
     ASSERT_EQ(*a, 10);
@@ -249,7 +249,7 @@ TEST(StlAllocatorTest, PersistentConstructOrFind) {
   }
 
   {
-    metall::manager manager(metall::open_only, dir_path().c_str());
+    metall::manager manager(metall::open_only, dir_path());
 
     int *a = manager.find_or_construct<int>("int")(20);
     ASSERT_EQ(*a, 10);
@@ -261,7 +261,7 @@ TEST(StlAllocatorTest, PersistentConstructOrFind) {
   }
 
   {
-    metall::manager manager(metall::open_only, dir_path().c_str());
+    metall::manager manager(metall::open_only, dir_path());
     ASSERT_TRUE(manager.destroy<int>("int"));
     ASSERT_FALSE(manager.destroy<int>("int"));
 
@@ -283,7 +283,7 @@ TEST(StlAllocatorTest, PersistentNestedContainer) {
           alloc_type<std::pair<const element_type, vector_type>>>>;
 
   {
-    metall::manager manager(metall::create_only, dir_path().c_str(),
+    metall::manager manager(metall::create_only, dir_path(),
                             1UL << 27UL);
     map_type *map =
         manager.construct<map_type>("map")(manager.get_allocator<>());
@@ -292,7 +292,7 @@ TEST(StlAllocatorTest, PersistentNestedContainer) {
   }
 
   {
-    metall::manager manager(metall::open_only, dir_path().c_str());
+    metall::manager manager(metall::open_only, dir_path());
     map_type *map;
     std::size_t n;
     std::tie(map, n) = manager.find<map_type>("map");
@@ -303,7 +303,7 @@ TEST(StlAllocatorTest, PersistentNestedContainer) {
   }
 
   {
-    metall::manager manager(metall::open_read_only, dir_path().c_str());
+    metall::manager manager(metall::open_read_only, dir_path());
     map_type *map;
     std::size_t n;
     std::tie(map, n) = manager.find<map_type>("map");
