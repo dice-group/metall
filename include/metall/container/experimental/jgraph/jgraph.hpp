@@ -468,7 +468,10 @@ class vertex_iterator_impl {
       std::conditional_t<is_const_value, const raw_value_type, raw_value_type>;
   using pointer = typename std::pointer_traits<typename std::iterator_traits<
       storage_iterator_type>::pointer>::template rebind<value_type>;
+  using const_pointer = typename std::pointer_traits<typename std::iterator_traits<
+      storage_iterator_type>::pointer>::template rebind<const value_type>;
   using reference = value_type &;
+  using const_reference = const value_type &;
   using difference_type =
       typename std::iterator_traits<storage_iterator_type>::difference_type;
 
@@ -498,11 +501,11 @@ class vertex_iterator_impl {
 
   pointer operator->() { return const_cast<pointer>(&(m_current_pos->second)); }
 
-  const pointer operator->() const { return &(m_current_pos->second); }
+  const_pointer operator->() const { return &(m_current_pos->second); }
 
   reference operator*() { return m_current_pos->second; }
 
-  const reference operator*() const { return m_current_pos->second; }
+  const_reference operator*() const { return m_current_pos->second; }
 
  private:
   storage_iterator_type m_current_pos;
@@ -537,7 +540,11 @@ class edge_iterator_impl {
   using pointer = typename std::pointer_traits<
       typename std::pointer_traits<storage_pointer_type>::element_type::
           iterator::pointer>::template rebind<value_type>;
+  using const_pointer = typename std::pointer_traits<
+      typename std::pointer_traits<storage_pointer_type>::element_type::
+          iterator::pointer>::template rebind<const value_type>;
   using reference = value_type &;
+  using const_reference = const value_type &;
   using difference_type = typename std::iterator_traits<
       adj_list_edge_list_iterator_type>::difference_type;
 
@@ -573,7 +580,7 @@ class edge_iterator_impl {
     return &(m_storage_pointer->at(edge_id));
   }
 
-  const pointer operator->() const {
+  const_pointer operator->() const {
     const auto &edge_id = m_current_pos->second;
     return &(m_storage_pointer->at(edge_id));
   }
@@ -583,7 +590,7 @@ class edge_iterator_impl {
     return (m_storage_pointer->at(edge_id));
   }
 
-  const reference operator*() const {
+  const_reference operator*() const {
     const auto &edge_id = m_current_pos->second;
     return (m_storage_pointer->at(edge_id));
   }

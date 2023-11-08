@@ -3,60 +3,58 @@
 
 #include <cstring>
 #include <format>
+#include <source_location>
 #include <type_traits>
 
 #include <metall/logger_interface.h>
 
-namespace metall {
-  namespace logger {
-    /**
-     * Level of log messages
-     */
-    enum struct level : std::underlying_type_t<metall_log_level> {
-      error = METALL_LL_ERROR,
-      warn  = METALL_LL_WARN,
-      info  = METALL_LL_INFO,
-      debug = METALL_LL_DEBUG,
-      trace = METALL_LL_TRACE,
-    };
+namespace metall::logger {
+  /**
+   * Level of log messages
+   */
+  enum struct level : std::underlying_type_t<metall_log_level> {
+    error = METALL_LL_ERROR,
+    warn  = METALL_LL_WARN,
+    info  = METALL_LL_INFO,
+    debug = METALL_LL_DEBUG,
+    trace = METALL_LL_TRACE,
+  };
 
-    /**
-     * Logs a message
-     *
-     * @param lvl log level
-     * @param function function the message originated from
-     * @param fmt format specifier for the message
-     * @param args arguments for fmt
-     */
-    template<typename ...Args>
-    void log(level lvl, char const *function, std::format_string<Args...> fmt, Args &&...args) {
-      auto const msg = std::format(fmt, std::forward<Args>(args)...);
-      metall_log(static_cast<metall_log_level>(lvl), function, msg.c_str());
-    }
+  /**
+   * Logs a message
+   *
+   * @param lvl log level
+   * @param function function the message originated from
+   * @param fmt format specifier for the message
+   * @param args arguments for fmt
+   */
+  template<typename ...Args>
+  void log(level lvl, std::source_location sloc, std::format_string<Args...> fmt, Args &&...args) {
+    auto const msg = std::format(fmt, std::forward<Args>(args)...);
+    metall_log(static_cast<metall_log_level>(lvl), sloc.file_name(), sloc.line(), sloc.function_name(), msg.c_str());
+  }
 
-    /**
-     * Logs a message about the current value of errno, similar to perror
-     *
-     * @param lvl log level
-     * @param function function the message origininated from
-     * @param fmt format specifier for the message
-     * @param args arguments for fmt
-     */
-    template<typename ...Args>
-    void errno_log(level lvl, char const *function, std::format_string<Args...> fmt, Args &&...args) {
-      auto msg = std::format(fmt, std::forward<Args>(args)...);
-      msg += std::format(": {}", strerror(errno));
-      metall_log(static_cast<metall_log_level>(lvl), function, msg.c_str());
-    }
-
-  } // namespace logger
-} // namespace logger
+  /**
+   * Logs a message about the current value of errno, similar to perror
+   *
+   * @param lvl log level
+   * @param function function the message origininated from
+   * @param fmt format specifier for the message
+   * @param args arguments for fmt
+   */
+  template<typename ...Args>
+  void errno_log(level lvl, std::source_location sloc, std::format_string<Args...> fmt, Args &&...args) {
+    auto msg = std::format(fmt, std::forward<Args>(args)...);
+    msg += std::format(": {}", strerror(errno));
+    metall_log(static_cast<metall_log_level>(lvl), sloc.file_name(), sloc.line(), sloc.function_name(), msg.c_str());
+  }
+} // namespace metall::logger
 
 /**
  * Convenience macro for calling metall::logger::log.
  * Automatically populates the function argument with the name of the current function, and forwards the rest (i.e. lvl, fmt, args...)
  */
-#define METALL_LOG(lvl, fmt, ...) ::metall::logger::log((lvl), __PRETTY_FUNCTION__, (fmt) __VA_OPT__(,) __VA_ARGS__)
+#define METALL_LOG(lvl, fmt, ...) ::metall::logger::log((lvl), ::std::source_location::current(), (fmt) __VA_OPT__(,) __VA_ARGS__)
 
 /**
  * Convenience macro for METALL_LOG that sets lvl to error
@@ -88,7 +86,7 @@ namespace metall {
  * Convenience macro for calling metall::logger::errno_log.
  * Automatically populates the function argument with the name of the current function, and forwards the rest (i.e. lvl, fmt, args...)
  */
-#define METALL_ERRNO_LOG(lvl, fmt, ...) ::metall::logger::errno_log((lvl), __PRETTY_FUNCTION__, (fmt) __VA_OPT__(,) __VA_ARGS__)
+#define METALL_ERRNO_LOG(lvl, fmt, ...) ::metall::logger::errno_log((lvl), ::std::source_location::current(), (fmt) __VA_OPT__(,) __VA_ARGS__)
 
 /**
  * Convenience macro for METALL_ERRNO_LOG that sets lvl to error

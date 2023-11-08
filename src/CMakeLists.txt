@@ -1,3 +1,15 @@
+# ---------- Logger ---------- #
+add_library(metall_default_logger default_logger.cpp)
+add_library(${PROJECT_NAME}::default_logger ALIAS metall_default_logger)
+target_link_libraries(metall_default_logger PUBLIC ${PROJECT_NAME}::${PROJECT_NAME})
+set_target_properties(metall_default_logger PROPERTIES CXX_STANDARD 20)
+
+install(TARGETS ${PROJECT_NAME} metall_default_logger
+        EXPORT ${PROJECT_NAME}_Targets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
 if (BUILD_UTILITY)
     add_metall_executable(datastore_ls datastore_ls.cpp)
     install(TARGETS datastore_ls RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

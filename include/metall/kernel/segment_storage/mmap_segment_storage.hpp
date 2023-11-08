@@ -499,7 +499,7 @@ class mmap_segment_storage {
     const auto fd = ::open(path.c_str(), O_RDWR);
     if (fd == -1) {
       METALL_ERRNO_ERROR("open");
-      METALL_ERROR("Failed to open a file {}", path);
+      METALL_ERROR("Failed to open a file {}", path.c_str());
       // Destroy the map by overwriting PROT_NONE map since the VM region is
       // managed by another class.
       mdtl::map_with_prot_none(static_cast<char *>(m_segment) + segment_offset,

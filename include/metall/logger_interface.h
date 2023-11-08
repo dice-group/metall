@@ -1,6 +1,8 @@
 #ifndef METALL_LOGGER_INTERFACE_H
 #define METALL_LOGGER_INTERFACE_H
 
+#include <stddef.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -22,7 +24,7 @@ typedef enum metall_log_level {
 } metall_log_level;
 
 /// \brief Log a message
-void metall_log(metall_log_level lvl, char const *function, char const *message);
+void metall_log(metall_log_level lvl, char const *file, size_t line, char const *function, char const *message);
 
 #ifdef __cplusplus
 } // extern "C"

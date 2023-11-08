@@ -6,7 +6,10 @@
 #include <metall/metall.hpp>
 
 // define logger ops
-extern "C" void metall_log([[maybe_unused]] metall_log_level lvl, char const *function, char const *message) {
+extern "C" void metall_log([[maybe_unused]] metall_log_level lvl,
+                           [[maybe_unused]] char const *file,
+                           [[maybe_unused]] size_t line,
+                           char const *function, char const *message) {
   std::cerr << "(" << function << "): " << message << std::endl;
 }
 
