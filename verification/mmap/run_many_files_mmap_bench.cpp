@@ -12,12 +12,12 @@
 #include <thread>
 #include <vector>
 
-#include <metall/detail/time.hpp>
-#include <metall/detail/utilities.hpp>
-#include <metall/detail/mmap.hpp>
-#include <metall/detail/file.hpp>
+#include <dice/metall/detail/time.hpp>
+#include <dice/metall/detail/utilities.hpp>
+#include <dice/metall/detail/mmap.hpp>
+#include <dice/metall/detail/file.hpp>
 
-namespace mdtl = metall::mtlldetail;
+namespace mdtl = dice::metall::mtlldetail;
 
 static constexpr int k_map_nosync =
 #ifdef MAP_NOSYNC
@@ -30,12 +30,12 @@ static constexpr int k_map_nosync =
 template <typename random_iterator_type>
 void init_array(random_iterator_type first, random_iterator_type last) {
   const std::size_t length = std::abs(std::distance(first, last));
-  const auto num_threads = (int)std::min(
-      (std::size_t)length, (std::size_t)std::thread::hardware_concurrency());
+  const auto num_threads = std::min<size_t>(
+      length, std::thread::hardware_concurrency());
   std::vector<std::thread *> threads(num_threads, nullptr);
 
   const auto start = mdtl::elapsed_time_sec();
-  for (int t = 0; t < num_threads; ++t) {
+  for (size_t t = 0; t < num_threads; ++t) {
     const auto range = mdtl::partial_range(length, t, num_threads);
     threads[t] = new std::thread(
         [](random_iterator_type partial_first,
@@ -57,12 +57,12 @@ void init_array(random_iterator_type first, random_iterator_type last) {
 template <typename random_iterator_type>
 void run_sort(random_iterator_type first, random_iterator_type last) {
   const std::size_t length = std::abs(std::distance(first, last));
-  const auto num_threads = (int)std::min(
-      (std::size_t)length, (std::size_t)std::thread::hardware_concurrency());
+  const auto num_threads = std::min<size_t>(
+      length, std::thread::hardware_concurrency());
   std::vector<std::thread *> threads(num_threads, nullptr);
 
   const auto start = mdtl::elapsed_time_sec();
-  for (int t = 0; t < num_threads; ++t) {
+  for (size_t t = 0; t < num_threads; ++t) {
     const auto range = mdtl::partial_range(length, t, num_threads);
     threads[t] = new std::thread(
         [](random_iterator_type partial_first,
@@ -90,11 +90,11 @@ void sync_region(void *const address, const std::size_t size) {
 template <typename random_iterator_type>
 void validate_array(random_iterator_type first, random_iterator_type last) {
   const std::size_t length = std::abs(std::distance(first, last));
-  const auto num_threads = (int)std::min(
-      (std::size_t)length, (std::size_t)std::thread::hardware_concurrency());
+  const auto num_threads = std::min<size_t>(
+      length, std::thread::hardware_concurrency());
 
   const auto start = mdtl::elapsed_time_sec();
-  for (int t = 0; t < num_threads; ++t) {
+  for (size_t t = 0; t < num_threads; ++t) {
     const auto range = mdtl::partial_range(length, t, num_threads);
 
     if (range.second - range.first == 1) continue;

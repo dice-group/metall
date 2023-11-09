@@ -7,7 +7,7 @@
 #include <string>
 #include <cstddef>
 
-#include <metall/metall.hpp>
+#include <dice/metall/metall.hpp>
 #include "../data_structure/multithread_adjacency_list.hpp"
 #include "../data_structure/partitioned_multithread_adjacency_list.hpp"
 #include "bench_driver.hpp"
@@ -19,7 +19,7 @@ using vertex_id_type = uint64_t;
 
 using local_adjacency_list_type = multithread_adjacency_list<
     vertex_id_type, vertex_id_type,
-    typename metall::manager::allocator_type<std::byte>>;
+    typename dice::metall::manager::allocator_type<std::byte>>;
 using adjacency_list_type =
     partitioned_multithread_adjacency_list<local_adjacency_list_type>;
 
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
     std::vector<metall::manager *> managers;
     for (const auto &file_name : option.graph_file_name_list) {
       managers.emplace_back(
-          new metall::manager(metall::open_read_only, file_name.c_str()));
+          new dice::metall::manager(dice::metall::open_read_only, file_name.c_str()));
     }
 
     auto adj_list = adjacency_list_type(option.graph_key_name, managers.begin(),

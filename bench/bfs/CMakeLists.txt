@@ -1,4 +1,4 @@
-include(setup_omp)
+include(${CMAKE_SOURCE_DIR}/cmake/setup_omp)
 
 add_metall_executable(run_bfs_bench_metall run_bfs_bench_metall.cpp)
 setup_omp_target(run_bfs_bench_metall)

@@ -6,12 +6,12 @@
 // This program allocates an simple (int) object and reattaches it using Metall.
 
 #include <iostream>
-#include <metall/metall.hpp>
+#include <dice/metall/metall.hpp>
 
 int main() {
   // Creating data into persistent memory
   {
-    metall::manager manager(metall::create_only, "/tmp/dir");
+    dice::metall::manager manager(dice::metall::create_only, "/tmp/dir");
 
     int *n = manager.construct<int>  // Allocates an 'int' object
              ("name")  // Stores the allocated memory address with key "name"
@@ -25,7 +25,7 @@ int main() {
 
   // Reattaching the data
   {
-    metall::manager manager(metall::open_only, "/tmp/dir");
+    dice::metall::manager manager(dice::metall::open_only, "/tmp/dir");
 
     int *n = manager.find<int>("name").first;
     std::cout << *n << std::endl;

@@ -13,16 +13,16 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <metall/metall.hpp>
-#include <metall/utility/random.hpp>
-#include <metall/detail/time.hpp>
-#include <metall/detail/mmap.hpp>
+#include <dice/metall/metall.hpp>
+#include <dice/metall/utility/random.hpp>
+#include <dice/metall/detail/time.hpp>
+#include <dice/metall/detail/mmap.hpp>
 
-using rand_engine = metall::utility::rand_512;
+using rand_engine = dice::metall::utility::rand_512;
 static constexpr std::size_t k_page_size = 4096;
 
 namespace {
-namespace mdtl = metall::mtlldetail;
+namespace mdtl = dice::metall::mtlldetail;
 }
 
 auto random_write_by_page(const std::size_t size, unsigned char *const map) {
@@ -170,12 +170,12 @@ void run_bench_one_time(
 
   // Use Metall
   {
-    metall::manager manager(metall::create_only, dir_path.data());
+    dice::metall::manager manager(dice::metall::create_only, dir_path.data());
     auto *map = static_cast<unsigned char *>(manager.allocate(length));
     bench_core("Metall", map);
     manager.deallocate(map);
   }
-  metall::manager::remove(dir_path.data());
+  dice::metall::manager::remove(dir_path.data());
 }
 
 void run_bench(std::string_view dir_path, const std::size_t num_repeats,

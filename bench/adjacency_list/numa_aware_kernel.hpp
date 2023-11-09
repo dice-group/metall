@@ -6,15 +6,15 @@
 #ifndef METALL_BENCH_ADJACENCY_LIST_NUMA_AWARE_KERNEL_HPP
 #define METALL_BENCH_ADJACENCY_LIST_NUMA_AWARE_KERNEL_HPP
 
-#include <metall/detail/utilities.hpp>
-#include <metall/detail/time.hpp>
+#include <dice/metall/detail/utilities.hpp>
+#include <dice/metall/detail/time.hpp>
 #include "../utility/numa.hpp"
 #include "kernel.hpp"
 
 namespace adjacency_list_bench {
 
 namespace {
-namespace mdtl = metall::mtlldetail;
+namespace mdtl = dice::metall::mtlldetail;
 }
 
 inline void configure_numa() {

@@ -4,12 +4,12 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 #include <iostream>
-#include <metall/metall.hpp>
-#include <metall/kernel/object_size_manager.hpp>
+#include <dice/metall/metall.hpp>
+#include <dice/metall/kernel/object_size_manager.hpp>
 
 static constexpr std::size_t k_max_segment_size = 1ULL << 48ULL;
 using object_size_manager =
-    metall::kernel::object_size_manager<metall::manager::chunk_size(),
+    dice::metall::kernel::object_size_manager<dice::metall::manager::chunk_size(),
                                         k_max_segment_size>;
 
 int main() {

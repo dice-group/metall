@@ -7,9 +7,9 @@
 #include <thread>
 #include <chrono>
 
-#include <metall/detail/file.hpp>
-#include <metall/detail/mmap.hpp>
-#include <metall/detail/memory.hpp>
+#include <dice/metall/detail/file.hpp>
+#include <dice/metall/detail/mmap.hpp>
+#include <dice/metall/detail/memory.hpp>
 
 #ifdef __linux__
 #include <linux/falloc.h>  // For FALLOC_FL_PUNCH_HOLE and FALLOC_FL_KEEP_SIZE

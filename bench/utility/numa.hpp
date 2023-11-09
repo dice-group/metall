@@ -12,7 +12,7 @@
 #warning "Does not use NUMA"
 #endif
 
-#include <metall/detail/utilities.hpp>
+#include <dice/metall/detail/utilities.hpp>
 
 namespace bench_utility::numa {
 
@@ -57,7 +57,7 @@ int set_node([[maybe_unused]] const int thread_id) noexcept {
 int get_local_num_threads([[maybe_unused]] const int thread_id,
                           const int num_threads) noexcept {
 #ifdef METALL_USE_NUMA_LIB
-  const auto range = metall::mtlldetail::partial_range(
+  const auto range = dice::metall::mtlldetail::partial_range(
       num_threads, get_node(thread_id), get_avail_nodes());
   return range.second - range.first;
 #else
