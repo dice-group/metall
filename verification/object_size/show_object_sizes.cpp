@@ -22,7 +22,7 @@ int main() {
       std::cout << i << "\t" << size << "\tN/A" << std::endl;
     else
       std::cout << i << "\t" << size << "\t"
-                << (double)(size - pre_size - 1) / (pre_size + 1) << std::endl;
+                << static_cast<double>(size - pre_size - 1) / static_cast<double>(pre_size + 1) << std::endl;
     pre_size = size;
   }
 

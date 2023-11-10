@@ -19,6 +19,9 @@ static char const *log_level_to_string(metall_log_level lvl) noexcept {
     case METALL_LL_TRACE: {
       return "TRACE";
     }
+    default: {
+      return "UNKNOWN";
+    }
   }
 }
 

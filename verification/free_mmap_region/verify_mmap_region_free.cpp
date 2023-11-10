@@ -51,9 +51,9 @@ void free_file_backed_mmap(
   std::tie(fd, addr) = map_file(file_name, file_size);
   close_file(fd);
   std::cout << "DRAM usage (GB)\t"
-            << (double)mdtl::get_used_ram_size() / (1ULL << 30ULL) << std::endl;
+            << static_cast<double>(mdtl::get_used_ram_size()) / (1ULL << 30ULL) << std::endl;
   std::cout << "DRAM cache usage (GB)\t"
-            << (double)mdtl::get_page_cache_size() / (1ULL << 30ULL)
+            << static_cast<double>(mdtl::get_page_cache_size()) / (1ULL << 30ULL)
             << std::endl;
 
   // Commit pages
@@ -64,9 +64,9 @@ void free_file_backed_mmap(
     map[i] = 1;
   }
   std::cout << "DRAM usage (GB)\t"
-            << (double)mdtl::get_used_ram_size() / (1ULL << 30ULL) << std::endl;
+            << static_cast<double>(mdtl::get_used_ram_size()) / (1ULL << 30ULL) << std::endl;
   std::cout << "DRAM cache usage (GB)\t"
-            << (double)mdtl::get_page_cache_size() / (1ULL << 30ULL)
+            << static_cast<double>(mdtl::get_page_cache_size()) / (1ULL << 30ULL)
             << std::endl;
 
   std::cout << "\n----- Uncommit pages -----" << std::endl;
@@ -76,9 +76,9 @@ void free_file_backed_mmap(
   std::cout << "The current file size\t"
             << mdtl::get_actual_file_size(file_name) << std::endl;
   std::cout << "DRAM usage (GB)\t"
-            << (double)mdtl::get_used_ram_size() / (1ULL << 30ULL) << std::endl;
+            << static_cast<double>(mdtl::get_used_ram_size()) / (1ULL << 30ULL) << std::endl;
   std::cout << "DRAM cache usage (GB)\t"
-            << (double)mdtl::get_page_cache_size() / (1ULL << 30ULL)
+            << static_cast<double>(mdtl::get_page_cache_size()) / (1ULL << 30ULL)
             << std::endl;
 
   std::cout << "\n----- munmap -----" << std::endl;
@@ -87,9 +87,9 @@ void free_file_backed_mmap(
   std::cout << "The current file size\t"
             << mdtl::get_actual_file_size(file_name) << std::endl;
   std::cout << "DRAM usage (GB)\t"
-            << (double)mdtl::get_used_ram_size() / (1ULL << 30ULL) << std::endl;
+            << static_cast<double>(mdtl::get_used_ram_size()) / (1ULL << 30ULL) << std::endl;
   std::cout << "DRAM cache usage (GB)\t"
-            << (double)mdtl::get_page_cache_size() / (1ULL << 30ULL)
+            << static_cast<double>(mdtl::get_page_cache_size()) / (1ULL << 30ULL)
             << std::endl;
 }
 

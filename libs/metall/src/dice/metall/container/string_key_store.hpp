@@ -329,8 +329,8 @@ class string_key_store {
 #ifdef METALL_CONTAINER_STRING_KEY_STORE_USE_SIMPLE_HASH
     internal_id_type hash = key.empty() ? 0 : (uint8_t)key[0] % 2;
 #else
-    auto hash = (internal_id_type)metall::mtlldetail::murmur_hash_64a(
-        key.data(), (int)key.length(), seed);
+    auto hash = static_cast<internal_id_type>(metall::mtlldetail::murmur_hash_64a(
+        key.data(), static_cast<int>(key.length()), seed));
 #endif
     if (hash == k_max_internal_id) {
       hash = priv_increment_internal_id(hash);

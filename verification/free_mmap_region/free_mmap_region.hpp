@@ -25,7 +25,6 @@ static constexpr int k_map_nosync =
     MAP_NOSYNC;
 #else
     0;
-#warning "MAP_NOSYNC is not defined"
 #endif
 
 std::size_t get_page_size() {
@@ -34,7 +33,7 @@ std::size_t get_page_size() {
     std::cerr << __LINE__ << " Failed to get the page size" << std::endl;
     std::abort();
   }
-  return (std::size_t)page_size;
+  return static_cast<size_t>(page_size);
 }
 
 std::pair<int, void *> map_file_share(const std::string &file_path,

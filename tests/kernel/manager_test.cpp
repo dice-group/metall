@@ -242,9 +242,9 @@ TEST(ManagerTest, ConstructObjectsWithIterator) {
       ASSERT_EQ(ret.second, 2);
       data *d = ret.first;
       ASSERT_EQ(d[0].a, 10);
-      ASSERT_EQ(d[0].b, (float)0.1);
+      ASSERT_EQ(d[0].b, 0.1f);
       ASSERT_EQ(d[1].a, 20);
-      ASSERT_EQ(d[1].b, (float)0.2);
+      ASSERT_EQ(d[1].b, 0.2f);
     }
 
     {
@@ -417,7 +417,7 @@ TEST(ManagerTest, GetInstanceName) {
                  typeid(int).name());
     ASSERT_STREQ(manager.get_instance_name(
                      manager.construct<int>(dice::metall::anonymous_instance)()),
-                 (const char *)0);
+                 nullptr);
 
     manager.construct<dice::metall::offset_ptr<int>>("ptr<int>")(
         manager.construct<int>(dice::metall::anonymous_instance)());
@@ -435,7 +435,7 @@ TEST(ManagerTest, GetInstanceName) {
     dice::metall::offset_ptr<int> *ptr =
         manager.find<dice::metall::offset_ptr<int>>("ptr<int>").first;
     int *anonymous_obj = ptr->get();
-    ASSERT_STREQ(manager.get_instance_name(anonymous_obj), (const char *)0);
+    ASSERT_STREQ(manager.get_instance_name(anonymous_obj), nullptr);
   }
 }
 

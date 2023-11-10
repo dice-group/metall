@@ -128,7 +128,7 @@ void RandomSetAndResetHelper2(const std::size_t num_bits) {
         reference[position] = false;
       }
     } else {
-      const auto n = std::min((size_t)dist(rnd_gen), num_bits - cnt_trues);
+      const auto n = std::min<size_t>(dist(rnd_gen), num_bits - cnt_trues);
       dice::metall::kernel::multilayer_bitset::bit_position_type buf[n];
       bitset.find_and_set_many(num_bits, n, buf);
       cnt_trues += n;

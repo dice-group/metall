@@ -208,8 +208,8 @@ void write_data_with_multiple_threads(const std::string &file_name,
       static_cast<uint64_t *>(map_file_write_mode(file_name, file_size));
   const std::size_t length = file_size / sizeof(uint64_t);
 
-  const auto num_threads = (int)std::min(
-      (std::size_t)length, (std::size_t)std::thread::hardware_concurrency());
+  const auto num_threads = std::min<size_t>(
+      length, std::thread::hardware_concurrency());
   std::cout << "#of threads: " << num_threads << std::endl;
 
   std::cout << "Generate index" << std::endl;
@@ -264,7 +264,7 @@ void write_data_with_multiple_threads(const std::string &file_name,
 }
 
 // a.out file_name file_size
-int main(int argc, char *argv[]) {
+int main([[maybe_unused]] int argc, char *argv[]) {
   const std::string file_name(argv[1]);
   const std::size_t file_size = std::stoll(argv[2]);
 
