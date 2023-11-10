@@ -79,7 +79,7 @@ void *map_file_read_mode(const std::string &file_name, const std::size_t size) {
     std::cerr << "errno: " << errno << std::endl;
     std::abort();
   }
-  std::cout << "Mapped to address " << (uint64_t)mapped_addr << std::endl;
+  std::cout << "Mapped to address " << reinterpret_cast<uintptr_t>(mapped_addr) << std::endl;
 
   std::cout << __FUNCTION__ << " done" << std::endl;
 
@@ -120,7 +120,7 @@ void *map_file_write_mode(const std::string &file_name,
     std::cerr << "errno: " << errno << std::endl;
     std::abort();
   }
-  std::cout << "Mapped to address " << (uint64_t)mapped_addr << std::endl;
+  std::cout << "Mapped to address " << reinterpret_cast<uintptr_t>(mapped_addr) << std::endl;
 
   std::cout << __FUNCTION__ << " done" << std::endl;
 
@@ -128,7 +128,7 @@ void *map_file_write_mode(const std::string &file_name,
 }
 
 void unmap(void *const addr, const std::size_t size) {
-  std::cout << "Unmap file: address " << (uint64_t)addr << ", size " << size
+  std::cout << "Unmap file: address " << reinterpret_cast<uintptr_t>(addr) << ", size " << size
             << std::endl;
   if (::munmap(addr, size) != 0) {
     ::perror("munmap");
@@ -217,7 +217,7 @@ void write_data_with_multiple_threads(const std::string &file_name,
   {
     std::vector<std::thread *> threads(num_threads, nullptr);
     const std::size_t num_indices = (length + num_threads - 1) / num_threads;
-    for (int t = 0; t < num_threads; ++t) {
+    for (size_t t = 0; t < num_threads; ++t) {
       threads[t] = new std::thread(
           [&length, &num_indices, &index_list](const int thread_no) {
             index_list[thread_no] = gen_random_index(length - 1, num_indices);
@@ -242,7 +242,7 @@ void write_data_with_multiple_threads(const std::string &file_name,
     std::vector<std::thread *> threads(num_threads, nullptr);
 
     const auto start = elapsed_time_sec();
-    for (int t = 0; t < num_threads; ++t) {
+    for (size_t t = 0; t < num_threads; ++t) {
       threads[t] = new std::thread(
           [&index_list, &mutex_list, buf](const int thread_no) {
             for (const auto idx : index_list[thread_no]) {

@@ -75,7 +75,7 @@ inline std::string schedule_kind_name(
   } else if (kind == omp_sched_auto) {
     name = "omp_sched_auto";
   } else {
-    name = "Unknown kind (" + std::to_string((uint64_t)kind) + ")";
+    name = "Unknown kind (" + std::to_string(static_cast<uint64_t>(kind)) + ")";
   }
 #endif
 #else

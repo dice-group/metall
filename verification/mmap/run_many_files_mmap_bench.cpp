@@ -24,7 +24,6 @@ static constexpr int k_map_nosync =
     MAP_NOSYNC;
 #else
     0;
-#warning "MAP_NOSYNC is not defined"
 #endif
 
 template <typename random_iterator_type>

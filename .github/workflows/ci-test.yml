@@ -81,7 +81,9 @@ jobs:
           CC: ${{ steps.install_cc.outputs.cc }}
           CXX: ${{ steps.install_cc.outputs.cxx }}
           CXXFLAGS: ${{ matrix.config.cxx-flags }}
-        run: cmake -B build_dir -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
+        run: >
+          cmake -B build_dir -DCMAKE_BUILD_TYPE=Debug -DBUILD_FFI=ON -DBUILD_TESTING=ON 
+          -DBUILD_VERIFICATION=ON -DBUILD_EXAMPLES=ON -DRUN_LARGE_SCALE_TESTS=ON -DBUILD_UTILITY=ON
 
       - name: Build
         working-directory: build_dir
