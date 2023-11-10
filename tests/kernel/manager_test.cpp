@@ -1336,14 +1336,13 @@ TEST(ManagerTest, Description) {
 
 TEST(ManagerTest, CheckSanity) {
   {
-    auto *manager = new manager_type(dice::metall::create_only, dir_path());
-    ASSERT_TRUE(manager->check_sanity());
+    manager_type manager(dice::metall::create_only, dir_path());
+    ASSERT_TRUE(manager.check_sanity());
   }
 
   {
-    auto *bad_manager =
-        new manager_type(dice::metall::open_only, (dir_path() + "-invalid").c_str());
-    ASSERT_FALSE(bad_manager->check_sanity());
+    manager_type bad_manager(dice::metall::open_only, (dir_path() + "-invalid").c_str());
+    ASSERT_FALSE(bad_manager.check_sanity());
   }
 }
 }  // namespace
