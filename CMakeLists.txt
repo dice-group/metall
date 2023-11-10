@@ -51,7 +51,7 @@ if (PROJECT_IS_TOP_LEVEL AND USE_CONAN)
     endif ()
 
     set(CONAN_OPTIONS "with_test_deps=${CONAN_METALL_WITH_TEST_DEPS};build_ffi=${CONAN_METALL_BUILD_FFI};with_default_logger=${CONAN_METALL_WITH_DEFAULT_LOGGER}")
-    install_packages_via_conan("${CMAKE_SOURCE_DIR}/conanfile.py" "${CONAN_OPTIONS}")
+    install_packages_via_conan("${CMAKE_SOURCE_DIR}/conanfile.py" "${CONAN_OPTIONS};boost/*:header_only=True")
 endif ()
 
 find_package(Boost REQUIRED COMPONENTS)
