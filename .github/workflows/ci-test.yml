@@ -1,44 +1,88 @@
-name: CI Test
+name: CI
 
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
-  bst1-82-0:
-    runs-on: ubuntu-latest
-    env:
-      METALL_LIMIT_MAKE_PARALLELS: 8
-    steps:
-      - uses: actions/checkout@v3
-      - name: Test
-        run: |
-          pushd /dev/shm
-          wget -q https://boostorg.jfrog.io/artifactory/main/release/1.82.0/source/boost_1_82_0.tar.gz
-          mkdir boost
-          tar xf boost_1_82_0.tar.gz -C boost --strip-components 1
-          export BOOST_ROOT=${PWD}/boost
-          popd
-          export METALL_TEST_DIR=${GITHUB_JOB}
-          export CC=gcc-12
-          export CXX=g++-12
-          cd $GITHUB_WORKSPACE
-          bash ./scripts/CI/build_and_test.sh
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - name: linux-x64-clang-15
+            os: ubuntu-22.04
+            cxx: clang++-15
+          - name: linux-x64-clang-16-sanitize
+            os: ubuntu-20.04
+            cxx: clang++-16
+            cxx-flags: "-fsanitize=address,undefined"
 
-  bst1-64-0:
-    runs-on: ubuntu-latest
-    env:
-      METALL_LIMIT_MAKE_PARALLELS: 8
+          - name: linux-x64-gcc-12
+            os: ubuntu-22.04
+            cxx: g++-12
+          - name: linux-x64-gcc-13-coverage
+            os: ubuntu-22.04
+            cxx: g++-13
+            cxx-flags: -Werror
+
+    name: ${{matrix.config.name}}
+    runs-on: ${{matrix.config.os}}
     steps:
-      - uses: actions/checkout@v3
-      - name: Test
+      # setup env
+      - name: Add repos for for gcc-13 and clang-16
         run: |
-          pushd /dev/shm
-          wget -q https://boostorg.jfrog.io/artifactory/main/release/1.64.0/source/boost_1_64_0.tar.gz
-          mkdir boost
-          tar xf boost_1_64_0.tar.gz -C boost --strip-components 1
-          export BOOST_ROOT=${PWD}/boost
-          popd
-          export METALL_TEST_DIR=${GITHUB_JOB}
-          export CC=gcc-12
-          export CXX=g++-12
-          cd $GITHUB_WORKSPACE
-          bash ./scripts/CI/build_and_test.sh
+          # gcc-13
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+          
+          # clang-16
+          source /etc/os-release
+          echo "deb http://apt.llvm.org/${UBUNTU_CODENAME}/ llvm-toolchain-${UBUNTU_CODENAME}-16 main" | sudo tee /etc/apt/sources.list.d/llvm-16.list
+          curl https://apt.llvm.org/llvm-snapshot.gpg.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/llvm-16.gpg > /dev/null
+
+      - name: Install tools
+        run: |
+          sudo apt-get install -y python3 python3-pip
+
+      - name: Get minimum cmake version
+        uses: lukka/get-cmake@v3.24.3
+        with:
+          cmakeVersion: 3.22.6
+
+      - name: Install compiler
+        id: install_cc
+        uses: rlalik/setup-cpp-compiler@v1.2
+        with:
+          compiler: ${{ matrix.config.cxx }}
+
+      - name: Install mold
+        uses: rui314/setup-mold@v1
+
+      - name: Configure conan
+        run: |
+          pip3 install "conan==1.60.1"
+          conan profile new --detect default
+          conan profile update settings.compiler.libcxx=libstdc++11 default
+
+      - name: Cache conan data
+        id: cache-conan
+        uses: actions/cache@v3
+        with:
+          path: ~/.conan/data
+          key: ${{ matrix.config.os }}-${{ matrix.config.cxx }}-conan
+
+      - name: Check out sources
+        uses: actions/checkout@v3
+
+      - name: Configure CMake
+        env:
+          CC: ${{ steps.install_cc.outputs.cc }}
+          CXX: ${{ steps.install_cc.outputs.cxx }}
+          CXXFLAGS: ${{ matrix.config.cxx-flags }}
+        run: cmake -B build_dir -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
+
+      - name: Build
+        working-directory: build_dir
+        run: cmake --build . --parallel 2
+
+      - name: Run tests
+        working-directory: build_dir
+        run: ctest --parallel 2 --verbose

@@ -17,6 +17,11 @@ target_include_directories(${lib}
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
         )
 
+set_target_properties(${lib}
+        PROPERTIES
+        CXX_STANDARD 20
+        )
+
 ## Packaging and exporting the target
 include(${CMAKE_SOURCE_DIR}/cmake/install_components.cmake)
 install_component(PUBLIC ${lib_suffix} src)
