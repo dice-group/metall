@@ -296,19 +296,19 @@ inline bool prepare_file_copy_linux(const std::filesystem::path &source_path,
     return false;
   }
 
-  *dst = ::open(destination_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC);
+  *dst = ::open(destination_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, st.st_mode);
   if (*dst == -1) {
     METALL_ERRNO_ERROR("Unable to open {}", destination_path.c_str());
     os_close(*src);
     return false;
   }
 
-  if (::fchmod(*dst, st.st_mode) == -1) {
+  /*if (::fchmod(*dst, st.st_mode) == -1) {
     METALL_ERRNO_ERROR("Unable to chmod {}", destination_path.c_str());
     os_close(*src);
     os_close(*dst);
     return false;
-  }
+  }*/
 
   return true;
 }

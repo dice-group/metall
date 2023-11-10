@@ -115,7 +115,7 @@ TEST(ConcurrentMapTest, Iterator) {
   int num_elems = 0;
   for (auto itr = map.cbegin(), end = map.cend(); itr != end; ++itr) {
     GTEST_ASSERT_EQ(ref_map.count(itr->first), 1)
-        << "Invalid key was found: " << (char)itr->first;
+        << "Invalid key was found: " << itr->first;
     GTEST_ASSERT_EQ(ref_map.at(itr->first), itr->second);
     ++num_elems;
   }
@@ -136,9 +136,9 @@ TEST(ConcurrentMapTest, Persistence) {
   dice::metall::mtlldetail::remove_file(file_path);
 
   std::vector<std::pair<char, int>> inputs(10);
-  for (int i = 0; i < (int)inputs.size(); ++i) {
-    inputs[i].first = (char)('a' + i);
-    inputs[i].second = i;
+  for (size_t i = 0; i < inputs.size(); ++i) {
+    inputs[i].first = static_cast<char>('a' + i);
+    inputs[i].second = static_cast<int>(i);
   }
 
   {
