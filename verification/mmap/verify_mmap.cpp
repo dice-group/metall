@@ -19,6 +19,7 @@
 #include <random>
 #include <vector>
 #include <mutex>
+#include <filesystem>
 #include <chrono>
 
 inline std::chrono::high_resolution_clock::time_point elapsed_time_sec() {
@@ -36,8 +37,7 @@ inline double elapsed_time_sec(
 
 void remove_file(const std::string &file_name) {
   std::cout << "Remove " << file_name << std::endl;
-  std::string rm_command("rm -rf " + file_name);
-  std::system(rm_command.c_str());
+  std::filesystem::remove_all(file_name);
   std::cout << __FUNCTION__ << " done" << std::endl;
 }
 

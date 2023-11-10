@@ -29,7 +29,8 @@ std::string run_command(const std::string &cmd) {
 
   const std::string tmp_file("/tmp/tmp_command_result");
   std::string command(cmd + " > " + tmp_file);
-  std::system(command.c_str());
+  int res = std::system(command.c_str());
+  assert(WIFEXITED(res));
 
   std::ifstream ifs(tmp_file);
   if (!ifs.is_open()) {

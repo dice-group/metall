@@ -11,15 +11,16 @@ jobs:
           - name: linux-x64-clang-15
             os: ubuntu-22.04
             cxx: clang++-15
-          - name: linux-x64-clang-16-sanitize
+          - name: linux-x64-clang-16-sanitize-address-undefined
             os: ubuntu-20.04
             cxx: clang++-16
             cxx-flags: "-fsanitize=address,undefined"
+          - name: linux-x64-clang-16-sanitize-thread
+            os: ubuntu-20.04
+            cxx: clang++-16
+            cxx-flags: "-fsanitize=thread"
 
-          - name: linux-x64-gcc-12
-            os: ubuntu-22.04
-            cxx: g++-12
-          - name: linux-x64-gcc-13-coverage
+          - name: linux-x64-gcc-13
             os: ubuntu-22.04
             cxx: g++-13
             cxx-flags: -Werror

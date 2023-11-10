@@ -46,7 +46,9 @@ void run_df(const std::string &dir_path,
   const std::string full_command(df_command + " " + dir_path + " > " +
                                  out_file_name);
 
-  std::system(full_command.c_str());
+  int res = std::system(full_command.c_str());
+  assert(WIFEXITED(res));
+
   std::ifstream ifs(out_file_name);
   std::string buf;
   std::getline(ifs, buf);
