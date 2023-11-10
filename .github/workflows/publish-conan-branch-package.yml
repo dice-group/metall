@@ -12,7 +12,7 @@ jobs:
     with:
       public_artifactory: true
       os: ubuntu-22.04
-      compiler: clang-14
+      compiler: clang-15
       cmake-version: 3.22.6
       conan-version: 2.0.13
       conan-options: -o boost/*:header_only=True
