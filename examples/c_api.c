@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 #include <assert.h>
-#include <dice/ffi/metall.h>
+#include <dice/ffi/deprecated_metall.h>
 
 int main(void) {
   // Basic allocation

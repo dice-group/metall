@@ -14,20 +14,11 @@ option(BUILD_BENCHMARKS "build benchmarks" OFF)
 option(BUILD_VERIFICATION "build verification executables" OFF)
 option(RUN_LARGE_SCALE_TESTS "build and run large scale tests" OFF)
 
-set(DEFAULT_VM_RESERVE_SIZE "0" CACHE STRING
-        "Set the default VM reserve size (use the internally defined value if 0 is specified)")
-set(MAX_SEGMENT_SIZE "0" CACHE STRING
-        "Set the max segment size (use the internally defined value if 0 is specified)")
-set(INITIAL_SEGMENT_SIZE "0" CACHE STRING
-        "Set the initial segment size (use the internally defined value if 0 is specified)")
+set(COMPILER_DEFS "" CACHE STRING
+        "A list of Metall compile definitions to be added to all targets. For a list of valid values see docs/readthedocs/basics/compile_time_options.md.")
 
 # ---------- Experimental options ---------- #
-option(USE_ANONYMOUS_NEW_MAP "Use the anonymous map when creating a new map region" OFF)
 set(UMAP_ROOT "" CACHE PATH "UMap installed root directory")
-set(FREE_SMALL_OBJECT_SIZE_HINT "0" CACHE STRING
-        "Try to free the associated pages and file space when objects equal to or larger than that is deallocated")
-
-# TODO add target_compile_definitions for stuff above
 
 
 OPTION(USE_CONAN "If available, use conan to retrieve dependencies." ON)
@@ -91,13 +82,9 @@ function(common_setup_for_metall_executable name)
             )
     add_common_compile_options(${name})
 
-    if (USE_ANONYMOUS_NEW_MAP)
-        if (UMAP_ROOT)
-            message(FATAL_ERROR "USE_ANONYMOUS_NEW_MAP and UMAP_ROOT options cannot coexist")
-        endif ()
-
-        target_compile_definitions(${name} PRIVATE METALL_USE_ANONYMOUS_NEW_MAP)
-    endif ()
+    foreach(X ${COMPILER_DEFS})
+        target_compile_definitions(${name} PRIVATE ${X})
+    endforeach()
 
     if (UMAP_ROOT)
         target_include_directories(${name} PRIVATE ${UMAP_ROOT}/include)
