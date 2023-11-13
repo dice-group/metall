@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.22)
 add_subdirectory(metall)
-add_subdirectory(ffi)
+
+if (BUILD_FFI)
+    add_subdirectory(ffi)
+endif ()
 
 if (WITH_DEFAULT_LOGGER)
     add_subdirectory(default-logger)

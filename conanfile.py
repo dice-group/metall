@@ -82,13 +82,14 @@ class DiceMetallConan(ConanFile):
         self.cpp_info.components["global"].bindirs = []
         self.cpp_info.components["global"].requires = ["boost::headers"]
 
-        self.cpp_info.components["ffi"].set_property("cmake_find_mode", "both")
-        self.cpp_info.components["ffi"].set_property("cmake_file_name", self.name)
-        self.cpp_info.components["ffi"].set_property("cmake_target_name", f"{self.name}::ffi")
-        self.cpp_info.components["ffi"].includedirs = [f"include/{self.name}/ffi"]
-        self.cpp_info.components["ffi"].libdirs = [f"lib/{self.name}/ffi"]
-        self.cpp_info.components["ffi"].libs = [f"{self.name}-ffi"]
-        self.cpp_info.components["ffi"].requires = ["global"]
+        if self.options.build_ffi:
+            self.cpp_info.components["ffi"].set_property("cmake_find_mode", "both")
+            self.cpp_info.components["ffi"].set_property("cmake_file_name", self.name)
+            self.cpp_info.components["ffi"].set_property("cmake_target_name", f"{self.name}::ffi")
+            self.cpp_info.components["ffi"].includedirs = [f"include/{self.name}/ffi"]
+            self.cpp_info.components["ffi"].libdirs = [f"lib/{self.name}/ffi"]
+            self.cpp_info.components["ffi"].libs = [f"{self.name}-ffi"]
+            self.cpp_info.components["ffi"].requires = ["global"]
 
         if self.options.with_default_logger:
             self.cpp_info.components["default-logger"].set_property("cmake_find_mode", "both")
