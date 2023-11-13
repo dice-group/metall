@@ -19,6 +19,7 @@
 #include <sstream>
 #include <typeinfo>
 
+#include <dice/metall/defs.hpp>
 #include <dice/metall/logger.hpp>
 #include <dice/metall/offset_ptr.hpp>
 #include <dice/metall/version.hpp>
