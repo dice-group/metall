@@ -3,7 +3,7 @@
 //
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-#include <dice/ffi/metall.h>
+#include <dice/ffi/deprecated_metall.h>
 #include <dice/metall/metall.hpp>
 
 dice::metall::manager *g_manager = nullptr;
