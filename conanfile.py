@@ -28,7 +28,7 @@ class DiceMetallConan(ConanFile):
         "with_default_logger": True,
     }
 
-    generators = ("CMakeDeps", "CMakeToolchain")
+    generators = "CMakeDeps", "CMakeToolchain"
     exports_sources = "libs/*", "CMakeLists.txt", "cmake/*", "LICENSE*", "COPYRIGHT", "NOTICE"
 
     def requirements(self):

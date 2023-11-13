@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 project(metall VERSION 0.26.0
-        DESCRIPTION "TODO")
+        DESCRIPTION "A persistent memory allocator for data-centric analytics")
 
 include(cmake/boilerplate_init.cmake)
 boilerplate_init()
@@ -27,6 +27,7 @@ set(UMAP_ROOT "" CACHE PATH "UMap installed root directory")
 set(FREE_SMALL_OBJECT_SIZE_HINT "0" CACHE STRING
         "Try to free the associated pages and file space when objects equal to or larger than that is deallocated")
 
+# TODO add target_compile_definitions for stuff above
 
 
 OPTION(USE_CONAN "If available, use conan to retrieve dependencies." ON)

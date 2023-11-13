@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.22)
 set(lib_suffix "default-logger")
 set(lib "${PROJECT_NAME}-${lib_suffix}")
 
