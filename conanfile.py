@@ -82,14 +82,6 @@ class DiceMetallConan(ConanFile):
         self.cpp_info.components["global"].bindirs = []
         self.cpp_info.components["global"].requires = ["boost::headers"]
 
-        self.cpp_info.components["default-logger"].set_property("cmake_find_mode", "both")
-        self.cpp_info.components["default-logger"].set_property("cmake_file_name", self.name)
-        self.cpp_info.components["default-logger"].set_property("cmake_target_name", f"{self.name}::default-logger")
-        self.cpp_info.components["default-logger"].includedirs = []
-        self.cpp_info.components["default-logger"].libdirs = [f"lib/{self.name}/default-logger"]
-        self.cpp_info.components["default-logger"].libs = [f"{self.name}-default-logger"]
-        self.cpp_info.components["default-logger"].requires = []
-
         self.cpp_info.components["ffi"].set_property("cmake_find_mode", "both")
         self.cpp_info.components["ffi"].set_property("cmake_file_name", self.name)
         self.cpp_info.components["ffi"].set_property("cmake_target_name", f"{self.name}::ffi")
@@ -99,4 +91,12 @@ class DiceMetallConan(ConanFile):
         self.cpp_info.components["ffi"].requires = ["global"]
 
         if self.options.with_default_logger:
+            self.cpp_info.components["default-logger"].set_property("cmake_find_mode", "both")
+            self.cpp_info.components["default-logger"].set_property("cmake_file_name", self.name)
+            self.cpp_info.components["default-logger"].set_property("cmake_target_name", f"{self.name}::default-logger")
+            self.cpp_info.components["default-logger"].includedirs = []
+            self.cpp_info.components["default-logger"].libdirs = [f"lib/{self.name}/default-logger"]
+            self.cpp_info.components["default-logger"].libs = [f"{self.name}-default-logger"]
+            self.cpp_info.components["default-logger"].requires = []
+
             self.cpp_info.components["global"].requires += ["default-logger"]
