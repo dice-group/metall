@@ -1,4 +1,4 @@
-include(setup_omp)
+include(${CMAKE_SOURCE_DIR}/cmake/setup_omp)
 
 add_metall_executable(run_adj_list_bench_stl run_adj_list_bench_stl.cpp)
 setup_omp_target(run_adj_list_bench_stl)

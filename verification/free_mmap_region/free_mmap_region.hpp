@@ -12,20 +12,19 @@
 #include <functional>
 #include <thread>
 
-#include <metall/detail/file.hpp>
-#include <metall/detail/mmap.hpp>
-#include <metall/detail/time.hpp>
-#include <metall/detail/memory.hpp>
-#include <metall/detail/utilities.hpp>
+#include <dice/metall/detail/file.hpp>
+#include <dice/metall/detail/mmap.hpp>
+#include <dice/metall/detail/time.hpp>
+#include <dice/metall/detail/memory.hpp>
+#include <dice/metall/detail/utilities.hpp>
 
-namespace mdtl = metall::mtlldetail;
+namespace mdtl = dice::metall::mtlldetail;
 
 static constexpr int k_map_nosync =
 #ifdef MAP_NOSYNC
     MAP_NOSYNC;
 #else
     0;
-#warning "MAP_NOSYNC is not defined"
 #endif
 
 std::size_t get_page_size() {
@@ -34,7 +33,7 @@ std::size_t get_page_size() {
     std::cerr << __LINE__ << " Failed to get the page size" << std::endl;
     std::abort();
   }
-  return (std::size_t)page_size;
+  return static_cast<size_t>(page_size);
 }
 
 std::pair<int, void *> map_file_share(const std::string &file_path,

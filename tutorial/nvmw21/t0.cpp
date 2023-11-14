@@ -6,10 +6,10 @@
 // This program shows how to allocate memory using Metall.
 
 #include <iostream>
-#include <metall/metall.hpp>
+#include <dice/metall/metall.hpp>
 
 int main() {
-  metall::manager manager(metall::create_only, "/tmp/dir");
+  dice::metall::manager manager(dice::metall::create_only, "/tmp/dir");
 
   // Allocate 'sizeof(int)' bytes, like malloc(sizeof(int))
   // The object is allocated into persistent memory;

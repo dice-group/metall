@@ -6,11 +6,11 @@
 // This program shows how to use the snapshot feature in Metall
 
 #include <iostream>
-#include <metall/metall.hpp>
+#include <dice/metall/metall.hpp>
 
 int main() {
   {
-    metall::manager manager(metall::create_only, "/tmp/dir");
+    dice::metall::manager manager(dice::metall::create_only, "/tmp/dir");
     auto *n = manager.construct<int>("n")();
     *n = 10;
 
@@ -23,7 +23,7 @@ int main() {
 
   // Reattach the original data
   {
-    metall::manager manager(metall::open_only, "/tmp/dir");
+    dice::metall::manager manager(dice::metall::open_only, "/tmp/dir");
     std::cout << "Opened the original data" << std::endl;
     auto *n = manager.find<int>("n").first;
     std::cout << *n << std::endl;  // Show '20'
@@ -32,7 +32,7 @@ int main() {
   // Reattach the snapshot
   // A snapshot can be used as a normal Metall data store
   {
-    metall::manager manager(metall::open_only, "/tmp/snapshot");
+    dice::metall::manager manager(dice::metall::open_only, "/tmp/snapshot");
     std::cout << "Opened the snapshot" << std::endl;
     auto *n = manager.find<int>("n").first;
     std::cout << *n << std::endl;  // Show '10' since this snapshot was created

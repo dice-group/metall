@@ -11,7 +11,7 @@
 #include <vector>
 #include <numeric>
 
-#include <metall/utility/open_mp.hpp>
+#include <dice/metall/utility/open_mp.hpp>
 
 namespace bfs_bench {
 

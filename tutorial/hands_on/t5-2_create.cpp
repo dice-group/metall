@@ -6,10 +6,10 @@
 // This program shows the crash consistency of Metall snapshot
 
 #include <iostream>
-#include <metall/metall.hpp>
+#include <dice/metall/metall.hpp>
 
 int main() {
-  metall::manager manager(metall::create_only, "/tmp/dir");
+  dice::metall::manager manager(dice::metall::create_only, "/tmp/dir");
   auto *n = manager.construct<int>("n")();
   *n = 10;
 

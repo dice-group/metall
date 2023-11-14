@@ -12,13 +12,13 @@
 #include <string>
 #include <utility>
 #include <unordered_map>
-#include <metall/utility/hash.hpp>
+#include <dice/metall/utility/hash.hpp>
 
 using key_type = uint64_t;
 using value_type = uint64_t;
 using item_type = std::pair<key_type, value_type>;
 using table_type =
-    std::unordered_map<item_type, std::size_t, metall::utility::hash<>>;
+    std::unordered_map<item_type, std::size_t, dice::metall::utility::hash<>>;
 
 void ingest_item(const std::string& file_name, table_type* table) {
   std::ifstream ifs(file_name);

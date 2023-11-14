@@ -13,8 +13,8 @@
 #include <boost/interprocess/managed_mapped_file.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
 
-#include <metall/detail/file.hpp>
-#include <metall/detail/mmap.hpp>
+#include <dice/metall/detail/file.hpp>
+#include <dice/metall/detail/mmap.hpp>
 
 #include "../data_structure/multithread_adjacency_list.hpp"
 #include "bench_driver.hpp"
@@ -33,10 +33,10 @@ using adjacency_list_type =
                                                allocator_type>;
 
 void *map_file(const std::string &backing_file_name, const size_t file_size) {
-  metall::mtlldetail::create_file(backing_file_name);
-  metall::mtlldetail::extend_file_size(backing_file_name, file_size);
+  dice::metall::mtlldetail::create_file(backing_file_name);
+  dice::metall::mtlldetail::extend_file_size(backing_file_name, file_size);
 
-  auto ret = metall::mtlldetail::map_file_write_mode(backing_file_name, nullptr,
+  auto ret = dice::metall::mtlldetail::map_file_write_mode(backing_file_name, nullptr,
                                                      file_size, 0);
   if (ret.first == -1) {
     std::cerr << "Failed to map a file" << std::endl;
@@ -53,7 +53,7 @@ void *map_file(const std::string &backing_file_name, const size_t file_size) {
 
 void *map_anonymous(const size_t file_size) {
   void *ret =
-      metall::mtlldetail::os_mmap(nullptr, file_size, PROT_READ | PROT_WRITE,
+      dice::metall::mtlldetail::os_mmap(nullptr, file_size, PROT_READ | PROT_WRITE,
                                   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
   if (!ret) {
     std::cerr << "Failed to map an anonymous region" << std::endl;
@@ -90,9 +90,9 @@ int main(int argc, char *argv[]) {
 
     run_bench(option, adj_list);
 
-    const auto start = metall::mtlldetail::elapsed_time_sec();
-    metall::mtlldetail::os_msync(addr, option.segment_size, true);
-    const auto elapsed_time = metall::mtlldetail::elapsed_time_sec(start);
+    const auto start = dice::metall::mtlldetail::elapsed_time_sec();
+    dice::metall::mtlldetail::os_msync(addr, option.segment_size, true);
+    const auto elapsed_time = dice::metall::mtlldetail::elapsed_time_sec(start);
     std::cout << "sync_time (s)\t" << elapsed_time << std::endl;
 
     std::cout << "Segment usage (GB) "
@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
                                      manager.get_free_memory()) /
                      (1ULL << 30)
               << std::endl;
-    metall::mtlldetail::munmap(addr, option.segment_size,
+    dice::metall::mtlldetail::munmap(addr, option.segment_size,
                                !option.datastore_path_list.empty());
   }
 

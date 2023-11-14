@@ -11,9 +11,9 @@
 #include <iostream>
 #include <map>
 #include <boost/container/map.hpp>
-#include <metall/container/map.hpp>
-#include <metall/metall.hpp>
-#include <metall/detail/time.hpp>
+#include <dice/metall/container/map.hpp>
+#include <dice/metall/metall.hpp>
+#include <dice/metall/detail/time.hpp>
 
 #include "bench_common.hpp"
 
@@ -51,8 +51,8 @@ int main() {
   }
 
   {
-    metall::manager mngr(metall::create_only, "/tmp/metall");
-    metall::container::map<uint64_t, uint64_t> map(mngr.get_allocator());
+    dice::metall::manager mngr(dice::metall::create_only, "/tmp/metall");
+    dice::metall::container::map<uint64_t, uint64_t> map(mngr.get_allocator());
 
     const auto start = mdtl::elapsed_time_sec();
     for (const auto &kv : inputs) {

@@ -8,10 +8,10 @@
 /// ./run_offset_ptr_bench
 
 #include <iostream>
-#include <metall/offset_ptr.hpp>
-#include <metall/detail/time.hpp>
+#include <dice/metall/offset_ptr.hpp>
+#include <dice/metall/detail/time.hpp>
 
-namespace mdtl = metall::mtlldetail;
+namespace mdtl = dice::metall::mtlldetail;
 
 int main() {
   const std::size_t length = 1ULL << 22;
@@ -34,7 +34,7 @@ int main() {
   }
 
   {
-    auto ofset_ptr = metall::offset_ptr<uint64_t>(array);
+    auto ofset_ptr = dice::metall::offset_ptr<uint64_t>(array);
     const auto start = mdtl::elapsed_time_sec();
     for (std::size_t i = 0; i < length; ++i) {
       [[maybe_unused]] volatile const uint64_t x = *ofset_ptr;

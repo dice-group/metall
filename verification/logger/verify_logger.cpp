@@ -4,9 +4,9 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 #include <iostream>
-#include <metall/logger.hpp>
+#include <dice/metall/logger.hpp>
 
-using namespace metall;
+using namespace dice::metall;
 
 void log_cerr() {
   METALL_ERROR("error logger");

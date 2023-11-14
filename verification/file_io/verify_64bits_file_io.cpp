@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <string>
-#include <metall/logger.hpp>
+#include <dice/metall/logger.hpp>
 
 int main(int argc, char *argv[]) {
 #ifdef _FILE_OFFSET_BITS

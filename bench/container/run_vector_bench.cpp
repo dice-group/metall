@@ -11,9 +11,9 @@
 #include <iostream>
 #include <vector>
 #include <boost/container/vector.hpp>
-#include <metall/container/vector.hpp>
-#include <metall/metall.hpp>
-#include <metall/detail/time.hpp>
+#include <dice/metall/container/vector.hpp>
+#include <dice/metall/metall.hpp>
+#include <dice/metall/detail/time.hpp>
 
 #include "bench_common.hpp"
 
@@ -39,8 +39,8 @@ int main() {
 
   {
     std::cout << "Boost vector (push_back) with Metall" << std::endl;
-    metall::manager mngr(metall::create_only, "/tmp/metall");
-    metall::container::vector<std::pair<uint64_t, uint64_t>> vec(
+    dice::metall::manager mngr(dice::metall::create_only, "/tmp/metall");
+    dice::metall::container::vector<std::pair<uint64_t, uint64_t>> vec(
         mngr.get_allocator());
     run_bench(inputs, [&vec](const auto &kv) { vec.push_back(kv); });
   }
@@ -66,8 +66,8 @@ int main() {
 
   {
     std::cout << "Boost vector ([]) with Metall" << std::endl;
-    metall::manager mngr(metall::create_only, "/tmp/metall");
-    metall::container::vector<std::pair<uint64_t, uint64_t>> vec(
+    dice::metall::manager mngr(dice::metall::create_only, "/tmp/metall");
+    dice::metall::container::vector<std::pair<uint64_t, uint64_t>> vec(
         mngr.get_allocator());
     std::size_t index = 0;
     run_bench(

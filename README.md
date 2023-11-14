@@ -58,6 +58,9 @@ g++ -std=c++17 your_program.cpp -lstdc++fs -I${BOOST_ROOT} -I${METALL_INCLUDE}
 
 ### Defining a sink for the logger
 To Use Metall your application must define a logger sink for Metall.
+A reasonable default sink is provided via the Metall::default_logger cmake target you can link against that
+if you do not want to provide your own logger implementation.
+
 The interface you need to implement is defined in `include/logger_interface.h`.
 For an example how to define such a sink see `src/default_logger.cpp`.
 

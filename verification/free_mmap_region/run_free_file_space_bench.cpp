@@ -18,12 +18,12 @@ void commit_pages(const std::size_t size, void *const addr) {
   assert(size % page_size == 0);
 
   const std::size_t num_pages = size / page_size;
-  const auto num_threads = (int)std::min(
-      (std::size_t)num_pages, (std::size_t)std::thread::hardware_concurrency());
+  const auto num_threads = std::min<size_t>(
+      num_pages, std::thread::hardware_concurrency());
   std::vector<std::thread *> threads(num_threads, nullptr);
 
   const auto start = mdtl::elapsed_time_sec();
-  for (int t = 0; t < num_threads; ++t) {
+  for (size_t t = 0; t < num_threads; ++t) {
     const auto range = mdtl::partial_range(num_pages, t, num_threads);
     threads[t] = new std::thread([range, page_size, addr]() {
       for (std::size_t p = range.first; p < range.second; ++p) {
@@ -55,7 +55,7 @@ void free_file_space(const std::size_t size,
   std::cout << __FUNCTION__ << " took\t" << elapsed_time << std::endl;
 }
 
-int main(int, char *argv[]) {
+int main([[maybe_unused]] int argc, char *argv[]) {
   const int mode = std::stoul(argv[1]);
 
   const std::string file_path(argv[2]);
@@ -67,19 +67,19 @@ int main(int, char *argv[]) {
   void *map_addr = nullptr;
   std::tie(fd, map_addr) = map_file_share(file_path, map_size);
   std::cout << "DRAM usage (GB)"
-            << "\t" << (double)mdtl::get_used_ram_size() / (1ULL << 30ULL)
+            << "\t" << static_cast<double>(mdtl::get_used_ram_size()) / (1ULL << 30ULL)
             << std::endl;
   std::cout << "DRAM cache usage (GB)"
-            << "\t" << (double)mdtl::get_page_cache_size() / (1ULL << 30ULL)
+            << "\t" << static_cast<double>(mdtl::get_page_cache_size()) / (1ULL << 30ULL)
             << std::endl;
 
   commit_pages(map_size, map_addr);
   sync_mmap(map_addr, map_size);
   std::cout << "DRAM usage (GB)"
-            << "\t" << (double)mdtl::get_used_ram_size() / (1ULL << 30ULL)
+            << "\t" << static_cast<double>(mdtl::get_used_ram_size()) / (1ULL << 30ULL)
             << std::endl;
   std::cout << "DRAM cache usage (GB)"
-            << "\t" << (double)mdtl::get_page_cache_size() / (1ULL << 30ULL)
+            << "\t" << static_cast<double>(mdtl::get_page_cache_size()) / (1ULL << 30ULL)
             << std::endl;
 
   if (mode == 0) {
@@ -139,10 +139,10 @@ int main(int, char *argv[]) {
   unmap(map_addr, map_size);
 
   std::cout << "File size (GB)\t"
-            << (double)mdtl::get_file_size(file_path) / (1ULL << 30ULL)
+            << static_cast<double>(mdtl::get_file_size(file_path)) / (1ULL << 30ULL)
             << std::endl;
   std::cout << "Actual file size (GB)\t"
-            << (double)mdtl::get_actual_file_size(file_path) / (1ULL << 30ULL)
+            << static_cast<double>(mdtl::get_actual_file_size(file_path)) / (1ULL << 30ULL)
             << std::endl;
 
   return 0;

@@ -17,13 +17,13 @@
 #include <algorithm>
 #include <iostream>
 #include <iomanip>
-#include <metall/detail/time.hpp>
-#include <metall/detail/utilities.hpp>
+#include <dice/metall/detail/time.hpp>
+#include <dice/metall/detail/utilities.hpp>
 
 namespace simple_alloc_bench {
 
 namespace {
-namespace mdtl = metall::mtlldetail;
+namespace mdtl = dice::metallmtlldetail;
 }
 
 struct option_type {
@@ -116,7 +116,7 @@ void allocate_parallel(
                                      nullptr);
   for (std::size_t t = 0; t < threads.size(); ++t) {
     const auto range =
-        metall::mtlldetail::partial_range(size_list.size(), t, threads.size());
+        dice::metallmtlldetail::partial_range(size_list.size(), t, threads.size());
 
     threads[t] = new std::thread(
         [range](byte_allocator_type byte_allocator,
@@ -155,7 +155,7 @@ void deallocate_parallel(
                                      nullptr);
   for (std::size_t t = 0; t < threads.size(); ++t) {
     const auto range =
-        metall::mtlldetail::partial_range(size_list.size(), t, threads.size());
+        dice::metallmtlldetail::partial_range(size_list.size(), t, threads.size());
 
     threads[t] = new std::thread(
         [range](byte_allocator_type byte_allocator,
