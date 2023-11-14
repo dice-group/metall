@@ -54,15 +54,14 @@ inline bool clone_file_linux(const std::filesystem::path &source_path,
   }
 
   METALL_WARN("Unable to clone {} to {}, falling back to sparse copy", source_path.c_str(), destination_path.c_str());
+  os_close(src);
+  os_close(dst);
 
-  if (file_copy_detail::copy_file_sparse_linux(src, dst)) {
-    close_fsync_all();
+  if (file_copy_detail::copy_file_sparse_linux(source_path, destination_path)) {
     return true;
   }
 
   METALL_WARN("Unable to sparse copy {} to {}, falling back to normal copy", source_path.c_str(), destination_path.c_str());
-  os_close(src);
-  os_close(dst);
 
   if (file_copy_detail::copy_file_dense(source_path, destination_path)) {
     return true;
