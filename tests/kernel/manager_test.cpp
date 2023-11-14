@@ -87,26 +87,38 @@ TEST(ManagerTest, CreateAndOpenModes) {
 
 TEST(ManagerTest, ConstructArray) {
   {
+    manager_type::remove(dir_path());
+    manager_type::remove(dir_path() + "-snap");
+
     {
-      manager_type::remove(dir_path());
       manager_type manager(dice::metall::create_only, dir_path(),
                            1UL << 30UL);
-      ASSERT_NE(manager.construct<int>("int")[2](10), nullptr);
+      ASSERT_NE(manager.construct<char>("arr")[8]('a'), nullptr);
     }
 
     {
       manager_type manager(dice::metall::open_read_only, dir_path());
-      auto ret = manager.find<int>("int");
+      auto ret = manager.find<char>("arr");
       ASSERT_NE(ret.first, nullptr);
-      ASSERT_EQ(ret.second, 2);
+      ASSERT_EQ(ret.second, 8);
       auto a = ret.first;
-      ASSERT_EQ(a[0], 10);
-      ASSERT_EQ(a[1], 10);
+      ASSERT_EQ(a[0], 'a');
+      ASSERT_EQ(a[1], 'a');
+
+      manager.snapshot(dir_path() + "-snap");
+    }
+
+    {
+      manager_type manager(dice::metall::open_only, dir_path() + "-snap");
+      auto [ptr, _] = manager.find<char>("arr");
+      ASSERT_EQ(ptr[0], 'a');
+
+      ASSERT_TRUE(manager.destroy<char>("arr"));
     }
 
     {
       manager_type manager(dice::metall::open_only, dir_path());
-      ASSERT_TRUE(manager.destroy<int>("int"));
+      ASSERT_TRUE(manager.destroy<char>("arr"));
     }
   }
 }

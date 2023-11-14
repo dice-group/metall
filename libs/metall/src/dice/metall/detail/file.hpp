@@ -32,6 +32,8 @@
 
 #include <dice/metall/logger.hpp>
 
+#include <boost/process.hpp>
+
 namespace dice::metall::mtlldetail {
 
 /**
@@ -306,49 +308,30 @@ inline bool prepare_file_copy_linux(const std::filesystem::path &source_path,
   return true;
 }
 
-/**
- * Performs a sparse copy from src to dst, i.e. only copies actual data while skipping
- * over potential holes in src.
- *
- * Note: dst will be synced
- */
-inline bool copy_file_sparse_linux(int src, int dst) {
-  off64_t off = 0;
-  while ((off = ::lseek64(src, off, SEEK_DATA)) != -1) {
-    off64_t const hole_start = ::lseek64(src, off, SEEK_HOLE);
-    assert(hole_start != -1); // cannot fail, always an implicit hole at the end of the file
-
-    if (::copy_file_range(src, &off, dst, NULL, hole_start - off, 0) == -1) {
-      METALL_ERRNO_ERROR("copy_file_range");
-      return false;
-    }
-
-    off = hole_start;
-  }
-
-  os_fsync(dst);
-  return true;
-}
-
 inline bool copy_file_sparse_linux(const std::filesystem::path &source_path,
                                    const std::filesystem::path &destination_path) {
-  int src;
-  int dst;
-  if (!prepare_file_copy_linux(source_path, destination_path, &src, &dst)) {
-    METALL_ERROR("Unable to prepare for file copy");
-    return false;
-  }
+  try {
+    namespace bp = boost::process;
 
-  if (copy_file_sparse_linux(src, dst)) {
-    os_fsync(dst);
-    os_close(src);
-    os_close(dst);
-    return true;
+    bp::ipstream is;
+    bp::child c{"/usr/bin/cp", "--sparse=always", source_path.c_str(), destination_path.c_str(),
+                bp::std_out > bp::null,
+                bp::std_err > is};
+
+    c.wait();
+    if (c.exit_code() == 0) {
+      fsync(destination_path);
+      return true;
+    }
+
+    std::string error;
+    std::copy(std::istreambuf_iterator<char>{is}, std::istreambuf_iterator<char>{}, std::back_inserter(error));
+    METALL_ERROR("Error during sparse copy: {}", error);
+  } catch (...) {
+    METALL_ERROR("Unable to spawn child /usr/bin/cp");
   }
 
   METALL_WARN("Unable to sparse copy {} to {}, falling back to normal copy", source_path.c_str(), destination_path.c_str());
-  os_close(src);
-  os_close(dst);
 
   if (copy_file_dense(source_path, destination_path)) {
     return true;
