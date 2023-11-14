@@ -17,13 +17,13 @@
 #include <algorithm>
 #include <iostream>
 #include <iomanip>
-#include <metall/detail/time.hpp>
-#include <metall/detail/utilities.hpp>
+#include <dice/metall/detail/time.hpp>
+#include <dice/metall/detail/utilities.hpp>
 
 namespace simple_alloc_bench {
 
 namespace {
-namespace mdtl = metall::mtlldetail;
+namespace mdtl = dice::metallmtlldetail;
 }
 
 struct option_type {
@@ -70,7 +70,7 @@ template <typename byte_allocator_type>
 void allocate_sequential(
     byte_allocator_type byte_allocator,
     const std::vector<std::size_t> &size_list,
-    std::vector<typename byte_allocator_type::pointer> *allocated_addr_list) {
+    std::vector<typename std::allocator_traits<byte_allocator_type>::pointer> *allocated_addr_list) {
   static_assert(
       std::is_same<
           typename std::allocator_traits<byte_allocator_type>::value_type,
@@ -89,7 +89,7 @@ template <typename byte_allocator_type>
 void deallocate_sequential(
     byte_allocator_type byte_allocator,
     const std::vector<std::size_t> &size_list,
-    const std::vector<typename byte_allocator_type::pointer>
+    const std::vector<typename std::allocator_traits<byte_allocator_type>::pointer>
         &allocated_addr_list) {
   static_assert(
       std::is_same<
@@ -105,7 +105,7 @@ template <typename byte_allocator_type>
 void allocate_parallel(
     byte_allocator_type byte_allocator,
     const std::vector<std::size_t> &size_list,
-    std::vector<typename byte_allocator_type::pointer> *allocated_addr_list) {
+    std::vector<typename std::allocator_traits<byte_allocator_type>::pointer> *allocated_addr_list) {
   static_assert(
       std::is_same<
           typename std::allocator_traits<byte_allocator_type>::value_type,
@@ -116,12 +116,12 @@ void allocate_parallel(
                                      nullptr);
   for (std::size_t t = 0; t < threads.size(); ++t) {
     const auto range =
-        metall::mtlldetail::partial_range(size_list.size(), t, threads.size());
+        dice::metallmtlldetail::partial_range(size_list.size(), t, threads.size());
 
     threads[t] = new std::thread(
         [range](byte_allocator_type byte_allocator,
                 const std::vector<std::size_t> &size_list,
-                std::vector<typename byte_allocator_type::pointer>
+                std::vector<typename std::allocator_traits<byte_allocator_type>::pointer>
                     *allocated_addr_list) {
           for (std::size_t i = range.first; i < range.second; ++i) {
             (*allocated_addr_list)[i] = byte_allocator.allocate(size_list[i]);
@@ -143,7 +143,7 @@ template <typename byte_allocator_type>
 void deallocate_parallel(
     byte_allocator_type byte_allocator,
     const std::vector<std::size_t> &size_list,
-    const std::vector<typename byte_allocator_type::pointer>
+    const std::vector<typename std::allocator_traits<byte_allocator_type>::pointer>
         &allocated_addr_list) {
   static_assert(
       std::is_same<
@@ -155,12 +155,12 @@ void deallocate_parallel(
                                      nullptr);
   for (std::size_t t = 0; t < threads.size(); ++t) {
     const auto range =
-        metall::mtlldetail::partial_range(size_list.size(), t, threads.size());
+        dice::metallmtlldetail::partial_range(size_list.size(), t, threads.size());
 
     threads[t] = new std::thread(
         [range](byte_allocator_type byte_allocator,
                 const std::vector<std::size_t> &size_list,
-                const std::vector<typename byte_allocator_type::pointer>
+                const std::vector<typename std::allocator_traits<byte_allocator_type>::pointer>
                     &allocated_addr_list) {
           for (std::size_t i = range.first; i < range.second; ++i) {
             byte_allocator.deallocate(allocated_addr_list[i], size_list[i]);
@@ -218,7 +218,7 @@ void run_bench(const option_type &option, const allocator_type allocator) {
   byte_allocator_type byte_allocator(allocator);
 
   std::vector<std::size_t> allocation_request_list(option.num_allocations);
-  std::vector<typename byte_allocator_type::pointer> allocated_addr_list(
+  std::vector<typename std::allocator_traits<byte_allocator_type>::pointer> allocated_addr_list(
       option.num_allocations);
 
   std::cout << std::fixed;

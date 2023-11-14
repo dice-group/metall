@@ -10,9 +10,9 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
-#include <metall/metall.hpp>
-#include <metall/detail/time.hpp>
-#include <metall/detail/file_clone.hpp>
+#include <dice/metall/metall.hpp>
+#include <dice/metall/detail/time.hpp>
+#include <dice/metall/detail/file_clone.hpp>
 #include "../data_structure/multithread_adjacency_list.hpp"
 #include "bench_driver.hpp"
 
@@ -22,7 +22,7 @@ using key_type = uint64_t;
 using value_type = uint64_t;
 
 using adjacency_list_type = data_structure::multithread_adjacency_list<
-    key_type, value_type, typename metall::manager::allocator_type<std::byte>>;
+    key_type, value_type, typename dice::metall::manager::allocator_type<std::byte>>;
 
 ssize_t g_directory_total = 0;
 int sum_file_sizes(const char *, const struct stat *statbuf, int typeflag) {
@@ -46,7 +46,9 @@ void run_df(const std::string &dir_path,
   const std::string full_command(df_command + " " + dir_path + " > " +
                                  out_file_name);
 
-  std::system(full_command.c_str());
+  int res = std::system(full_command.c_str());
+  assert(WIFEXITED(res));
+
   std::ifstream ifs(out_file_name);
   std::string buf;
   std::getline(ifs, buf);
@@ -70,7 +72,7 @@ int main(int argc, char *argv[]) {
   option.verbose = true;
 
   {
-    metall::manager manager(metall::create_only,
+    dice::metall::manager manager(dice::metall::create_only,
                             option.datastore_path_list[0].c_str());
 
     // This function is called after inserting each chunk
@@ -95,7 +97,7 @@ int main(int argc, char *argv[]) {
             option.datastore_path_list[0] + "-snapshot-" + snapshot_id.str();
         const auto start = mdtl::elapsed_time_sec();
         // Use copy() so that flush() is not called again
-        metall::manager::copy(option.datastore_path_list[0].c_str(),
+        dice::metall::manager::copy(option.datastore_path_list[0].c_str(),
                               snapshot_dir.c_str());
         const auto elapsed_time = mdtl::elapsed_time_sec(start);
         std::cout << "Snapshot took (s)\t" << elapsed_time << std::endl;

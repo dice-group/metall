@@ -17,10 +17,10 @@ Here, we list Metall's main APIs.
 
 ```C++
 // The main header file
-#include <metall/metall.hpp>
+#include <dice/metall/metall.hpp>
 
 // The main class of Metall
-class metall::manager;
+class dice::metall::manager;
 
 // ---------- Constructors ---------- //
 // Opens an existing data store.
@@ -94,28 +94,28 @@ bool manager.snapshot(const char *destination_dir_path)
 // ---------- Utilities (Metall original) ---------- //
 // Check if a datastore exists and is consistent
 // (i.e., it was closed properly in the previous run).
-static bool metall::manager::consistent(const char *dir_path)
+static bool dice::metall::manager::consistent(const char *dir_path)
 
 // Copies datastore
-static bool metall::manager::copy(const char *source_dir_path, const char *destination_dir_path)
+static bool dice::metall::manager::copy(const char *source_dir_path, const char *destination_dir_path)
 
 // Removes datastore synchronously
-static bool metall::manager::remove(const char *dir_path)
+static bool dice::metall::manager::remove(const char *dir_path)
 
 // Gets the version number of the Metall that created the current datastore.
 version_type manager.get_version()
 
 // Gets the version of the Metall that created a datastore
-static version_type metall::get_version(const char_type *dir_path)
+static version_type dice::metall::get_version(const char_type *dir_path)
 
 // ---------- Data store description ---------- //
 // Sets a description
 bool set_description(const std::string &description)
-static bool metall::set_description(const char *dir_path, const std::string &description)
+static bool dice::metall::set_description(const char *dir_path, const std::string &description)
 
 // Gets a description
 bool get_description(std::string *description)
-static bool metall::get_description(const char *dir_path, std::string *description)
+static bool dice::metall::get_description(const char *dir_path, std::string *description)
 ```
 
 Example programs are located in [example](https://github.com/LLNL/metall/tree/master/example).

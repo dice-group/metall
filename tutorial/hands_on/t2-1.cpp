@@ -6,15 +6,15 @@
 // This program shows how to use STL containers with Metall
 
 #include <iostream>
-#include <metall/metall.hpp>
+#include <dice/metall/metall.hpp>
 
 // Metall contains basic STL containers that use metall as their default
 // allocators.
-#include <metall/container/vector.hpp>
+#include <dice/metall/container/vector.hpp>
 
 int main() {
   {
-    metall::manager manager(metall::create_only, "/tmp/dir");
+    dice::metall::manager manager(dice::metall::create_only, "/tmp/dir");
 
     // Allocate a vector object, passing an allocator object
     auto* vec = manager.construct<metall::container::vector<int>>("vec")(
@@ -25,7 +25,7 @@ int main() {
   }
 
   {
-    metall::manager manager(metall::open_only, "/tmp/dir");
+    dice::metall::manager manager(dice::metall::open_only, "/tmp/dir");
 
     auto* vec = manager.find<metall::container::vector<int>>("vec").first;
     std::cout << "Size = " << vec->size() << std::endl;
@@ -36,7 +36,7 @@ int main() {
   }
 
   {
-    metall::manager manager(metall::open_read_only, "/tmp/dir");
+    dice::metall::manager manager(dice::metall::open_read_only, "/tmp/dir");
 
     auto* vec = manager.find<metall::container::vector<int>>("vec").first;
     std::cout << "Value at 2 = " << (*vec)[2] << std::endl;

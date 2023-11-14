@@ -19,14 +19,14 @@
 #include <scoped_allocator>
 namespace container = std;
 #else
-#include <metall/container/vector.hpp>
-#include <metall/container/unordered_map.hpp>
-#include <metall/container/scoped_allocator.hpp>
-namespace container = metall::container;
+#include <dice/metall/container/vector.hpp>
+#include <dice/metall/container/unordered_map.hpp>
+#include <dice/metall/container/scoped_allocator.hpp>
+namespace container = dice::metall::container;
 #endif
 
-#include <metall/utility/hash.hpp>
-#include <metall/utility/mutex.hpp>
+#include <dice/metall/utility/hash.hpp>
+#include <dice/metall/utility/mutex.hpp>
 
 namespace data_structure {
 
@@ -48,9 +48,10 @@ class multithread_adjacency_list {
 
   using key_table_allocator_type = container::scoped_allocator_adaptor<
       other_allocator_type<std::pair<const key_type, list_type>>>;
-  using key_table_type = container::unordered_map<
-      key_type, list_type, metall::utility::hash<key_type>,
-      std::equal_to<key_type>, key_table_allocator_type>;
+  using key_table_type =
+      container::unordered_map<key_type, list_type, dice::metall::utility::hash<>,
+                               std::equal_to<key_type>,
+                               key_table_allocator_type>;
 
   using bank_table_allocator_type =
       container::scoped_allocator_adaptor<other_allocator_type<key_table_type>>;
@@ -75,15 +76,15 @@ class multithread_adjacency_list {
 
   bool add(key_type key, value_type value) {
     auto guard =
-        metall::utility::mutex::mutex_lock<k_num_banks>(bank_index(key));
+        dice::metall::utility::mutex::mutex_lock<k_num_banks>(bank_index(key));
 #ifdef __clang__
 #if METALL_USE_STL_CONTAINERS_IN_ADJLIST
     m_bank_table[bank_index(key)][key].emplace_back(std::move(value));
 #else
     m_bank_table[bank_index(key)][key].emplace_back(std::move(value));
-//    m_bank_table[bank_index(key)].try_emplace(key,
-//    list_allocator_type(m_bank_table.get_allocator()));
-//    m_bank_table[bank_index(key)].at(key).emplace_back(std::move(value));
+    //    m_bank_table[bank_index(key)].try_emplace(key,
+    //    list_allocator_type(m_bank_table.get_allocator()));
+    //    m_bank_table[bank_index(key)].at(key).emplace_back(std::move(value));
 #endif
 #else
     // MEMO: GCC does not work with STL Containers (tested with GCC 10.2.0 on

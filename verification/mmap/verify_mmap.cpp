@@ -19,6 +19,7 @@
 #include <random>
 #include <vector>
 #include <mutex>
+#include <filesystem>
 #include <chrono>
 
 inline std::chrono::high_resolution_clock::time_point elapsed_time_sec() {
@@ -36,8 +37,7 @@ inline double elapsed_time_sec(
 
 void remove_file(const std::string &file_name) {
   std::cout << "Remove " << file_name << std::endl;
-  std::string rm_command("rm -rf " + file_name);
-  std::system(rm_command.c_str());
+  std::filesystem::remove_all(file_name);
   std::cout << __FUNCTION__ << " done" << std::endl;
 }
 
@@ -79,7 +79,7 @@ void *map_file_read_mode(const std::string &file_name, const std::size_t size) {
     std::cerr << "errno: " << errno << std::endl;
     std::abort();
   }
-  std::cout << "Mapped to address " << (uint64_t)mapped_addr << std::endl;
+  std::cout << "Mapped to address " << reinterpret_cast<uintptr_t>(mapped_addr) << std::endl;
 
   std::cout << __FUNCTION__ << " done" << std::endl;
 
@@ -120,7 +120,7 @@ void *map_file_write_mode(const std::string &file_name,
     std::cerr << "errno: " << errno << std::endl;
     std::abort();
   }
-  std::cout << "Mapped to address " << (uint64_t)mapped_addr << std::endl;
+  std::cout << "Mapped to address " << reinterpret_cast<uintptr_t>(mapped_addr) << std::endl;
 
   std::cout << __FUNCTION__ << " done" << std::endl;
 
@@ -128,7 +128,7 @@ void *map_file_write_mode(const std::string &file_name,
 }
 
 void unmap(void *const addr, const std::size_t size) {
-  std::cout << "Unmap file: address " << (uint64_t)addr << ", size " << size
+  std::cout << "Unmap file: address " << reinterpret_cast<uintptr_t>(addr) << ", size " << size
             << std::endl;
   if (::munmap(addr, size) != 0) {
     ::perror("munmap");
@@ -208,8 +208,8 @@ void write_data_with_multiple_threads(const std::string &file_name,
       static_cast<uint64_t *>(map_file_write_mode(file_name, file_size));
   const std::size_t length = file_size / sizeof(uint64_t);
 
-  const auto num_threads = (int)std::min(
-      (std::size_t)length, (std::size_t)std::thread::hardware_concurrency());
+  const auto num_threads = std::min<size_t>(
+      length, std::thread::hardware_concurrency());
   std::cout << "#of threads: " << num_threads << std::endl;
 
   std::cout << "Generate index" << std::endl;
@@ -217,7 +217,7 @@ void write_data_with_multiple_threads(const std::string &file_name,
   {
     std::vector<std::thread *> threads(num_threads, nullptr);
     const std::size_t num_indices = (length + num_threads - 1) / num_threads;
-    for (int t = 0; t < num_threads; ++t) {
+    for (size_t t = 0; t < num_threads; ++t) {
       threads[t] = new std::thread(
           [&length, &num_indices, &index_list](const int thread_no) {
             index_list[thread_no] = gen_random_index(length - 1, num_indices);
@@ -242,7 +242,7 @@ void write_data_with_multiple_threads(const std::string &file_name,
     std::vector<std::thread *> threads(num_threads, nullptr);
 
     const auto start = elapsed_time_sec();
-    for (int t = 0; t < num_threads; ++t) {
+    for (size_t t = 0; t < num_threads; ++t) {
       threads[t] = new std::thread(
           [&index_list, &mutex_list, buf](const int thread_no) {
             for (const auto idx : index_list[thread_no]) {
@@ -264,7 +264,7 @@ void write_data_with_multiple_threads(const std::string &file_name,
 }
 
 // a.out file_name file_size
-int main(int argc, char *argv[]) {
+int main([[maybe_unused]] int argc, char *argv[]) {
   const std::string file_name(argv[1]);
   const std::size_t file_size = std::stoll(argv[2]);
 

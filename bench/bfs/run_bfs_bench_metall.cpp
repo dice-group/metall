@@ -7,7 +7,7 @@
 #include <string>
 #include <cstddef>
 
-#include <metall/metall.hpp>
+#include <dice/metall/metall.hpp>
 #include "../data_structure/multithread_adjacency_list.hpp"
 #include "bench_driver.hpp"
 
@@ -17,7 +17,7 @@ using vertex_id_type = uint64_t;
 
 using adjacency_list_type = data_structure::multithread_adjacency_list<
     vertex_id_type, vertex_id_type,
-    typename metall::manager::allocator_type<std::byte>>;
+    typename dice::metall::manager::allocator_type<std::byte>>;
 
 int main(int argc, char *argv[]) {
   bench_options<vertex_id_type> option;
@@ -26,9 +26,9 @@ int main(int argc, char *argv[]) {
   }
 
   {
-    // metall::logger::set_log_level(metall::logger::level::verbose);
+    // dice::metall::logger::set_log_level(dice::metall::logger::level::verbose);
 
-    metall::manager manager(metall::open_read_only,
+    dice::metall::manager manager(dice::metall::open_read_only,
                             option.graph_file_name_list[0].c_str());
     auto adj_list =
         manager.find<adjacency_list_type>(option.graph_key_name.c_str()).first;

@@ -8,15 +8,15 @@
 
 #include <iostream>
 
-#include <metall/detail/time.hpp>
-#include <metall/detail/memory.hpp>
-#include <metall/utility/open_mp.hpp>
+#include <dice/metall/detail/time.hpp>
+#include <dice/metall/detail/memory.hpp>
+#include <dice/metall/utility/open_mp.hpp>
 
 namespace adjacency_list_bench {
 
 namespace {
-namespace mdtl = metall::mtlldetail;
-namespace omp = metall::utility::omp;
+namespace mdtl = dice::metall::mtlldetail;
+namespace omp = dice::metall::utility::omp;
 }  // namespace
 
 inline void print_current_num_page_faults() {
