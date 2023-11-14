@@ -24,48 +24,12 @@
 */
 var NAVTREE =
 [
-  [ "Metall", "index.html", [
-    [ "Namespaces", "namespaces.html", [
-      [ "Namespace List", "namespaces.html", "namespaces_dup" ],
-      [ "Namespace Members", "namespacemembers.html", [
-        [ "All", "namespacemembers.html", null ],
-        [ "Functions", "namespacemembers_func.html", null ],
-        [ "Typedefs", "namespacemembers_type.html", null ]
-      ] ]
-    ] ],
-    [ "Classes", "annotated.html", [
-      [ "Class List", "annotated.html", "annotated_dup" ],
-      [ "Class Index", "classes.html", null ],
-      [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
-      [ "Class Members", "functions.html", [
-        [ "All", "functions.html", "functions_dup" ],
-        [ "Functions", "functions_func.html", "functions_func" ],
-        [ "Variables", "functions_vars.html", null ],
-        [ "Typedefs", "functions_type.html", null ],
-        [ "Enumerations", "functions_enum.html", null ],
-        [ "Related Functions", "functions_rela.html", null ]
-      ] ]
-    ] ],
-    [ "Files", "files.html", [
-      [ "File List", "files.html", "files_dup" ],
-      [ "File Members", "globals.html", [
-        [ "All", "globals.html", null ],
-        [ "Functions", "globals_func.html", null ],
-        [ "Variables", "globals_vars.html", null ],
-        [ "Typedefs", "globals_type.html", null ],
-        [ "Macros", "globals_defs.html", null ]
-      ] ]
-    ] ],
-    [ "Examples", "examples.html", "examples" ]
-  ] ]
+  [ "Metall", "index.html", ]
 ];
 
 var NAVTREEINDEX =
 [
-"adjacency__list_8hpp.html",
-"classmetall_1_1json_1_1array.html",
-"classmetall_1_1utility_1_1metall__mpi__adaptor.html#af97ebd454ad2a2623c668523156de4c6",
-"namespacemetall_1_1json.html"
+"index.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
