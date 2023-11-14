@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(metall VERSION 0.26.0
+project(metall VERSION 0.26.1
         DESCRIPTION "A persistent memory allocator for data-centric analytics")
 
 include(cmake/boilerplate_init.cmake)
