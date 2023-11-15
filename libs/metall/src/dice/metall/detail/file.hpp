@@ -32,8 +32,6 @@
 
 #include <dice/metall/logger.hpp>
 
-#include <boost/process.hpp>
-
 namespace dice::metall::mtlldetail {
 
 /**
@@ -281,54 +279,165 @@ inline bool copy_file_dense(const std::filesystem::path &source_path,
 }
 
 #ifdef __linux__
-inline bool prepare_file_copy_linux(const std::filesystem::path &source_path,
-                                    const std::filesystem::path &destination_path,
-                                    int *src,
-                                    int *dst) {
+/**
+ * @brief Prepares a file copy from source_path to destination_path
+ *      by opening/creating the relevant files and setting appropriate permissions.
+ *
+ * @param source_path path to source file
+ * @param destination_path desired path of destination file
+ * @param src out parameter for the file descriptor opened for source_path (will be opened read only)
+ * @param dst out parameter for the file descriptor opened for destination_path (will be opened write only)
+ * @return on success: size of source file as obtained by ::fstat. on failure: -1
+ *
+ * @warning if the function fails the user must not use the obtained src and dst file descriptors in any way
+ *      (they don't need to be closed)
+ */
+inline off_t prepare_file_copy_linux(const std::filesystem::path &source_path,
+                                     const std::filesystem::path &destination_path,
+                                     int *src,
+                                     int *dst) {
   *src = ::open(source_path.c_str(), O_RDONLY);
   if (*src == -1) {
     METALL_ERRNO_ERROR("Unable to open {}", source_path.c_str());
-    return false;
+    return -1;
   }
 
   struct stat st;
   if (::fstat(*src, &st) == -1) {
     METALL_ERRNO_ERROR("Unable to stat {}", source_path.c_str());
     os_close(*src);
-    return false;
+    return -1;
   }
 
   *dst = ::open(destination_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, st.st_mode);
   if (*dst == -1) {
     METALL_ERRNO_ERROR("Unable to open {}", destination_path.c_str());
     os_close(*src);
+    return -1;
+  }
+
+  return st.st_size;
+}
+
+/**
+ * Creates a hole of size size after the current cursor of fd.
+ * Moves cursor of fd behind the created hole.
+ *
+ * @param fd file descriptor
+ * @param size size of to-be-created hole
+ * @return if creation was successful
+ *
+ * Relevant man pages:
+ *      https://www.man7.org/linux/man-pages/man2/lseek.2.html
+ *      https://man7.org/linux/man-pages/man2/fallocate.2.html
+ */
+inline bool create_hole_linux(int fd, off_t size) {
+  if (size == 0) {
+    return true;
+  }
+
+  // Seek size bytes past the current position
+  off_t new_file_end = ::lseek(fd, size, SEEK_CUR);
+  if (new_file_end < 0) {
+    METALL_ERRNO_ERROR("lseek");
+    return false;
+  }
+
+  // punch a hole from old cursor to new cursor
+  if (::fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, new_file_end - size, size) < 0) {
+    METALL_ERRNO_ERROR("fallocate punch hole");
     return false;
   }
 
   return true;
 }
 
-inline bool copy_file_sparse_linux(const std::filesystem::path &source_path,
-                                   const std::filesystem::path &destination_path) {
-  try {
-    namespace bp = boost::process;
+/**
+ * Performs a sparse copy from src to dst, by only copying actual data and manually recreating
+ * all holes from src in dst.
+ *
+ * I.e. for each "segment" (data segment or hole) in src do
+ *      if segment is data => copy segment to dst
+ *      if segment is hole => create new hole (of the appropriate size) in dst
+ *
+ * @param src source file descriptor
+ * @param dst destination file descriptor
+ * @param src_size size of file behind src as obtained by ::fstat
+ * @return if copying was successful
+ *
+ * Relevant man pages:
+ *      https://www.man7.org/linux/man-pages/man2/lseek.2.html
+ *      https://www.man7.org/linux/man-pages/man2/copy_file_range.2.html
+ *      https://www.man7.org/linux/man-pages/man3/ftruncate.3p.html
+ */
+inline bool copy_file_sparse_linux(int src, int dst, off_t src_size) {
+  off_t old_off = 0;
+  off_t off = 0;
 
-    bp::ipstream is;
-    bp::child c{"/usr/bin/cp", "--sparse=always", source_path.c_str(), destination_path.c_str(),
-                bp::std_out > bp::null,
-                bp::std_err > is};
-
-    c.wait();
-    if (c.exit_code() == 0) {
-      fsync(destination_path);
-      return true;
+  while ((off = ::lseek(src, off, SEEK_DATA)) >= 0) {
+    if (!create_hole_linux(dst, off - old_off)) {
+      METALL_ERROR("Unable to punch hole");
+      return false;
     }
 
-    std::string error;
-    std::copy(std::istreambuf_iterator<char>{is}, std::istreambuf_iterator<char>{}, std::back_inserter(error));
-    METALL_ERROR("Error during sparse copy: {}", error);
-  } catch (...) {
-    METALL_ERROR("Unable to spawn child /usr/bin/cp");
+    off_t const hole_start = ::lseek(src, off, SEEK_HOLE);
+    if (hole_start < 0) {
+      METALL_ERRNO_ERROR("fseek(SEEK_HOLE)");
+      return false;
+    }
+
+    if (::copy_file_range(src, &off, dst, nullptr, hole_start - off, 0) < 0) {
+      METALL_ERRNO_ERROR("copy_file_range");
+      return false;
+    }
+
+    old_off = off;
+  }
+
+  if (errno != ENXIO) {
+    // error condition: offset is _not_ within a hole at the end of the file.
+    // previous lseek from while-loop condition must have failed
+    METALL_ERRNO_ERROR("fseek(SEEK_DATA)");
+    return false;
+  }
+
+  if (old_off < src_size) {
+    // the final extent is a hole we must call ftruncate
+    // here in order to record the proper length in the destination.
+    // See also: https://github.com/coreutils/coreutils/blob/a257b63ce7ebcc4577adb5406b39fc0edd61dcac/src/copy.c#L643-L658
+    if (::ftruncate(dst, src_size) < 0) {
+      METALL_ERRNO_ERROR("ftruncate");
+      return false;
+    }
+  }
+
+  if (!create_hole_linux(dst, src_size - old_off)) {
+    METALL_ERROR("Unable to punch hole");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Attempts to perform a sparse copy from source_path to destination_path,
+ * falling back to regular copy if the sparse copy fails.
+ */
+inline bool copy_file_sparse_linux(const std::filesystem::path &source_path,
+                                   const std::filesystem::path &destination_path) {
+  int src;
+  int dst;
+  off_t src_size = prepare_file_copy_linux(source_path, destination_path, &src, &dst);
+  if (src_size < 0) {
+    METALL_ERROR("Unable to prepare for file copy");
+    return false;
+  }
+
+  if (copy_file_sparse_linux(src, dst, src_size)) {
+    os_fsync(dst);
+    os_close(src);
+    os_close(dst);
+    return true;
   }
 
   METALL_WARN("Unable to sparse copy {} to {}, falling back to normal copy", source_path.c_str(), destination_path.c_str());

@@ -20,7 +20,6 @@ namespace dice::metall::mtlldetail {
 
 namespace file_clone_detail {
 #ifdef __linux__
-
 /**
  * Clone file using
  * https://man7.org/linux/man-pages/man2/ioctl_ficlone.2.html
@@ -33,11 +32,17 @@ inline bool clone_file_linux(int src, int dst) {
 #endif  // defined(FICLONE)
 }
 
+/**
+ * Attempts to perform an O(1) clone of source_path to destionation_path
+ * if cloning fails, falls back to sparse copying
+ * if sparse copying fails, falls back to regular copying
+ */
 inline bool clone_file_linux(const std::filesystem::path &source_path,
                              const std::filesystem::path &destination_path) {
   int src;
   int dst;
-  if (!file_copy_detail::prepare_file_copy_linux(source_path, destination_path, &src, &dst)) {
+  off_t src_size = file_copy_detail::prepare_file_copy_linux(source_path, destination_path, &src, &dst);
+  if (src_size < 0) {
     METALL_ERROR("Unable to prepare for file copy");
     return false;
   }
@@ -54,14 +59,15 @@ inline bool clone_file_linux(const std::filesystem::path &source_path,
   }
 
   METALL_WARN("Unable to clone {} to {}, falling back to sparse copy", source_path.c_str(), destination_path.c_str());
-  os_close(src);
-  os_close(dst);
 
-  if (file_copy_detail::copy_file_sparse_linux(source_path, destination_path)) {
+  if (file_copy_detail::copy_file_sparse_linux(src, dst, src_size)) {
+    close_fsync_all();
     return true;
   }
 
   METALL_WARN("Unable to sparse copy {} to {}, falling back to normal copy", source_path.c_str(), destination_path.c_str());
+  os_close(src);
+  os_close(dst);
 
   if (file_copy_detail::copy_file_dense(source_path, destination_path)) {
     return true;
