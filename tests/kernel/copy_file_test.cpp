@@ -216,7 +216,7 @@ TEST(CopyFileTest, CopyFileSparseLinux) {
 
 void fill_file(int fd) {
   std::vector<char> buf;
-  std::uniform_int_distribution<char> dist{0, std::numeric_limits<char>::max()};
+  std::uniform_int_distribution<char> dist{1, std::numeric_limits<char>::max()};
 
   for (size_t ix = 0; ix < FILE_SIZE; ++ix) {
     buf.push_back(dist(rng));
@@ -307,7 +307,10 @@ std::vector<std::pair<off_t, off_t>> get_holes(int fd) {
 
   struct stat st;
   fstat(fd, &st);
-  holes.emplace_back(hole_start, st.st_size);
+
+  if (hole_start < st.st_size) {
+    holes.emplace_back(hole_start, st.st_size);
+  }
 
   return holes;
 }
