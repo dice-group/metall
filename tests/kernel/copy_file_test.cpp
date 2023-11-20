@@ -103,9 +103,14 @@ void check_files_eq(int a, int b);
 std::vector<std::pair<off_t, off_t>> get_holes(int fd);
 
 /**
+ * print all holes in fd
+ */
+ void list_holes(int fd);
+
+/**
  * Checks if the holes in a and b are in the same places and of the same size
  */
-void check_holes_eq(int a, int b, bool print_common = false);
+void check_holes_eq(int a, int b);
 
 
 TEST(CopyFileTest, CopyFileSparseLinux) {
@@ -161,7 +166,8 @@ TEST(CopyFileTest, CopyFileSparseLinux) {
       dstoss << dst2p;
 
       auto cmd = std::format("cp --sparse=always {} {}", srcoss.str(), dstoss.str());
-      std::system(cmd.c_str());
+      int res = std::system(cmd.c_str());
+      assert(WIFEXITED(res));
     }
 
     int src = ::open(srcp.c_str(), O_RDONLY);
@@ -182,9 +188,21 @@ TEST(CopyFileTest, CopyFileSparseLinux) {
       std::exit(1);
     }
 
+    std::cout << "src holes:\n";
+    list_holes(src);
+    std::cout << std::endl;
+
+    std::cout << "dst holes:\n";
+    list_holes(dst);
+    std::cout << std::endl;
+
+    std::cout << "dst2 holes:\n";
+    list_holes(dst2);
+    std::cout << std::endl;
+
     std::cout << "comparing src, dst" << std::endl;
-    check_holes_eq(src, dst, true);
     check_files_eq(src, dst);
+    check_holes_eq(src, dst);
 
     std::cout << "comparing dst, dst2" << std::endl;
     check_files_eq(dst, dst2);
@@ -294,34 +312,25 @@ std::vector<std::pair<off_t, off_t>> get_holes(int fd) {
   return holes;
 }
 
-void check_holes_eq(int a, int b, bool print_common) {
+void list_holes(int fd) {
+  auto holes = get_holes(fd);
+  for (auto const &hole : holes) {
+    std::cout << "hole: " << hole.first << ".." << hole.second << std::endl;
+  }
+}
+
+void check_holes_eq(int a, int b) {
   auto holes_a = get_holes(a);
   auto holes_b = get_holes(b);
 
-  for (auto const &hole : holes_a) {
-    std::cout << "hole in A: " << hole.first << ".." << hole.second << std::endl;
-  }
-
-  for (auto const &hole : holes_b) {
-    std::cout << "hole in B: " << hole.first << ".." << hole.second << std::endl;
-  }
-
-  if (holes_a.size() != holes_b.size()) {
-    assert(false);
-  }
+  assert(holes_a.size() == holes_b.size());
 
   for (size_t ix = 0; ix < holes_a.size(); ++ix) {
     if (holes_a[ix] != holes_b[ix]) {
       std::cerr << "hole mismatch: " << holes_a[ix].first << ".." << holes_a[ix].second << " vs " << holes_b[ix].first << ".." << holes_b[ix].second << std::endl;
       assert(false);
     }
-
-    if (print_common) {
-      std::cout << "common hole: " << holes_a[ix].first << ".." << holes_a[ix].second << std::endl;
-    }
   }
-
-  std::cout << std::endl;
 }
 
 }  // namespace
