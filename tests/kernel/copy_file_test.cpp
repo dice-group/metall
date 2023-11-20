@@ -236,7 +236,7 @@ void fill_file(int fd) {
   assert(st.st_size == FILE_SIZE);
 
   auto [ptr, sz] = mmap(fd);
-  for (size_t ix = 0; ix < sz; ++ix) {
+  for (size_t ix = 0; ix < static_cast<size_t>(sz); ++ix) {
     assert(ptr[ix] != 0);
   }
 }
