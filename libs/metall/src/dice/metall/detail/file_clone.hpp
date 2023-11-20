@@ -28,6 +28,7 @@ inline bool clone_file_linux(const int src, const int dst) {
 #ifdef FICLONE
   return ::ioctl(dst, FICLONE, src) != -1;
 #else
+  errno = ENOTSUP;
   return false;
 #endif  // defined(FICLONE)
 }

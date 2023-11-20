@@ -6,7 +6,9 @@
 #ifndef METALL_DETAIL_UTILITY_FILE_HPP
 #define METALL_DETAIL_UTILITY_FILE_HPP
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -270,7 +272,7 @@ inline bool copy_file_dense(const std::filesystem::path &source_path,
                        std::filesystem::copy_options::overwrite_existing)) {
       METALL_ERROR("Failed copying file {} to {}", source_path.c_str(), destination_path.c_str());
       success = false;
-    }
+                       }
   } catch (std::filesystem::filesystem_error &e) {
     METALL_ERROR("{}", e.what());
     success = false;
@@ -347,7 +349,7 @@ inline bool create_hole_linux(const int fd, const off_t size) {
 
   // punch a hole from old cursor to new cursor
   if (::fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, hole_end - size, size) < 0) {
-    METALL_ERRNO_ERROR("fallocate punch hole");
+    METALL_ERRNO_ERROR("fallocate(FALLOC_FL_PUNCH_HOLE)");
     return false;
   }
 
@@ -453,6 +455,56 @@ inline bool copy_file_sparse_linux(const std::filesystem::path &source_path,
   METALL_ERROR("Unable to copy {} to {}", source_path.c_str(), destination_path.c_str());
   return false;
 }
+
+/**
+ * @brief Performs an accelerated, in-kernel copy from src to dst
+ * @param src source file descriptor
+ * @param dst destination file descriptor
+ * @param src_size size of source file as obtained by ::fstat(src)
+ * @return if the operation was successful
+ *
+ * @note this function only can theoretically do something
+ *    more efficient than a dense copy
+ *
+ * Relevant man pages:
+ *    - https://www.man7.org/linux/man-pages/man2/copy_file_range.2.html
+ */
+inline bool copy_file_dense_linux(const int src, const int dst, const off_t src_size) {
+  if (::copy_file_range(src, nullptr, dst, nullptr, src_size, 0) < 0) {
+    METALL_ERRNO_ERROR("copy_file_range");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * @brief performs a dense copy from source_path to destionation_path
+ * @param source_path path to source file
+ * @param destination_path path to destination file
+ * @return if the operation was successful
+ */
+inline bool copy_file_dense_linux(const std::filesystem::path &source_path,
+                                  const std::filesystem::path &destination_path) {
+  int src;
+  int dst;
+  const off_t src_size = prepare_file_copy_linux(source_path, destination_path, &src, &dst);
+  if (src_size >= 0) {
+    if (copy_file_dense_linux(src, dst, src_size)) {
+      os_fsync(dst);
+      os_close(src);
+      os_close(dst);
+      return true;
+    }
+  }
+
+  os_close(src);
+  os_close(dst);
+  METALL_WARN("Unable to use accelerated dense copy, falling back to unaccelerated dense copy");
+
+  return copy_file_dense(source_path, destination_path);
+}
+
 #endif  // __linux__
 }  // namespace file_copy_detail
 
@@ -466,14 +518,17 @@ inline bool copy_file(const std::filesystem::path &source_path,
                       const bool sparse_copy = true) {
   if (sparse_copy) {
 #ifdef __linux__
-    return file_copy_detail::copy_file_sparse_linux(source_path,
-                                                    destination_path);
+    return file_copy_detail::copy_file_sparse_linux(source_path, destination_path);
 #else
     METALL_WARN("Sparse file copy is only supported on linux, falling back to normal copy");
 #endif
   }
 
+#ifdef __linux__
+  return file_copy_detail::copy_file_dense_linux(source_path, destination_path);
+#else
   return file_copy_detail::copy_file_dense(source_path, destination_path);
+#endif
 }
 
 /// \brief Get the file names in a directory.
