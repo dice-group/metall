@@ -330,6 +330,7 @@ inline off_t prepare_file_copy_linux(const std::filesystem::path &source_path,
  * @param fd file descriptor
  * @param size size of to-be-created hole
  * @return if creation was successful
+ * @note the cursor position will still be advanced even if hole punching fails
  *
  * Relevant man pages:
  *      https://www.man7.org/linux/man-pages/man2/lseek.2.html
