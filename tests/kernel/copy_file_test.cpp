@@ -95,7 +95,7 @@ std::pair<unsigned char const *, off_t> mmap(int fd);
 /**
  * Checks if files a and b are equal byte by byte
  */
-void check_files_eq(int a, int b, std::vector<std::pair<off_t, off_t>> const &holes_a, std::vector<std::pair<off_t, off_t>> const &holes_b);
+void check_files_eq(int a, int b);
 
 /**
  * Returns a list of all holes in the given file
@@ -204,16 +204,16 @@ TEST(CopyFileTest, CopyFileSparseLinux) {
     std::cout << std::endl;
 
     std::cout << "comparing src, dst" << std::endl;
-    check_files_eq(src, dst, holes_src, holes_dst);
+    check_files_eq(src, dst);
     check_holes_eq(holes_src, holes_dst);
 
     // Not comparing holes to what cp produced because
     // it tries to find more holes in the file or extend existing ones
     std::cout << "comparing dst, dst2" << std::endl;
-    check_files_eq(dst, dst2, holes_dst, holes_dst2);
+    check_files_eq(dst, dst2);
 
     std::cout << "comparing dst2, src" << std::endl;
-    check_files_eq(dst2, src, holes_dst2, holes_src);
+    check_files_eq(dst2, src);
 
     std::cout << std::endl;
   }
@@ -302,13 +302,7 @@ std::pair<unsigned char const *, off_t> mmap(int fd) {
   return {static_cast<unsigned char const *>(ptr), st.st_size};
 }
 
-bool in_hole(off_t off, std::vector<std::pair<off_t, off_t>> const &holes) {
-  return std::ranges::any_of(holes, [off](auto const &hole) {
-    return off >= hole.first && off < hole.second;
-  });
-}
-
-void check_files_eq(int a, int b, std::vector<std::pair<off_t, off_t>> const &holes_a, std::vector<std::pair<off_t, off_t>> const &holes_b) {
+void check_files_eq(int a, int b) {
   auto am = mmap(a);
   auto a_ptr = am.first;
   auto a_size = am.second;
