@@ -215,8 +215,8 @@ TEST(CopyFileTest, CopyFileSparseLinux) {
 }
 
 void fill_file(int fd) {
-  std::vector<char> buf;
-  std::uniform_int_distribution<char> dist{1, std::numeric_limits<char>::max()};
+  std::vector<unsigned char> buf;
+  std::uniform_int_distribution<unsigned char> dist{1, std::numeric_limits<char>::max()};
 
   for (size_t ix = 0; ix < FILE_SIZE; ++ix) {
     buf.push_back(dist(rng));
