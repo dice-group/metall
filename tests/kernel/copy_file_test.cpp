@@ -298,15 +298,15 @@ void check_holes_eq(int a, int b, bool print_common) {
   auto holes_a = get_holes(a);
   auto holes_b = get_holes(b);
 
+  for (auto const &hole : holes_a) {
+    std::cout << "hole in A: " << hole.first << ".." << hole.second << std::endl;
+  }
+
+  for (auto const &hole : holes_b) {
+    std::cout << "hole in B: " << hole.first << ".." << hole.second << std::endl;
+  }
+
   if (holes_a.size() != holes_b.size()) {
-    for (auto const &hole : holes_a) {
-      std::cout << "hole in A: " << hole.first << ".." << hole.second << std::endl;
-    }
-
-    for (auto const &hole : holes_b) {
-      std::cout << "hole in B: " << hole.first << ".." << hole.second << std::endl;
-    }
-
     assert(false);
   }
 
