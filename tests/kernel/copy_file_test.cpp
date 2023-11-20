@@ -95,7 +95,7 @@ std::pair<char const *, off_t> mmap(int fd);
 /**
  * Checks if files a and b are equal byte by byte
  */
-void check_files_eq(int a, int b);
+void check_files_eq(int a, int b, std::vector<std::pair<off_t, off_t>> const &holes_a, std::vector<std::pair<off_t, off_t>> const &holes_b);
 
 /**
  * Returns a list of all holes in the given file
@@ -105,12 +105,12 @@ std::vector<std::pair<off_t, off_t>> get_holes(int fd);
 /**
  * print all holes in fd
  */
- void list_holes(int fd);
+ void list_holes(std::vector<std::pair<off_t, off_t>> const &holes);
 
 /**
  * Checks if the holes in a and b are in the same places and of the same size
  */
-void check_holes_eq(int a, int b);
+void check_holes_eq(std::vector<std::pair<off_t, off_t>> const &holes_a, std::vector<std::pair<off_t, off_t>> const &holes_b);
 
 
 TEST(CopyFileTest, CopyFileSparseLinux) {
@@ -188,29 +188,33 @@ TEST(CopyFileTest, CopyFileSparseLinux) {
       std::exit(1);
     }
 
+    auto holes_src = get_holes(src);
+    auto holes_dst = get_holes(dst);
+    auto holes_dst2 = get_holes(dst2);
+
     std::cout << "src holes:\n";
-    list_holes(src);
+    list_holes(holes_src);
     std::cout << std::endl;
 
     std::cout << "dst holes:\n";
-    list_holes(dst);
+    list_holes(holes_dst);
     std::cout << std::endl;
 
     std::cout << "dst2 holes:\n";
-    list_holes(dst2);
+    list_holes(holes_dst2);
     std::cout << std::endl;
 
     std::cout << "comparing src, dst" << std::endl;
-    check_files_eq(src, dst);
-    check_holes_eq(src, dst);
+    check_files_eq(src, dst, holes_src, holes_dst);
+    check_holes_eq(holes_src, holes_dst);
 
     std::cout << "comparing dst, dst2" << std::endl;
-    check_files_eq(dst, dst2);
-    check_holes_eq(dst, dst2);
+    check_files_eq(dst, dst2, holes_dst, holes_dst2);
+    check_holes_eq(holes_dst, holes_dst2);
 
     std::cout << "comparing dst2, src" << std::endl;
-    check_files_eq(dst2, src);
-    check_holes_eq(dst2, src);
+    check_files_eq(dst2, src, holes_dst2, holes_src);
+    check_holes_eq(holes_dst2, holes_src);
   }
 }
 
@@ -269,10 +273,17 @@ std::pair<char const *, off_t> mmap(int fd) {
   return {static_cast<char const *>(ptr), st.st_size};
 }
 
-void check_files_eq(int a, int b) {
+bool in_hole(off_t off, std::vector<std::pair<off_t, off_t>> const &holes) {
+  return std::ranges::any_of(holes, [off](auto const &hole) {
+    return off >= hole.first && off < hole.second;
+  });
+}
+
+void check_files_eq(int a, int b, std::vector<std::pair<off_t, off_t>> const &holes_a, std::vector<std::pair<off_t, off_t>> const &holes_b) {
   auto am = mmap(a);
   auto a_ptr = am.first;
   auto a_size = am.second;
+
   auto bm = mmap(b);
   auto b_ptr = bm.first;
   auto b_size = bm.second;
@@ -280,6 +291,18 @@ void check_files_eq(int a, int b) {
   assert(a_size == b_size);
 
   for (size_t ix = 0; ix < static_cast<size_t>(a_size); ++ix) {
+    if (in_hole(ix, holes_a)) {
+      assert(a_ptr[ix] == 0);
+    } else {
+      assert(a_ptr[ix] != 0);
+    }
+
+    if (in_hole(ix, holes_b)) {
+      assert(b_ptr[ix] == 0);
+    } else {
+      assert(b_ptr[ix] != 0);
+    }
+
     if (a_ptr[ix] != b_ptr[ix]) {
       std::cerr << "found different bytes: " << std::hex << static_cast<int>(a_ptr[ix]) << " vs " << static_cast<int>(b_ptr[ix]) << std::endl;
       assert(false);
@@ -288,6 +311,7 @@ void check_files_eq(int a, int b) {
 }
 
 std::vector<std::pair<off_t, off_t>> get_holes(int fd) {
+  lseek(fd, 0, SEEK_SET);
   std::vector<std::pair<off_t, off_t>> holes;
 
   off_t off = 0;
@@ -315,17 +339,13 @@ std::vector<std::pair<off_t, off_t>> get_holes(int fd) {
   return holes;
 }
 
-void list_holes(int fd) {
-  auto holes = get_holes(fd);
+void list_holes(std::vector<std::pair<off_t, off_t>> const &holes) {
   for (auto const &hole : holes) {
     std::cout << "hole: " << hole.first << ".." << hole.second << std::endl;
   }
 }
 
-void check_holes_eq(int a, int b) {
-  auto holes_a = get_holes(a);
-  auto holes_b = get_holes(b);
-
+void check_holes_eq(std::vector<std::pair<off_t, off_t>> const &holes_a, std::vector<std::pair<off_t, off_t>> const &holes_b) {
   assert(holes_a.size() == holes_b.size());
 
   for (size_t ix = 0; ix < holes_a.size(); ++ix) {
