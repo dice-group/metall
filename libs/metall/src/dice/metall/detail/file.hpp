@@ -413,11 +413,11 @@ inline bool copy_file_sparse_linux(const int src, const int dst, const off_t src
       METALL_ERRNO_ERROR("ftruncate");
       return false;
     }
-  }
 
-  if (!create_hole_linux(dst, src_size - old_off)) {
-    METALL_ERROR("Unable to punch hole");
-    return false;
+    if (!create_hole_linux(dst, src_size - old_off)) {
+      METALL_ERROR("Unable to punch hole");
+      return false;
+    }
   }
 
   return true;
