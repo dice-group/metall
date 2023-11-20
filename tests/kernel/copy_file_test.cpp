@@ -90,7 +90,7 @@ void punch_holes(int fd, bool hole_at_start = false, bool hole_at_end = false);
 /**
  * Convenience wrapper around ::mmap
  */
-std::pair<char const *, off_t> mmap(int fd);
+std::pair<unsigned char const *, off_t> mmap(int fd);
 
 /**
  * Checks if files a and b are equal byte by byte
@@ -112,7 +112,6 @@ std::vector<std::pair<off_t, off_t>> get_holes(int fd);
  */
 void check_holes_eq(std::vector<std::pair<off_t, off_t>> const &holes_a, std::vector<std::pair<off_t, off_t>> const &holes_b);
 
-
 TEST(CopyFileTest, CopyFileSparseLinux) {
   auto srcp = test_utility::make_test_path("copy_file_sparse-src.bin");
   auto dstp = test_utility::make_test_path("copy_file_sparse-dst.bin");
@@ -126,7 +125,7 @@ TEST(CopyFileTest, CopyFileSparseLinux) {
     std::filesystem::remove(dst2p);
 
     {
-      int src = ::open(srcp.c_str(), O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+      int src = ::open(srcp.c_str(), O_CREAT | O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
       if (src == -1) {
         perror("open");
         std::exit(1);
@@ -208,13 +207,15 @@ TEST(CopyFileTest, CopyFileSparseLinux) {
     check_files_eq(src, dst, holes_src, holes_dst);
     check_holes_eq(holes_src, holes_dst);
 
+    // Not comparing holes to what cp produced because
+    // it tries to find more holes in the file or extend existing ones
     std::cout << "comparing dst, dst2" << std::endl;
     check_files_eq(dst, dst2, holes_dst, holes_dst2);
-    check_holes_eq(holes_dst, holes_dst2);
 
     std::cout << "comparing dst2, src" << std::endl;
     check_files_eq(dst2, src, holes_dst2, holes_src);
-    check_holes_eq(holes_dst2, holes_src);
+
+    std::cout << std::endl;
   }
 }
 
@@ -224,21 +225,37 @@ void fill_file(int fd) {
 
   for (size_t ix = 0; ix < FILE_SIZE; ++ix) {
     buf.push_back(dist(rng));
+    assert(buf.back() != 0);
   }
 
   size_t bytes_written = write(fd, buf.data(), buf.size());
   assert(bytes_written == FILE_SIZE);
+
+  struct stat st;
+  fstat(fd, &st);
+  assert(st.st_size == FILE_SIZE);
+
+  auto [ptr, sz] = mmap(fd);
+  for (size_t ix = 0; ix < sz; ++ix) {
+    assert(ptr[ix] != 0);
+  }
 }
 
 void punch_holes(int fd, bool hole_at_start, bool hole_at_end) {
+  std::vector<std::pair<off_t, off_t>> holes;
+
   std::uniform_int_distribution<size_t> hole_num_dist{static_cast<size_t>(1 + hole_at_start + hole_at_end), 10};
   std::uniform_int_distribution<off_t> hole_size_dist{1, FILE_SIZE/10};
   std::uniform_int_distribution<off_t> hole_off_dist{0, FILE_SIZE - FILE_SIZE/10};
+
+  std::cout << "punched holes:\n";
 
   auto num_holes = hole_num_dist(rng);
   for (size_t ix = 0; ix < num_holes - hole_at_end - hole_at_end; ++ix) {
     auto hole_start = hole_off_dist(rng);
     auto hole_size = hole_size_dist(rng);
+
+    holes.emplace_back(hole_start, hole_start + hole_size);
 
     if (fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, hole_start, hole_size) == -1) {
       perror("fallocate (punch_holes)");
@@ -247,7 +264,10 @@ void punch_holes(int fd, bool hole_at_start, bool hole_at_end) {
   }
 
   if (hole_at_start) {
-    if (fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, 0, hole_size_dist(rng)) == -1) {
+    auto sz = hole_size_dist(rng);
+    holes.emplace_back(0, sz);
+
+    if (fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, 0, sz) == -1) {
       perror("fallocate (punch_holes)");
       std::exit(1);
     }
@@ -255,14 +275,23 @@ void punch_holes(int fd, bool hole_at_start, bool hole_at_end) {
 
   if (hole_at_end) {
     auto sz = hole_size_dist(rng);
-    if (fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, 4096*4*6 - sz, sz) == -1) {
+    holes.emplace_back(FILE_SIZE - sz, FILE_SIZE);
+
+    if (fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, FILE_SIZE - sz, sz) == -1) {
       perror("fallocate (punch_holes)");
       std::exit(1);
     }
   }
+
+  std::ranges::sort(holes);
+  for (auto const &[start, end] : holes) {
+    std::cout << start << ".." << end << std::endl;
+  }
+
+  std::cout << std::endl;
 }
 
-std::pair<char const *, off_t> mmap(int fd) {
+std::pair<unsigned char const *, off_t> mmap(int fd) {
   struct stat st;
   int res = fstat(fd, &st);
   assert(res >= 0);
@@ -270,7 +299,7 @@ std::pair<char const *, off_t> mmap(int fd) {
   auto *ptr = ::mmap(nullptr, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
   assert(ptr != MAP_FAILED);
 
-  return {static_cast<char const *>(ptr), st.st_size};
+  return {static_cast<unsigned char const *>(ptr), st.st_size};
 }
 
 bool in_hole(off_t off, std::vector<std::pair<off_t, off_t>> const &holes) {
@@ -291,18 +320,6 @@ void check_files_eq(int a, int b, std::vector<std::pair<off_t, off_t>> const &ho
   assert(a_size == b_size);
 
   for (size_t ix = 0; ix < static_cast<size_t>(a_size); ++ix) {
-    if (in_hole(ix, holes_a)) {
-      assert(a_ptr[ix] == 0);
-    } else {
-      assert(a_ptr[ix] != 0);
-    }
-
-    if (in_hole(ix, holes_b)) {
-      assert(b_ptr[ix] == 0);
-    } else {
-      assert(b_ptr[ix] != 0);
-    }
-
     if (a_ptr[ix] != b_ptr[ix]) {
       std::cerr << "found different bytes: " << std::hex << static_cast<int>(a_ptr[ix]) << " vs " << static_cast<int>(b_ptr[ix]) << std::endl;
       assert(false);
