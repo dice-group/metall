@@ -6,6 +6,8 @@
 #ifndef METALL_DETAIL_UTILITY_FILE_HPP
 #define METALL_DETAIL_UTILITY_FILE_HPP
 
+#define _GNU_SOURCE
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/resource.h>
@@ -320,7 +322,7 @@ inline off_t prepare_file_copy_linux(const std::filesystem::path &source_path,
 }
 
 /**
- * Creates a hole of size size after the current cursor of fd.
+ * Creates a hole of size size at the current cursor of fd.
  * Moves cursor of fd behind the created hole.
  *
  * @param fd file descriptor
@@ -331,20 +333,20 @@ inline off_t prepare_file_copy_linux(const std::filesystem::path &source_path,
  *      https://www.man7.org/linux/man-pages/man2/lseek.2.html
  *      https://man7.org/linux/man-pages/man2/fallocate.2.html
  */
-inline bool create_hole_linux(int fd, off_t size) {
+inline bool create_hole_linux(const int fd, const off_t size) {
   if (size == 0) {
     return true;
   }
 
   // Seek size bytes past the current position
-  off_t new_file_end = ::lseek(fd, size, SEEK_CUR);
-  if (new_file_end < 0) {
+  const off_t hole_end = ::lseek(fd, size, SEEK_CUR);
+  if (hole_end < 0) {
     METALL_ERRNO_ERROR("lseek");
     return false;
   }
 
   // punch a hole from old cursor to new cursor
-  if (::fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, new_file_end - size, size) < 0) {
+  if (::fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, hole_end - size, size) < 0) {
     METALL_ERRNO_ERROR("fallocate punch hole");
     return false;
   }
@@ -370,7 +372,7 @@ inline bool create_hole_linux(int fd, off_t size) {
  *      https://www.man7.org/linux/man-pages/man2/copy_file_range.2.html
  *      https://www.man7.org/linux/man-pages/man3/ftruncate.3p.html
  */
-inline bool copy_file_sparse_linux(int src, int dst, off_t src_size) {
+inline bool copy_file_sparse_linux(const int src, const int dst, const off_t src_size) {
   off_t old_off = 0;
   off_t off = 0;
 
@@ -427,7 +429,7 @@ inline bool copy_file_sparse_linux(const std::filesystem::path &source_path,
                                    const std::filesystem::path &destination_path) {
   int src;
   int dst;
-  off_t src_size = prepare_file_copy_linux(source_path, destination_path, &src, &dst);
+  const off_t src_size = prepare_file_copy_linux(source_path, destination_path, &src, &dst);
   if (src_size < 0) {
     METALL_ERROR("Unable to prepare for file copy");
     return false;
@@ -441,6 +443,8 @@ inline bool copy_file_sparse_linux(const std::filesystem::path &source_path,
   }
 
   METALL_WARN("Unable to sparse copy {} to {}, falling back to normal copy", source_path.c_str(), destination_path.c_str());
+  os_close(src);
+  os_close(dst);
 
   if (copy_file_dense(source_path, destination_path)) {
     return true;

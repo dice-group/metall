@@ -24,7 +24,7 @@ namespace file_clone_detail {
  * Clone file using
  * https://man7.org/linux/man-pages/man2/ioctl_ficlone.2.html
  */
-inline bool clone_file_linux(int src, int dst) {
+inline bool clone_file_linux(const int src, const int dst) {
 #ifdef FICLONE
   return ::ioctl(dst, FICLONE, src) != -1;
 #else
@@ -41,13 +41,13 @@ inline bool clone_file_linux(const std::filesystem::path &source_path,
                              const std::filesystem::path &destination_path) {
   int src;
   int dst;
-  off_t src_size = file_copy_detail::prepare_file_copy_linux(source_path, destination_path, &src, &dst);
+  const off_t src_size = file_copy_detail::prepare_file_copy_linux(source_path, destination_path, &src, &dst);
   if (src_size < 0) {
     METALL_ERROR("Unable to prepare for file copy");
     return false;
   }
 
-  auto close_fsync_all = [&]() noexcept {
+  const auto close_fsync_all = [&]() noexcept {
     os_fsync(dst);
     os_close(src);
     os_close(dst);
