@@ -112,19 +112,16 @@ std::vector<std::pair<off_t, off_t>> get_holes(int fd);
  */
 void check_holes_eq(std::vector<std::pair<off_t, off_t>> const &holes_a, std::vector<std::pair<off_t, off_t>> const &holes_b);
 
-TEST(CopyFileTest, CopyFileSparseLinux) {
-  auto srcp = test_utility::make_test_path("copy_file_sparse-src.bin");
-  auto dstp = test_utility::make_test_path("copy_file_sparse-dst.bin");
-  auto dst2p = test_utility::make_test_path("copy_file_sparse-dst2.bin");
+template<typename P>
+void sparse_copy_test(std::filesystem::path const &srcp,
+                      std::filesystem::path const &dstp,
+                      std::filesystem::path const &dst2p,
+                      P &&punch_holes) {
+  std::filesystem::remove(srcp);
+  std::filesystem::remove(dstp);
+  std::filesystem::remove(dst2p);
 
-  std::uniform_int_distribution<size_t> b{0, 1};
-
-  for (size_t ix = 0; ix < 1000; ++ix) {
-    std::filesystem::remove(srcp);
-    std::filesystem::remove(dstp);
-    std::filesystem::remove(dst2p);
-
-    {
+  {
       int src = ::open(srcp.c_str(), O_CREAT | O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
       if (src == -1) {
         perror("open");
@@ -132,7 +129,7 @@ TEST(CopyFileTest, CopyFileSparseLinux) {
       }
 
       fill_file(src);
-      punch_holes(src, b(rng), b(rng));
+      punch_holes(src);
       close(src);
     }
 
@@ -216,8 +213,54 @@ TEST(CopyFileTest, CopyFileSparseLinux) {
     check_files_eq(dst2, src);
 
     std::cout << std::endl;
-  }
 }
+
+TEST(CopyFileTest, RandomizedCopyFileSparseLinux) {
+  auto srcp = test_utility::make_test_path("copy_file_sparse-src.bin");
+  auto dstp = test_utility::make_test_path("copy_file_sparse-dst.bin");
+  auto dst2p = test_utility::make_test_path("copy_file_sparse-dst2.bin");
+
+  std::uniform_int_distribution<size_t> b{0, 1};
+
+  for (size_t ix = 0; ix < 1000; ++ix) {
+    sparse_copy_test(srcp, dstp, dst2p, [&](int fd) {
+      punch_holes(fd, b(rng), b(rng));
+    });
+  }
+
+  std::filesystem::remove(srcp);
+  std::filesystem::remove(dstp);
+  std::filesystem::remove(dst2p);
+}
+
+TEST(CopyFileTest, AdjacentHolesCopyFileSparseLinux) {
+  auto srcp = test_utility::make_test_path("adj-copy_file_sparse-src.bin");
+  auto dstp = test_utility::make_test_path("adj-copy_file_sparse-dst.bin");
+  auto dst2p = test_utility::make_test_path("adj-copy_file_sparse-dst2.bin");
+
+  sparse_copy_test(srcp, dstp, dst2p, [&](int fd) {
+    std::cout << "punched holes:\n";
+
+    if (fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, 4096, 4096) == -1) {
+      perror("fallocate (punch_holes)");
+      std::exit(1);
+    }
+
+    std::cout << 4096 << ".." << (4096 * 2) << std::endl;
+
+    if (fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, 4096 * 2, 4096) == -1) {
+      perror("fallocate (punch_holes)");
+      std::exit(1);
+    }
+
+    std::cout << (4096 * 2) << ".." << (4096 * 3) << std::endl;
+  });
+
+  std::filesystem::remove(srcp);
+  std::filesystem::remove(dstp);
+  std::filesystem::remove(dst2p);
+}
+
 
 void fill_file(int fd) {
   std::vector<unsigned char> buf;
