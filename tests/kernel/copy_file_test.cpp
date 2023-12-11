@@ -89,6 +89,8 @@ void punch_holes(int fd, bool hole_at_start = false, bool hole_at_end = false);
 
 /**
  * Convenience wrapper around ::mmap
+ * @param fd file descriptor to mmap
+ * @return pair (pointer to mapped range, size of mapped range)
  */
 std::pair<unsigned char const *, off_t> mmap(int fd);
 
@@ -103,7 +105,7 @@ void check_files_eq(int a, int b);
 std::vector<std::pair<off_t, off_t>> get_holes(int fd);
 
 /**
- * print all holes in fd
+ * print all given holes
  */
  void list_holes(std::vector<std::pair<off_t, off_t>> const &holes);
 

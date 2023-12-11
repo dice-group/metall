@@ -464,9 +464,6 @@ inline bool copy_file_sparse_linux(const std::filesystem::path &source_path,
  * @param src_size size of source file as obtained by ::fstat(src)
  * @return if the operation was successful
  *
- * @note this function only can theoretically do something
- *    more efficient than a dense copy
- *
  * Relevant man pages:
  *    - https://www.man7.org/linux/man-pages/man2/copy_file_range.2.html
  */

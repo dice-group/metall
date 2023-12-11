@@ -112,7 +112,7 @@ class umap_sparse_segment_storage {
     // TODO: implement parallel copy version
 
     if (clone) {
-      METALL_TRACE("Clone: {} to {}", source_pathm, destination_path);
+      METALL_TRACE("Clone: {} to {}", source_path, destination_path);
       return mdtl::clone_file(source_path, destination_path);
     } else {
       METALL_TRACE("Copy: {} to {}", source_path, destination_path);
