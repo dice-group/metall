@@ -105,3 +105,7 @@ void *metall_malloc(metall_manager *manager, size_t size) {
 void metall_free(metall_manager *manager, void *addr) {
   reinterpret_cast<metall_manager_t *>(manager)->deallocate(addr);
 }
+
+void metall_flush(metall_manager *manager) {
+  reinterpret_cast<metall_manager_t *>(manager)->flush();
+}

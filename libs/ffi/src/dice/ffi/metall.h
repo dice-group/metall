@@ -13,23 +13,23 @@ typedef struct metall_manager metall_manager;
 /**
  * @brief Attempts to open the metall datastore at path
  * @param path path to datastore
- * @return true on success, false on failure. On failure, sets errno to one of the following values:
- *      - ENOTRECOVERABLE if the given metall datastore is inconsistent
+ * @return pointer to metall manager on success, NULL on failure. On failure, sets errno to one of the following values:
+ *      - ENOTRECOVERABLE if the given metall datastore is inconsistent or already opened as writable
  */
 metall_manager *metall_open(char const *path);
 
 /**
  * @brief Attempts to open the metall datastore at path in read only mode
  * @param path path to datastore
- * @return true on success, false on failure. On failure, sets errno to one of the following values:
- *      - ENOTRECOVERABLE if the given metall datastore is inconsistent
+ * @return pointer to metall manager on success, NULL on failure. On failure, sets errno to one of the following values:
+ *      - ENOTRECOVERABLE if the given metall datastore is inconsistent or already opened as writable
  */
 metall_manager *metall_open_read_only(char const *path);
 
 /**
  * @brief Attempts to create a metall datastore at path
  * @param path path at which to create a datastore
- * @return true on success, false on failure. On failure, sets errno to one of the following values:
+ * @return pointer to metall manager on success, NULL on failure. On failure, sets errno to one of the following values:
  *      - EEXIST if the given path already exists
  *      - ENOTRECOVERABLE if the datastore could not be created for some other reason
  */
@@ -101,6 +101,12 @@ void *metall_malloc(metall_manager *manager, size_t size);
  * @param addr pointer to allocation
  */
 void metall_free(metall_manager *manager, void *addr);
+
+/**
+ * @brief Flush data to persistent memory
+ * @param manager manager to flush
+ */
+void metall_flush(metall_manager *manager);
 
 #ifdef __cplusplus
 }
