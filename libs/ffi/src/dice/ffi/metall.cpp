@@ -1,60 +1,111 @@
-// Copyright 2019 Lawrence Livermore National Security, LLC and other Metall
-// Project Developers. See the top-level COPYRIGHT file for details.
-//
-// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#include <dice/ffi/metall.h>
+#include <dice/ffi/metall_internal.hpp>
 
-#include <dice/ffi/deprecated_metall.h>
-#include <dice/metall/metall.hpp>
+using metall_manager_t = dice::metall_ffi::internal::metall_manager;
 
-dice::metall::manager *g_manager = nullptr;
-
-int metall_open(const int mode, const char *const path) {
-  if (mode == METALL_CREATE_ONLY) {
-    g_manager = new dice::metall::manager(dice::metall::create_only, path);
-  } else if (mode == METALL_OPEN_ONLY) {
-    g_manager = new dice::metall::manager(dice::metall::open_only, path);
-  } else if (mode == METALL_OPEN_READ_ONLY) {
-    g_manager = new dice::metall::manager(dice::metall::open_read_only, path);
-  } else {
-    g_manager = nullptr;
+template <auto open_mode>
+metall_manager *open_impl(char const *path) {
+  if (!dice::metall::manager::consistent(path)) {
+    // prevents opening the same datastore twice
+    // (because opening removes the properly_closed_mark and this checks for it)
+    errno = ENOTRECOVERABLE;
+    return nullptr;
   }
 
-  if (g_manager) {
-    return 0;
-  } else {
-    return -1;  // error
+  auto *manager = new metall_manager_t{open_mode, path};
+  if (!manager->check_sanity()) {
+    delete manager;
+    errno = ENOTRECOVERABLE;
+    return nullptr;
   }
+
+  return reinterpret_cast<metall_manager *>(manager);
 }
 
-void metall_close() { delete g_manager; }
-
-void metall_flush() { g_manager->flush(); }
-
-void *metall_malloc(const uint64_t nbytes) {
-  return g_manager->allocate(nbytes);
+metall_manager *metall_open(char const *path) {
+  return open_impl<dice::metall::open_only>(path);
 }
 
-void metall_free(void *const ptr) { g_manager->deallocate(ptr); }
-
-void *metall_named_malloc(const char *name, const uint64_t nbytes) {
-  return g_manager->construct<char>(name)[nbytes]();
+metall_manager *metall_open_read_only(char const *path) {
+  return open_impl<dice::metall::open_read_only>(path);
 }
 
-void *metall_find(char *name) { return g_manager->find<char>(name).first; }
+metall_manager *metall_create(char const *path) {
+  if (std::filesystem::exists(path)) {
+    // prevent accidental overwrite
+    errno = EEXIST;
+    return nullptr;
+  }
 
-void metall_named_free(const char *name) { g_manager->destroy<char>(name); }
+  auto *manager = new metall_manager_t{dice::metall::create_only, path};
+  if (!manager->check_sanity()) {
+    delete manager;
+    errno = ENOTRECOVERABLE;
+    return nullptr;
+  }
 
-int snapshot(const char *destination_path) {
-  if (g_manager->snapshot(destination_path)) return 0;
-  return -1;  // Error
+  return reinterpret_cast<metall_manager *>(manager);
 }
 
-int copy(const char *source_path, const char *destination_path) {
-  if (dice::metall::manager::copy(source_path, destination_path)) return 0;
-  return -1;  // Error
+bool metall_snapshot(metall_manager *manager, char const *dst_path) {
+  return reinterpret_cast<metall_manager_t *>(manager)->snapshot(dst_path);
 }
 
-int consistent(const char *path) {
-  if (dice::metall::manager::consistent(path)) return 1;
-  return 0;
+void metall_close(metall_manager *manager) {
+  delete reinterpret_cast<metall_manager_t *>(manager);
+}
+
+bool metall_remove(char const *path) {
+  return dice::metall::manager::remove(path);
+}
+
+void *metall_named_malloc(metall_manager *manager, char const *name,
+                          size_t size) {
+  auto *ptr =
+      reinterpret_cast<metall_manager_t *>(manager)->construct<unsigned char>(
+          name)[size]();
+  if (ptr == nullptr) {
+    errno = ENOMEM;
+  }
+
+  return ptr;
+}
+
+void *metall_find(metall_manager *manager, char const *name) {
+  auto *ptr = reinterpret_cast<metall_manager_t *>(manager)
+                  ->find<unsigned char>(name)
+                  .first;
+  if (ptr == nullptr) {
+    errno = ENOENT;
+  }
+
+  return ptr;
+}
+
+bool metall_named_free(metall_manager *manager, char const *name) {
+  auto const res =
+      reinterpret_cast<metall_manager_t *>(manager)->destroy<unsigned char>(
+          name);
+  if (!res) {
+    errno = ENOENT;
+  }
+
+  return res;
+}
+
+void *metall_malloc(metall_manager *manager, size_t size) {
+  auto *ptr = reinterpret_cast<metall_manager_t *>(manager)->allocate(size);
+  if (ptr == nullptr) {
+    errno = ENOMEM;
+  }
+
+  return ptr;
+}
+
+void metall_free(metall_manager *manager, void *addr) {
+  reinterpret_cast<metall_manager_t *>(manager)->deallocate(addr);
+}
+
+void metall_flush(metall_manager *manager) {
+  reinterpret_cast<metall_manager_t *>(manager)->flush();
 }
