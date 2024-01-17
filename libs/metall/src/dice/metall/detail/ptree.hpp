@@ -13,7 +13,7 @@
 
 #include <dice/metall/logger.hpp>
 
-namespace dice::metall::mtlldetail::ptree {
+namespace dice::copperr::mtlldetail::ptree {
 
 namespace {
 namespace bptree = boost::property_tree;
@@ -145,6 +145,6 @@ inline std::size_t erase(const std::string &key, node_type *tree) {
   return tree->erase(key);
 }
 
-}  // namespace dice::metall::mtlldetail::ptree
+}  // namespace dice::copperr::mtlldetail::ptree
 
 #endif  // METALL_DETAIL_UTILITY_PTREE_HPP

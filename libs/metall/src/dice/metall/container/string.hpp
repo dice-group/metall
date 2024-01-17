@@ -11,11 +11,11 @@
 
 #include <dice/metall/metall.hpp>
 
-namespace dice::metall::container {
+namespace dice::copperr::container {
 
 /// \brief A string container that uses Metall as its default allocator.
 template <class CharT, class Traits = std::char_traits<CharT>,
-          class Allocator = dice::metall::manager::allocator_type<CharT>>
+          class Allocator = dice::copperr::manager::allocator_type<CharT>>
 using basic_string = boost::container::basic_string<CharT, Traits, Allocator>;
 
 /// \brief A string container that uses char as its character type and Metall as
@@ -26,6 +26,6 @@ using string = basic_string<char>;
 /// as its default allocator.
 using wstring = basic_string<wchar_t>;
 
-}  // namespace dice::metall::container
+}  // namespace dice::copperr::container
 
 #endif  // METALL_CONTAINER_STRING_HPP

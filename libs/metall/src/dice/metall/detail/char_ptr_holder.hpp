@@ -8,7 +8,7 @@
 
 #include <boost/interprocess/detail/segment_manager_helper.hpp>
 
-namespace dice::metall::mtlldetail {
+namespace dice::copperr::mtlldetail {
 
 template <typename char_type>
 using char_ptr_holder =
@@ -20,5 +20,5 @@ using anonymous_instance_t =
     boost::interprocess::ipcdetail::anonymous_instance_t;
 using unique_instance_t = boost::interprocess::ipcdetail::unique_instance_t;
 
-}  // namespace dice::metall::mtlldetail
+}  // namespace dice::copperr::mtlldetail
 #endif  // METALL_DETAIL_UTILITY_CHAR_OTR_HOLDER_HPP

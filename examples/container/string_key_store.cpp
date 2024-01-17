@@ -7,8 +7,8 @@
 #include <dice/metall/container/string_key_store.hpp>
 #include <dice/metall/json/json.hpp>
 
-namespace mc = dice::metall::container;
-namespace mj = dice::metall::json;
+namespace mc = dice::copperr::container;
+namespace mj = dice::copperr::json;
 
 // Example of a string-key-store with int value.
 void int_store_example();
@@ -24,7 +24,7 @@ int main() {
 void int_store_example() {
   using int_store_type = mc::string_key_store<int>;
   {
-    dice::metall::manager manager(dice::metall::create_only, "./string_key_store_obj");
+    dice::copperr::manager manager(dice::copperr::create_only, "./string_key_store_obj");
 
     // Allocate an instance of the int-store which accept duplicate keys by
     // default.
@@ -37,7 +37,7 @@ void int_store_example() {
   }
 
   {
-    dice::metall::manager manager(dice::metall::open_read_only, "./string_key_store_obj");
+    dice::copperr::manager manager(dice::copperr::open_read_only, "./string_key_store_obj");
     auto *store = manager.find<int_store_type>("int-store").first;
 
     // Iterate over all elements
@@ -48,10 +48,10 @@ void int_store_example() {
 }
 
 void json_store_example() {
-  using json_type = mj::value<dice::metall::manager::allocator_type<std::byte>>;
+  using json_type = mj::value<dice::copperr::manager::allocator_type<std::byte>>;
   using json_store_type = mc::string_key_store<json_type>;
   {
-    dice::metall::manager manager(dice::metall::open_only, "./string_key_store_obj");
+    dice::copperr::manager manager(dice::copperr::open_only, "./string_key_store_obj");
 
     const bool unique = true;
     const uint64_t hash_seed = 123;
@@ -66,7 +66,7 @@ void json_store_example() {
   }
 
   {
-    dice::metall::manager manager(dice::metall::open_read_only, "./string_key_store_obj");
+    dice::copperr::manager manager(dice::copperr::open_read_only, "./string_key_store_obj");
     auto *store = manager.find<json_store_type>("json-store").first;
 
     // Use find() to locate an element.

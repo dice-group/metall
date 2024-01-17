@@ -6,7 +6,7 @@
 #include <iostream>
 #include <dice/metall/logger.hpp>
 
-using namespace dice::metall;
+using namespace dice::copperr;
 
 void log_cerr() {
   METALL_ERROR("error logger");

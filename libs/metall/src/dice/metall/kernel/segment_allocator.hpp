@@ -36,11 +36,11 @@
 #include <dice/metall/kernel/object_cache.hpp>
 #endif
 
-namespace dice::metall {
+namespace dice::copperr {
 namespace kernel {
 
 namespace {
-namespace mdtl = dice::metall::mtlldetail;
+namespace mdtl = dice::copperr::mtlldetail;
 }
 
 template <typename _chunk_no_type, typename _size_type,
@@ -708,5 +708,5 @@ class segment_allocator {
 };
 
 }  // namespace kernel
-}  // namespace dice::metall
+}  // namespace dice::copperr
 #endif  // METALL_KERNEL_SEGMENT_ALLOCATOR_HPP

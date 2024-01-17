@@ -8,11 +8,11 @@
 
 #include <boost/interprocess/detail/in_place_interface.hpp>
 
-namespace dice::metall::mtlldetail {
+namespace dice::copperr::mtlldetail {
 
 /// \brief Abstract interface for placement construction and destruction
 using in_place_interface = boost::interprocess::ipcdetail::in_place_interface;
 
-}  // namespace dice::metall::mtlldetail
+}  // namespace dice::copperr::mtlldetail
 
 #endif  // METALL_DETAIL_UTILITY_IN_PLACE_INTERFACE_HPP

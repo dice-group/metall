@@ -29,11 +29,11 @@ const size_t SPARSE_STORE_FILE_GRANULARITY_DEFAULT = 1073741824;
 
 // #include "umap_sparse_store.hpp"
 
-namespace dice::metall {
+namespace dice::copperr {
 namespace kernel {
 
 namespace {
-namespace mdtl = dice::metall::mtlldetail;
+namespace mdtl = dice::copperr::mtlldetail;
 }
 
 template <typename different_type, typename size_type>
@@ -434,6 +434,6 @@ class umap_sparse_segment_storage {
 };
 
 }  // namespace kernel
-}  // namespace dice::metall
+}  // namespace dice::copperr
 
 #endif  // METALL_DETAILL_SEGMENT_STORAGE_UMAP_SPARSE_SEGMENT_STORAGE_HPP

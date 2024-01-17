@@ -50,11 +50,11 @@
 #include <dice/metall/detail/mutex.hpp>
 #endif
 
-namespace dice::metall {
+namespace dice::copperr {
 namespace kernel {
 
 namespace {
-namespace mdtl = dice::metall::mtlldetail;
+namespace mdtl = dice::copperr::mtlldetail;
 }
 
 template <typename _chunk_no_type, std::size_t _chunk_size>
@@ -608,7 +608,7 @@ class manager_kernel {
 };
 
 }  // namespace kernel
-}  // namespace dice::metall
+}  // namespace dice::copperr
 
 #endif  // METALL_KERNEL_MANAGER_KERNEL_HPP
 

@@ -6,7 +6,7 @@
 #ifndef METALL_DETAIL_UTILITY_PARAMETER_PACK_HPP
 #define METALL_DETAIL_UTILITY_PARAMETER_PACK_HPP
 
-namespace dice::metall::mtlldetail {
+namespace dice::copperr::mtlldetail {
 
 // ---------- get index ---------- //
 template <typename...>
@@ -24,5 +24,5 @@ struct get_index<T, F, List...> {
   static constexpr std::size_t value = get_index<T, List...>::value + 1;
 };
 
-}  // namespace dice::metall::mtlldetail
+}  // namespace dice::copperr::mtlldetail
 #endif  // METALL_DETAIL_UTILITY_PARAMETER_PACK_HPP

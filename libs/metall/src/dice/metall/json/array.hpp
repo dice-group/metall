@@ -14,10 +14,10 @@
 #include <dice/metall/container/scoped_allocator.hpp>
 #include <dice/metall/json/json_fwd.hpp>
 
-namespace dice::metall::json {
+namespace dice::copperr::json {
 
 namespace {
-namespace mc = dice::metall::container;
+namespace mc = dice::copperr::container;
 }
 
 namespace jsndtl {
@@ -195,6 +195,6 @@ inline void swap(array<allocator_type> &lhd,
   lhd.swap(rhd);
 }
 
-}  // namespace dice::metall::json
+}  // namespace dice::copperr::json
 
 #endif  // METALL_JSON_ARRAY_HPP

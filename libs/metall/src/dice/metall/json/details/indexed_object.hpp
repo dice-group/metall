@@ -18,10 +18,10 @@
 #include <dice/metall/container/vector.hpp>
 #include <dice/metall/utility/hash.hpp>
 
-namespace dice::metall::container::experimental::json::jsndtl {
+namespace dice::copperr::container::experimental::json::jsndtl {
 
 namespace {
-namespace mc = dice::metall::container;
+namespace mc = dice::copperr::container;
 }
 
 // Foward declarations
@@ -64,7 +64,7 @@ class indexed_object {
   using index_table_type =
       mc::unordered_multimap<index_key_type,
                              typename value_storage_type::size_type,
-                             dice::metall::utility::hash<index_key_type>,
+                             dice::copperr::utility::hash<index_key_type>,
                              std::equal_to<>, index_table_allocator_type>;
 
  public:
@@ -256,7 +256,7 @@ class indexed_object {
   }
 
   static auto hash_key(const key_type &key) {
-    return dice::metall::mtlldetail::MurmurHash64A(key.data(), key.length(), 123);
+    return dice::copperr::mtlldetail::MurmurHash64A(key.data(), key.length(), 123);
   }
 
   auto priv_erase(const_iterator value_position) {
@@ -317,6 +317,6 @@ inline bool general_indexed_object_equal(
   return true;
 }
 
-}  // namespace dice::metall::container::experimental::json::jsndtl
+}  // namespace dice::copperr::container::experimental::json::jsndtl
 
 #endif  // METALL_CONTAINER_EXPERIMENT_JSON_DETAILS_INDEXED_OBJECT_HPP

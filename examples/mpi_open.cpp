@@ -8,7 +8,7 @@
 int main(int argc, char **argv) {
   ::MPI_Init(&argc, &argv);
   {
-    dice::metall::utility::metall_mpi_adaptor mpi_adaptor(dice::metall::open_only,
+    dice::copperr::utility::copperr_mpi_adaptor mpi_adaptor(dice::copperr::open_only,
                                                     "/tmp/metall_mpi");
     auto &metall_manager = mpi_adaptor.get_local_manager();
 

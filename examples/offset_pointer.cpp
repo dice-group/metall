@@ -9,13 +9,13 @@
 #include <iostream>
 #include <dice/metall/metall.hpp>
 
-// dice::metall::offset_ptr is just an alias of offset_ptr in Boost.Interprocess
+// dice::copperr::offset_ptr is just an alias of offset_ptr in Boost.Interprocess
 // https://www.boost.org/doc/libs/release/doc/html/interprocess/offset_ptr.html
-using int_offset_prt = dice::metall::offset_ptr<int>;
+using int_offset_prt = dice::copperr::offset_ptr<int>;
 
 int main() {
   {
-    dice::metall::manager manager(dice::metall::create_only, "/tmp/datastore");
+    dice::copperr::manager manager(dice::copperr::create_only, "/tmp/datastore");
 
     // Allocate a simple array in persistent memory
     int *array = static_cast<int *>(manager.allocate(10 * sizeof(int)));
@@ -29,20 +29,20 @@ int main() {
   }
 
   {
-    dice::metall::manager manager(dice::metall::open_only, "/tmp/datastore");
+    dice::copperr::manager manager(dice::copperr::open_only, "/tmp/datastore");
 
     int_offset_prt *ptr = manager.find<int_offset_prt>("ptr").first;
 
-    // dice::metall::to_raw_pointer extracts a raw pointer from dice::metall::offset_ptr
+    // dice::copperr::to_raw_pointer extracts a raw pointer from dice::copperr::offset_ptr
     // If a raw pointer is given, it just returns the address the given pointer
     // points to
-    int *array = dice::metall::to_raw_pointer(*ptr);
+    int *array = dice::copperr::to_raw_pointer(*ptr);
 
     std::cout << array[0] << std::endl;  // Print 1
     std::cout << array[1] << std::endl;  // Print 2
 
     // Deallocate the array
-    manager.deallocate(dice::metall::to_raw_pointer(*ptr));
+    manager.deallocate(dice::copperr::to_raw_pointer(*ptr));
     *ptr = nullptr;
 
     // Destroy the offset pointer object

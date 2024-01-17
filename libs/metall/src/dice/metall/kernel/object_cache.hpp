@@ -30,10 +30,10 @@
 #warning "METALL_OBJECT_CACHE_HEAVY_DEBUG is defined"
 #endif
 
-namespace dice::metall::kernel {
+namespace dice::copperr::kernel {
 
 namespace {
-namespace mdtl = dice::metall::mtlldetail;
+namespace mdtl = dice::copperr::mtlldetail;
 }
 
 namespace obcdetail {
@@ -819,5 +819,5 @@ class object_cache<_size_type, _difference_type, _bin_no_manager,
   const cache_block_type *m_block{nullptr};
   unsigned int m_in_block_pos{0};
 };
-}  // namespace dice::metall::kernel
+}  // namespace dice::copperr::kernel
 #endif  // METALL_DETAIL_OBJECT_CACHE_HPP

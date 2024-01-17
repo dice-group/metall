@@ -8,20 +8,20 @@
 
 #include <dice/metall/detail/hash.hpp>
 
-namespace dice::metall::utility {
+namespace dice::copperr::utility {
 
 /// \brief Hash a value of type T.
 /// \tparam T Data type to hash.
 /// If void is specified, the hash data type is determined by () operator.
 /// \tparam seed A seed value used for hashing.
 template <typename T = void, unsigned int seed = 123>
-using hash = dice::metall::mtlldetail::hash<seed>;
+using hash = dice::copperr::mtlldetail::hash<seed>;
 
 /// \brief Hash function for std::string-compatible string container.
 /// \tparam seed A seed value used for hashing.
 template <unsigned int seed = 123>
-using str_hash = dice::metall::mtlldetail::str_hash<seed>;
+using str_hash = dice::copperr::mtlldetail::str_hash<seed>;
 
-}  // namespace dice::metall::utility
+}  // namespace dice::copperr::utility
 
 #endif  // METALL_UTILITY_HASH_HPP

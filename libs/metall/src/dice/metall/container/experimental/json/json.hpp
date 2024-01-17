@@ -12,9 +12,9 @@
 #include <dice/metall/json/json.hpp>
 
 #warning \
-    "Namespace dice::metall::container::experimental::json is deprecated. Please use dice::metall::json instead."
-namespace dice::metall::container::experimental::json {
-using namespace dice::metall::json;
+    "Namespace dice::copperr::container::experimental::json is deprecated. Please use dice::copperr::json instead."
+namespace dice::copperr::container::experimental::json {
+using namespace dice::copperr::json;
 }
 
 #endif  // METALL_CONTAINER_EXPERIMENT_JSON_JSON_HPP

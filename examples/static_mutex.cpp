@@ -13,7 +13,7 @@ static constexpr std::size_t k_num_mutexes = 2;
 void mutex_work(const int key, const int value, int* array) {
   {  // A mutex block
     const int index = key % k_num_mutexes;
-    auto guard = dice::metall::utility::mutex::mutex_lock<k_num_mutexes>(index);
+    auto guard = dice::copperr::utility::mutex::mutex_lock<k_num_mutexes>(index);
     array[index] = array[index] + value;  // do some mutex work
   }                                       // The mutex is released here
 }

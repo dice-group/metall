@@ -24,12 +24,12 @@
 #include <dice/metall/detail/ptree.hpp>
 #include <dice/metall/detail/hash.hpp>
 
-namespace dice::metall {
+namespace dice::copperr {
 namespace kernel {
 
 namespace {
-namespace mdtl = dice::metall::mtlldetail;
-namespace json = dice::metall::mtlldetail::ptree;
+namespace mdtl = dice::copperr::mtlldetail;
+namespace json = dice::copperr::mtlldetail::ptree;
 }  // namespace
 
 template <typename T>
@@ -593,5 +593,5 @@ class attributed_object_directory {
   std::unique_ptr<name_index_table_type> m_name_index_table;
 };
 }  // namespace kernel
-}  // namespace dice::metall
+}  // namespace dice::copperr
 #endif  // METALL_DETAIL_ATTRIBUTED_OBJECT_DIRECTORY_HPP

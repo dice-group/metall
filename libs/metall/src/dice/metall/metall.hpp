@@ -11,15 +11,15 @@
 #include <dice/metall/logger.hpp>
 #include <dice/metall/version.hpp>
 
-/// \namespace dice::metall
+/// \namespace dice::copperr
 /// \brief The top level of namespace of Metall
-namespace dice::metall {
+namespace dice::copperr {
 
 /// \brief Default Metall manager class which is an alias of basic_manager with
 /// the default template parameters.
 using manager = basic_manager<>;
 
-}  // namespace dice::metall
+}  // namespace dice::copperr
 
 /// \example complex_map.cpp
 /// This is an example of how to use a complex STL map container with Metall.

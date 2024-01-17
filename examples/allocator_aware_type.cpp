@@ -32,7 +32,7 @@ struct key_value_pair {
   using allocator_type = Alloc;
 
   // Use the given allocator type in the key
-  using key_type = dice::metall::container::basic_string<
+  using key_type = dice::copperr::container::basic_string<
       char, std::char_traits<char>,
       typename std::allocator_traits<allocator_type>::template rebind_alloc<
           char>>;
@@ -64,7 +64,7 @@ struct key_value_pair {
 
 // We use Metall in this example but any STL compatible allocator can be used.
 template <typename T>
-using alloc_t = dice::metall::manager::allocator_type<T>;
+using alloc_t = dice::copperr::manager::allocator_type<T>;
 
 using kv_t = key_value_pair<alloc_t<char>>;
 
@@ -73,12 +73,12 @@ using kv_t = key_value_pair<alloc_t<char>>;
 // the inner containers (allocator-aware types) use the same allocator. See:
 // https://en.cppreference.com/w/cpp/memory/scoped_allocator_adaptor
 using vec_t =
-    dice::metall::container::vector<kv_t,
+    dice::copperr::container::vector<kv_t,
                               std::scoped_allocator_adaptor<alloc_t<kv_t>>>;
 
 int main() {
   {
-    dice::metall::manager manager(dice::metall::create_only, "/tmp/metall-dir");
+    dice::copperr::manager manager(dice::copperr::create_only, "/tmp/metall-dir");
     auto *vec = manager.construct<vec_t>("vec")(manager.get_allocator());
 
     vec->resize(2);
@@ -91,7 +91,7 @@ int main() {
   }
 
   {
-    dice::metall::manager manager(dice::metall::open_read_only, "/tmp/metall-dir");
+    dice::copperr::manager manager(dice::copperr::open_read_only, "/tmp/metall-dir");
     auto *vec = manager.find<vec_t>("vec").first;
     for (const auto &e : *vec) {
       std::cout << e.key << " : " << e.value << std::endl;

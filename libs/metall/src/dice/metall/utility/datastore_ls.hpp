@@ -15,7 +15,7 @@
 
 #include <dice/metall/metall.hpp>
 
-namespace dice::metall::utility {
+namespace dice::copperr::utility {
 
 #ifndef DOXYGEN_SKIP
 namespace datastore_ls_detail {
@@ -65,7 +65,7 @@ inline void aligned_show(const std::vector<std::vector<std::string>> &buf) {
 inline void ls_named_object(const std::filesystem::path &datastore_path) {
   std::cout << "[Named Object]" << std::endl;
   auto accessor =
-      dice::metall::manager::access_named_object_attribute(datastore_path);
+      dice::copperr::manager::access_named_object_attribute(datastore_path);
   if (!accessor.good()) {
     std::cerr << "Failed to open datastore" << std::endl;
     std::abort();
@@ -89,7 +89,7 @@ inline void ls_named_object(const std::filesystem::path &datastore_path) {
 inline void ls_unique_object(const std::filesystem::path &datastore_path) {
   std::cout << "[Unique Object]" << std::endl;
   auto accessor =
-      dice::metall::manager::access_unique_object_attribute(datastore_path);
+      dice::copperr::manager::access_unique_object_attribute(datastore_path);
   if (!accessor.good()) {
     std::cerr << "Failed to open datastore" << std::endl;
     std::abort();
@@ -112,7 +112,7 @@ inline void ls_unique_object(const std::filesystem::path &datastore_path) {
 
 inline void ls_anonymous_object(const std::filesystem::path &datastore_path) {
   std::cout << "[Anonymous Object]" << std::endl;
-  auto accessor = dice::metall::manager::access_anonymous_object_attribute(
+  auto accessor = dice::copperr::manager::access_anonymous_object_attribute(
       datastore_path.c_str());
   if (!accessor.good()) {
     std::cerr << "Failed to open datastore" << std::endl;
@@ -133,6 +133,6 @@ inline void ls_anonymous_object(const std::filesystem::path &datastore_path) {
   datastore_ls_detail::aligned_show(buf);
 }
 
-}  // namespace dice::metall::utility
+}  // namespace dice::copperr::utility
 
 #endif  // METALL_UTILITY_DATASTORE_LS_HPP

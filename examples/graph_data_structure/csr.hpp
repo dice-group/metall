@@ -57,14 +57,14 @@ class csr {
 
   /// \brief Returns a raw pointer to the indices array
   index_t *indices() {
-    return dice::metall::to_raw_pointer(m_indices);
+    return dice::copperr::to_raw_pointer(m_indices);
     // return std::pointer_traits<char_pointer_t>::to_address(m_indices); //
     // From C++20
   }
 
   /// \brief Returns a raw pointer to the edges array
   vid_t *edges() {
-    return dice::metall::to_raw_pointer(m_edges);
+    return dice::copperr::to_raw_pointer(m_edges);
     // return std::pointer_traits<char_pointer_t>::to_address(m_edges); // From
     // C++20
   }

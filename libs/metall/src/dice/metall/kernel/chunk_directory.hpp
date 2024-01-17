@@ -20,10 +20,10 @@
 #include <dice/metall/kernel/object_size_manager.hpp>
 #include <dice/metall/logger.hpp>
 
-namespace dice::metall {
+namespace dice::copperr {
 namespace kernel {
 namespace {
-namespace mdtl = dice::metall::mtlldetail;
+namespace mdtl = dice::copperr::mtlldetail;
 }
 
 /// \brief Chunk directory class.
@@ -607,6 +607,6 @@ class chunk_directory {
 };
 
 }  // namespace kernel
-}  // namespace dice::metall
+}  // namespace dice::copperr
 
 #endif  // METALL_DETAIL_CHUNK_DIRECTORY_HPP

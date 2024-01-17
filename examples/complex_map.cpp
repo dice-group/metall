@@ -47,11 +47,11 @@ using map_type =
                           std::less<>, map_allocator_type<base_allocator_type>>;
 
 // Map type instantiated to Metall
-using metall_map_type = map_type<dice::metall::manager::allocator_type<std::byte>>;
+using metall_map_type = map_type<dice::copperr::manager::allocator_type<std::byte>>;
 
 int main() {
   {
-    dice::metall::manager manager(dice::metall::create_only, "/tmp/datastore");
+    dice::copperr::manager manager(dice::copperr::create_only, "/tmp/datastore");
     auto pmap =
         manager.construct<metall_map_type>("map")(manager.get_allocator<>());
 
@@ -65,7 +65,7 @@ int main() {
   }
 
   {
-    dice::metall::manager manager(dice::metall::open_only, "/tmp/datastore");
+    dice::copperr::manager manager(dice::copperr::open_only, "/tmp/datastore");
     auto pmap = manager.find<metall_map_type>("map").first;
 
     std::cout << pmap->at(0).vec[0] << std::endl;  // Prints out "0"

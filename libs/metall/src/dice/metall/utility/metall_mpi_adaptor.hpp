@@ -13,10 +13,10 @@
 #include <dice/metall/utility/mpi.hpp>
 #include <dice/metall/utility/metall_mpi_datastore.hpp>
 
-namespace dice::metall::utility {
+namespace dice::copperr::utility {
 
 namespace {
-namespace ds = dice::metall::utility::mpi_datastore;
+namespace ds = dice::copperr::utility::mpi_datastore;
 }
 
 /// \brief A utility class for using Metall with MPI
@@ -27,7 +27,7 @@ class metall_mpi_adaptor {
   // Public types and static values
   // -------------------- //
   /// \brief Metall manager type
-  using manager_type = dice::metall::manager;
+  using manager_type = dice::copperr::manager;
 
   // -------------------- //
   // Constructor & assign operator
@@ -35,7 +35,7 @@ class metall_mpi_adaptor {
   /// \brief Opens an existing Metall datastore.
   /// \param root_dir_prefix A root directory path of a Metall datastore.
   /// \param comm A MPI communicator.
-  metall_mpi_adaptor(dice::metall::open_only_t, const std::string &root_dir_prefix,
+  metall_mpi_adaptor(dice::copperr::open_only_t, const std::string &root_dir_prefix,
                      const MPI_Comm &comm = MPI_COMM_WORLD)
       : m_mpi_comm(comm),
         m_root_dir_prefix(root_dir_prefix),
@@ -44,7 +44,7 @@ class metall_mpi_adaptor {
       ::MPI_Abort(comm, -1);
     }
     m_local_metall_manager = std::make_unique<manager_type>(
-        dice::metall::open_only,
+        dice::copperr::open_only,
         ds::make_local_dir_path(m_root_dir_prefix, priv_mpi_comm_rank(comm))
             .c_str());
   }
@@ -52,7 +52,7 @@ class metall_mpi_adaptor {
   /// \brief Opens an existing Metall datastore with the read-only mode.
   /// \param root_dir_prefix A root directory path of a Metall datastore.
   /// \param comm A MPI communicator.
-  metall_mpi_adaptor(dice::metall::open_read_only_t,
+  metall_mpi_adaptor(dice::copperr::open_read_only_t,
                      const std::string &root_dir_prefix,
                      const MPI_Comm &comm = MPI_COMM_WORLD)
       : m_mpi_comm(comm),
@@ -62,7 +62,7 @@ class metall_mpi_adaptor {
       ::MPI_Abort(comm, -1);
     }
     m_local_metall_manager = std::make_unique<manager_type>(
-        dice::metall::open_read_only,
+        dice::copperr::open_read_only,
         ds::make_local_dir_path(m_root_dir_prefix, priv_mpi_comm_rank(comm))
             .c_str());
   }
@@ -74,7 +74,7 @@ class metall_mpi_adaptor {
   /// \param overwrite If true, overwrite an existing datastore.
   /// This mode does not overwrite an existing datastore if it is not Metall
   /// datastore created by the same number of MPI processes.
-  metall_mpi_adaptor(dice::metall::create_only_t, const std::string &root_dir_prefix,
+  metall_mpi_adaptor(dice::copperr::create_only_t, const std::string &root_dir_prefix,
                      const MPI_Comm &comm = MPI_COMM_WORLD,
                      bool overwrite = false)
       : m_mpi_comm(comm),
@@ -82,7 +82,7 @@ class metall_mpi_adaptor {
         m_local_metall_manager(nullptr) {
     priv_setup_root_dir(root_dir_prefix, overwrite, comm);
     m_local_metall_manager = std::make_unique<manager_type>(
-        dice::metall::create_only,
+        dice::copperr::create_only,
         ds::make_local_dir_path(m_root_dir_prefix, priv_mpi_comm_rank(comm))
             .c_str());
   }
@@ -95,7 +95,7 @@ class metall_mpi_adaptor {
   /// \param overwrite If true, overwrite an existing datastore.
   /// This mode does not overwrite an existing datastore if it is not Metall
   /// datastore created by the same number of MPI processes.
-  metall_mpi_adaptor(dice::metall::create_only_t, const std::string &root_dir_prefix,
+  metall_mpi_adaptor(dice::copperr::create_only_t, const std::string &root_dir_prefix,
                      const std::size_t capacity,
                      const MPI_Comm &comm = MPI_COMM_WORLD,
                      bool overwrite = false)
@@ -104,7 +104,7 @@ class metall_mpi_adaptor {
         m_local_metall_manager(nullptr) {
     priv_setup_root_dir(root_dir_prefix, overwrite, comm);
     m_local_metall_manager = std::make_unique<manager_type>(
-        dice::metall::create_only,
+        dice::copperr::create_only,
         ds::make_local_dir_path(m_root_dir_prefix, priv_mpi_comm_rank(comm))
             .c_str(),
         capacity);
@@ -244,7 +244,7 @@ class metall_mpi_adaptor {
     bool ret = true;
     for (int i = 0; i < size; ++i) {
       if (i == rank) {
-        if (dice::metall::mtlldetail::file_exist(
+        if (dice::copperr::mtlldetail::file_exist(
                 ds::make_root_dir_path(root_dir_prefix)) &&
             !metall::mtlldetail::remove_file(
                 ds::make_root_dir_path(root_dir_prefix))) {
@@ -314,7 +314,7 @@ class metall_mpi_adaptor {
     }
 
     // Make sure the root directory and a file with the same name do not exist
-    const auto local_ret = dice::metall::mtlldetail::file_exist(root_dir_path);
+    const auto local_ret = dice::copperr::mtlldetail::file_exist(root_dir_path);
     if (priv_global_or(local_ret, comm)) {
       if (rank == 0) {
         std::string s(
@@ -460,6 +460,6 @@ class metall_mpi_adaptor {
   std::unique_ptr<manager_type> m_local_metall_manager;
 };
 
-}  // namespace dice::metall::utility
+}  // namespace dice::copperr::utility
 
 #endif  // METALL_UTILITY_METALL_MPI_ADAPTOR_HPP

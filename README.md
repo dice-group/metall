@@ -50,7 +50,7 @@ wget https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78
 tar xvf boost_1_78_0.tar.gz
 export BOOST_ROOT=$PWD/boost_1_78_0
 
-git clone https://github.com/LLNL/metall
+git clone https://github.com/dice-group/metall
 export METALL_INCLUDE=$PWD/metall/include
 
 g++ -std=c++17 your_program.cpp -lstdc++fs -I${BOOST_ROOT} -I${METALL_INCLUDE}
@@ -66,7 +66,7 @@ For an example how to define such a sink see `src/default_logger.cpp`.
 
 If you don't you will get the following linker error:
 ```
-Error: Undefined reference to `metall_log`
+Error: Undefined reference to `copperr_log`
 ```
 
 ### Unofficial Support For Clang

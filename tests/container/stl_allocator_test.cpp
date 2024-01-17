@@ -13,7 +13,7 @@
 #include "../test_utility.hpp"
 
 template <typename T>
-using alloc_type = dice::metall::manager::allocator_type<T>;
+using alloc_type = dice::copperr::manager::allocator_type<T>;
 
 const std::filesystem::path &dir_path() {
   const static std::filesystem::path path(test_utility::make_test_path());
@@ -34,22 +34,22 @@ TEST(StlAllocatorTest, Types) {
     GTEST_ASSERT_EQ(typeid(std::allocator_traits<alloc_t>::pointer),
                     typeid(alloc_t::pointer));
     GTEST_ASSERT_EQ(typeid(std::allocator_traits<alloc_t>::pointer),
-                    typeid(dice::metall::offset_ptr<T>));
+                    typeid(dice::copperr::offset_ptr<T>));
 
     GTEST_ASSERT_EQ(typeid(std::allocator_traits<alloc_t>::const_pointer),
                     typeid(alloc_t::const_pointer));
     GTEST_ASSERT_EQ(typeid(std::allocator_traits<alloc_t>::const_pointer),
-                    typeid(dice::metall::offset_ptr<const T>));
+                    typeid(dice::copperr::offset_ptr<const T>));
 
     GTEST_ASSERT_EQ(typeid(std::allocator_traits<alloc_t>::void_pointer),
                     typeid(alloc_t::void_pointer));
     GTEST_ASSERT_EQ(typeid(std::allocator_traits<alloc_t>::void_pointer),
-                    typeid(dice::metall::offset_ptr<void>));
+                    typeid(dice::copperr::offset_ptr<void>));
 
     GTEST_ASSERT_EQ(typeid(std::allocator_traits<alloc_t>::const_void_pointer),
                     typeid(alloc_t::const_void_pointer));
     GTEST_ASSERT_EQ(typeid(std::allocator_traits<alloc_t>::const_void_pointer),
-                    typeid(dice::metall::offset_ptr<const void>));
+                    typeid(dice::copperr::offset_ptr<const void>));
 
     GTEST_ASSERT_EQ(typeid(std::allocator_traits<alloc_t>::difference_type),
                     typeid(alloc_t::difference_type));
@@ -100,7 +100,7 @@ TEST(StlAllocatorTest, Types) {
     };
     using alloc_t = alloc_type<T>;
 
-    dice::metall::manager manager(dice::metall::create_only, dir_path(),
+    dice::copperr::manager manager(dice::copperr::create_only, dir_path(),
                             1UL << 24UL);
     alloc_t alloc = manager.get_allocator<T>();
 
@@ -113,10 +113,10 @@ TEST(StlAllocatorTest, Types) {
     {
       auto p = std::allocator_traits<alloc_t>::allocate(alloc, 1);
       std::allocator_traits<alloc_t>::construct(
-          alloc, dice::metall::to_raw_pointer(p), 10, 20.0);
+          alloc, dice::copperr::to_raw_pointer(p), 10, 20.0);
       GTEST_ASSERT_EQ(p->a, 10);
       GTEST_ASSERT_EQ(p->b, 20.0);
-      std::allocator_traits<alloc_t>::destroy(alloc, dice::metall::to_raw_pointer(p));
+      std::allocator_traits<alloc_t>::destroy(alloc, dice::copperr::to_raw_pointer(p));
     }
 
     GTEST_ASSERT_EQ(std::allocator_traits<alloc_t>::max_size(alloc),
@@ -130,7 +130,7 @@ TEST(StlAllocatorTest, Types) {
 }
 
 TEST(StlAllocatorTest, Exception) {
-  dice::metall::manager manager(dice::metall::create_only, dir_path(), 1UL << 24UL);
+  dice::copperr::manager manager(dice::copperr::create_only, dir_path(), 1UL << 24UL);
 
   alloc_type<int> allocator = manager.get_allocator<int>();
 
@@ -144,7 +144,7 @@ TEST(StlAllocatorTest, Exception) {
 
 TEST(StlAllocatorTest, Container) {
   {
-    dice::metall::manager manager(dice::metall::create_only, dir_path(),
+    dice::copperr::manager manager(dice::copperr::create_only, dir_path(),
                             1UL << 27UL);
     using element_type = std::pair<uint64_t, uint64_t>;
 
@@ -172,7 +172,7 @@ TEST(StlAllocatorTest, NestedContainer) {
           alloc_type<std::pair<const element_type, vector_type>>>>;
 
   {
-    dice::metall::manager manager(dice::metall::create_only, dir_path(),
+    dice::copperr::manager manager(dice::copperr::create_only, dir_path(),
                             1UL << 27UL);
 
     map_type map(manager.get_allocator<>());
@@ -192,7 +192,7 @@ TEST(StlAllocatorTest, PersistentConstructFind) {
       boost::interprocess::vector<element_type, alloc_type<element_type>>;
 
   {
-    dice::metall::manager manager(dice::metall::create_only, dir_path(),
+    dice::copperr::manager manager(dice::copperr::create_only, dir_path(),
                             1UL << 27UL);
 
     int *a = manager.construct<int>("int")(10);
@@ -205,7 +205,7 @@ TEST(StlAllocatorTest, PersistentConstructFind) {
   }
 
   {
-    dice::metall::manager manager(dice::metall::open_only, dir_path());
+    dice::copperr::manager manager(dice::copperr::open_only, dir_path());
 
     const auto ret1 = manager.find<int>("int");
     ASSERT_NE(ret1.first, nullptr);
@@ -222,7 +222,7 @@ TEST(StlAllocatorTest, PersistentConstructFind) {
   }
 
   {
-    dice::metall::manager manager(dice::metall::open_only, dir_path());
+    dice::copperr::manager manager(dice::copperr::open_only, dir_path());
     ASSERT_TRUE(manager.destroy<int>("int"));
     ASSERT_FALSE(manager.destroy<int>("int"));
 
@@ -237,7 +237,7 @@ TEST(StlAllocatorTest, PersistentConstructOrFind) {
       boost::interprocess::vector<element_type, alloc_type<element_type>>;
 
   {
-    dice::metall::manager manager(dice::metall::create_only, dir_path(),
+    dice::copperr::manager manager(dice::copperr::create_only, dir_path(),
                             1UL << 27UL);
     int *a = manager.find_or_construct<int>("int")(10);
     ASSERT_EQ(*a, 10);
@@ -249,7 +249,7 @@ TEST(StlAllocatorTest, PersistentConstructOrFind) {
   }
 
   {
-    dice::metall::manager manager(dice::metall::open_only, dir_path());
+    dice::copperr::manager manager(dice::copperr::open_only, dir_path());
 
     int *a = manager.find_or_construct<int>("int")(20);
     ASSERT_EQ(*a, 10);
@@ -261,7 +261,7 @@ TEST(StlAllocatorTest, PersistentConstructOrFind) {
   }
 
   {
-    dice::metall::manager manager(dice::metall::open_only, dir_path());
+    dice::copperr::manager manager(dice::copperr::open_only, dir_path());
     ASSERT_TRUE(manager.destroy<int>("int"));
     ASSERT_FALSE(manager.destroy<int>("int"));
 
@@ -283,7 +283,7 @@ TEST(StlAllocatorTest, PersistentNestedContainer) {
           alloc_type<std::pair<const element_type, vector_type>>>>;
 
   {
-    dice::metall::manager manager(dice::metall::create_only, dir_path(),
+    dice::copperr::manager manager(dice::copperr::create_only, dir_path(),
                             1UL << 27UL);
     map_type *map =
         manager.construct<map_type>("map")(manager.get_allocator<>());
@@ -292,7 +292,7 @@ TEST(StlAllocatorTest, PersistentNestedContainer) {
   }
 
   {
-    dice::metall::manager manager(dice::metall::open_only, dir_path());
+    dice::copperr::manager manager(dice::copperr::open_only, dir_path());
     map_type *map;
     std::size_t n;
     std::tie(map, n) = manager.find<map_type>("map");
@@ -303,7 +303,7 @@ TEST(StlAllocatorTest, PersistentNestedContainer) {
   }
 
   {
-    dice::metall::manager manager(dice::metall::open_read_only, dir_path());
+    dice::copperr::manager manager(dice::copperr::open_read_only, dir_path());
     map_type *map;
     std::size_t n;
     std::tie(map, n) = manager.find<map_type>("map");

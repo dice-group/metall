@@ -1,1 +1,1 @@
-add_metall_executable(run_offset_ptr_bench run_offset_ptr_bench.cpp)
+add_copperr_executable(run_offset_ptr_bench run_offset_ptr_bench.cpp)

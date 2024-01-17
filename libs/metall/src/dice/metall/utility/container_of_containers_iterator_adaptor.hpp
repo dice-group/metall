@@ -8,9 +8,9 @@
 
 #include <iterator>
 
-/// \namespace dice::metall::utility
+/// \namespace dice::copperr::utility
 /// \brief Namespace for utility items
-namespace dice::metall::utility {
+namespace dice::copperr::utility {
 
 /// \brief Utility class that provides an iterator for a container of
 /// containers, e.g., map of vectors This is an experimental implementation and
@@ -135,6 +135,6 @@ inline bool operator!=(
   return !(lhs == rhs);
 }
 
-}  // namespace dice::metall::utility
+}  // namespace dice::copperr::utility
 
 #endif  // METALL_UTILITY_CONTAINER_OF_CONTAINERS_ITERATOR_ADAPTOR_HPP

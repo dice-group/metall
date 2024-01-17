@@ -8,7 +8,7 @@
 
 #include <dice/metall/detail/char_ptr_holder.hpp>
 
-namespace dice::metall {
+namespace dice::copperr {
 
 /// \brief Tag type to create the segment always.
 /// The existing segment with the same name is over written.
@@ -37,6 +37,6 @@ struct open_read_only_t {};
 /// \brief Tag to construct a unique instance of a type
 [[maybe_unused]] static const mtlldetail::unique_instance_t *unique_instance =
     nullptr;
-}  // namespace dice::metall
+}  // namespace dice::copperr
 
 #endif  // METALL_TAGS_HPP

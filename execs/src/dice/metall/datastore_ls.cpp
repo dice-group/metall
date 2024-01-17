@@ -14,13 +14,13 @@ int main(int argc, char *argv[]) {
 
   const std::string datastore_path = argv[1];
 
-  dice::metall::utility::ls_named_object(datastore_path);
+  dice::copperr::utility::ls_named_object(datastore_path);
   std::cout << std::endl;
 
-  dice::metall::utility::ls_unique_object(datastore_path);
+  dice::copperr::utility::ls_unique_object(datastore_path);
   std::cout << std::endl;
 
-  dice::metall::utility::ls_anonymous_object(datastore_path);
+  dice::copperr::utility::ls_anonymous_object(datastore_path);
   std::cout << std::endl;
 
   return 0;

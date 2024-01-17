@@ -10,14 +10,14 @@
 
 // Type alias
 // This is a standard way to give a custom allocator to a container
-using vector_t = boost::container::vector<int, dice::metall::manager::allocator_type<int>>;
+using vector_t = boost::container::vector<int, dice::copperr::manager::allocator_type<int>>;
 
 int main() {
 
   {
     // Construct a manager object
     // A process can allocate multiple manager objects
-    dice::metall::manager manager(dice::metall::create_only,  // Create a new one
+    dice::copperr::manager manager(dice::copperr::create_only,  // Create a new one
                                   "/tmp/dir");          // The directory to store backing datastore
 
     // Allocate and construct a vector object in the persistent memory with a name "vec"
@@ -33,7 +33,7 @@ int main() {
 
   {
     // Reattach the manager object
-    dice::metall::manager manager(dice::metall::open_only, "/tmp/dir");
+    dice::copperr::manager manager(dice::copperr::open_only, "/tmp/dir");
 
     // Find the previously constructed object
     // Please do not forget to use ".first" at the end

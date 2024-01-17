@@ -9,7 +9,7 @@
 #include <dice/metall/metall.hpp>
 #include "../../test_utility.hpp"
 
-namespace mj = dice::metall::json;
+namespace mj = dice::copperr::json;
 
 namespace {
 
@@ -359,15 +359,15 @@ TEST(JSONValueTest, Move) {
 }
 
 TEST(JSONValueTest, CopyDifferentMetallAllocator) {
-  using valut_t = mj::value<dice::metall::manager::allocator_type<std::byte>>;
+  using valut_t = mj::value<dice::copperr::manager::allocator_type<std::byte>>;
   {
     SCOPED_TRACE("Copy Assignment");
     {
-      dice::metall::manager manager_copy(
-          dice::metall::create_only,
+      dice::copperr::manager manager_copy(
+          dice::copperr::create_only,
           (test_utility::make_test_path() / "copy"));
-      dice::metall::manager manager_src(
-          dice::metall::create_only,
+      dice::copperr::manager manager_src(
+          dice::copperr::create_only,
           (test_utility::make_test_path() / "src"));
 
       auto *jv_copy =
@@ -378,8 +378,8 @@ TEST(JSONValueTest, CopyDifferentMetallAllocator) {
     }
 
     {
-      dice::metall::manager manager_copy(
-          dice::metall::open_read_only,
+      dice::copperr::manager manager_copy(
+          dice::copperr::open_read_only,
           (test_utility::make_test_path() / "copy"));
       const auto *const jv_copy = manager_copy.find<valut_t>("jv").first;
       check_json_string(*jv_copy);
@@ -389,11 +389,11 @@ TEST(JSONValueTest, CopyDifferentMetallAllocator) {
   {
     SCOPED_TRACE("Copy Constructor");
     {
-      dice::metall::manager manager_src(
-          dice::metall::create_only,
+      dice::copperr::manager manager_src(
+          dice::copperr::create_only,
           (test_utility::make_test_path() / "src"));
-      dice::metall::manager manager_copy(
-          dice::metall::create_only,
+      dice::copperr::manager manager_copy(
+          dice::copperr::create_only,
           (test_utility::make_test_path() / "copy"));
       auto json_src = mj::parse(json_string, manager_src.get_allocator());
       // Construct a new one from another instance that was allocated by another
@@ -404,8 +404,8 @@ TEST(JSONValueTest, CopyDifferentMetallAllocator) {
     }
 
     {
-      dice::metall::manager manager_copy(
-          dice::metall::open_read_only,
+      dice::copperr::manager manager_copy(
+          dice::copperr::open_read_only,
           (test_utility::make_test_path() / "copy"));
       const auto *const jv_copy = manager_copy.find<valut_t>("jv").first;
       check_json_string(*jv_copy);
@@ -414,15 +414,15 @@ TEST(JSONValueTest, CopyDifferentMetallAllocator) {
 }
 
 TEST(JSONValueTest, MoveDifferentMetallAllocator) {
-  using valut_t = mj::value<dice::metall::manager::allocator_type<std::byte>>;
+  using valut_t = mj::value<dice::copperr::manager::allocator_type<std::byte>>;
   {
     SCOPED_TRACE("Move Assignment");
     {
-      dice::metall::manager manager_move(
-          dice::metall::create_only,
+      dice::copperr::manager manager_move(
+          dice::copperr::create_only,
           (test_utility::make_test_path() / "move"));
-      dice::metall::manager manager_src(
-          dice::metall::create_only,
+      dice::copperr::manager manager_src(
+          dice::copperr::create_only,
           (test_utility::make_test_path() / "src"));
 
       auto *jv_move =
@@ -432,8 +432,8 @@ TEST(JSONValueTest, MoveDifferentMetallAllocator) {
     }
 
     {
-      dice::metall::manager manager_move(
-          dice::metall::open_read_only,
+      dice::copperr::manager manager_move(
+          dice::copperr::open_read_only,
           (test_utility::make_test_path() / "move"));
       const auto *const jv_move = manager_move.find<valut_t>("jv").first;
       check_json_string(*jv_move);
@@ -443,11 +443,11 @@ TEST(JSONValueTest, MoveDifferentMetallAllocator) {
   {
     SCOPED_TRACE("Move Constructor");
     {
-      dice::metall::manager manager_src(
-          dice::metall::create_only,
+      dice::copperr::manager manager_src(
+          dice::copperr::create_only,
           (test_utility::make_test_path() / "src"));
-      dice::metall::manager manager_move(
-          dice::metall::create_only,
+      dice::copperr::manager manager_move(
+          dice::copperr::create_only,
           (test_utility::make_test_path() / "move"));
       // Construct a new one from another instance that was allocated by another
       // allocator
@@ -458,8 +458,8 @@ TEST(JSONValueTest, MoveDifferentMetallAllocator) {
     }
 
     {
-      dice::metall::manager manager_move(
-          dice::metall::open_read_only,
+      dice::copperr::manager manager_move(
+          dice::copperr::open_read_only,
           (test_utility::make_test_path() / "move"));
       const auto *const jv_move = manager_move.find<valut_t>("jv").first;
       check_json_string(*jv_move);

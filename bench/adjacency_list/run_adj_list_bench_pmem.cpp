@@ -41,7 +41,7 @@ std::string run_command(const std::string &cmd) {
   buf.assign((std::istreambuf_iterator<char>(ifs)),
              std::istreambuf_iterator<char>());
 
-  dice::metall::mtlldetail::remove_file(tmp_file);
+  dice::copperr::mtlldetail::remove_file(tmp_file);
 
   return buf;
 }
@@ -63,10 +63,10 @@ int main(int argc, char *argv[]) {
   run_bench(option, &adj_list);
 
   std::cout << "File size\t"
-            << dice::metall::mtlldetail::get_file_size(option.datastore_path_list[0])
+            << dice::copperr::mtlldetail::get_file_size(option.datastore_path_list[0])
             << std::endl;
   std::cout << "Actual file size\t"
-            << dice::metall::mtlldetail::get_actual_file_size(
+            << dice::copperr::mtlldetail::get_actual_file_size(
                    option.datastore_path_list[0])
             << std::endl;
   std::cout << run_command("df " + option.datastore_path_list[0]) << std::endl;

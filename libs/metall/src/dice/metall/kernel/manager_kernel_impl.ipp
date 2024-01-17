@@ -8,7 +8,7 @@
 
 #include <dice/metall/kernel/manager_kernel_fwd.hpp>
 
-namespace dice::metall {
+namespace dice::copperr {
 namespace kernel {
 
 // -------------------- //
@@ -1370,6 +1370,6 @@ bool manager_kernel<chnk_no, chnk_sz>::priv_write_description(
 }
 
 }  // namespace kernel
-}  // namespace dice::metall
+}  // namespace dice::copperr
 
 #endif  // METALL_DETAIL_KERNEL_MANAGER_KERNEL_IMPL_IPP

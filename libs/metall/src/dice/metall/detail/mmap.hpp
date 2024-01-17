@@ -25,7 +25,7 @@
 #include <dice/metall/detail/utilities.hpp>
 #include <dice/metall/logger.hpp>
 
-namespace dice::metall::mtlldetail {
+namespace dice::copperr::mtlldetail {
 
 /// \brief Maps a file checking errors
 /// \param addr Same as mmap(2)
@@ -433,5 +433,5 @@ class pagemap_reader {
   int m_fd;
 };
 
-}  // namespace dice::metall::mtlldetail
+}  // namespace dice::copperr::mtlldetail
 #endif  // METALL_DETAIL_UTILITY_MMAP_HPP

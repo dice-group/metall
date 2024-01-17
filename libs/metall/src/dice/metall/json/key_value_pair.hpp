@@ -16,7 +16,7 @@
 #include <dice/metall/detail/utilities.hpp>
 #include <dice/metall/json/json_fwd.hpp>
 
-namespace dice::metall::json {
+namespace dice::copperr::json {
 
 namespace jsndtl {
 /// \brief Provides 'equal' calculation for other key-value types that have the
@@ -56,7 +56,7 @@ class key_value_pair {
   using char_traits = _char_traits;
   using allocator_type = Alloc;
   using key_type = std::basic_string_view<char_type, char_traits>;
-  using value_type = dice::metall::json::value<allocator_type>;
+  using value_type = dice::copperr::json::value<allocator_type>;
   using size_type = std::size_t;
 
  public:
@@ -242,7 +242,7 @@ class key_value_pair {
     if (priv_short_key()) {
       return m_short_key;
     }
-    return dice::metall::to_raw_pointer(m_long_key);
+    return dice::copperr::to_raw_pointer(m_long_key);
   }
 
   bool priv_short_key() const noexcept {
@@ -268,7 +268,7 @@ class key_value_pair {
         return false;
       }
 
-      std::char_traits<char_type>::copy(dice::metall::to_raw_pointer(m_long_key), key,
+      std::char_traits<char_type>::copy(dice::copperr::to_raw_pointer(m_long_key), key,
                                         m_key_length);
       std::char_traits<char_type>::assign(m_long_key[m_key_length], '\0');
     }
@@ -308,6 +308,6 @@ inline void swap(
   lhd.swap(rhd);
 }
 
-}  // namespace dice::metall::json
+}  // namespace dice::copperr::json
 
 #endif  // METALL_JSON_KEY_VALUE_PAIR_HPP

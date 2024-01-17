@@ -14,7 +14,7 @@
 
 int main() {
   {
-    dice::metall::manager manager(dice::metall::create_only, "/tmp/dir");
+    dice::copperr::manager manager(dice::copperr::create_only, "/tmp/dir");
 
     // Allocate a vector object, passing an allocator object
     auto* vec = manager.construct<metall::container::vector<int>>("vec")(
@@ -25,7 +25,7 @@ int main() {
   }
 
   {
-    dice::metall::manager manager(dice::metall::open_only, "/tmp/dir");
+    dice::copperr::manager manager(dice::copperr::open_only, "/tmp/dir");
 
     auto* vec = manager.find<metall::container::vector<int>>("vec").first;
     std::cout << "Size = " << vec->size() << std::endl;
@@ -36,7 +36,7 @@ int main() {
   }
 
   {
-    dice::metall::manager manager(dice::metall::open_read_only, "/tmp/dir");
+    dice::copperr::manager manager(dice::copperr::open_read_only, "/tmp/dir");
 
     auto* vec = manager.find<metall::container::vector<int>>("vec").first;
     std::cout << "Value at 2 = " << (*vec)[2] << std::endl;

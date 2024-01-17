@@ -39,8 +39,8 @@ int main() {
 
   {
     std::cout << "Boost vector (push_back) with Metall" << std::endl;
-    dice::metall::manager mngr(dice::metall::create_only, "/tmp/metall");
-    dice::metall::container::vector<std::pair<uint64_t, uint64_t>> vec(
+    dice::copperr::manager mngr(dice::copperr::create_only, "/tmp/metall");
+    dice::copperr::container::vector<std::pair<uint64_t, uint64_t>> vec(
         mngr.get_allocator());
     run_bench(inputs, [&vec](const auto &kv) { vec.push_back(kv); });
   }
@@ -66,8 +66,8 @@ int main() {
 
   {
     std::cout << "Boost vector ([]) with Metall" << std::endl;
-    dice::metall::manager mngr(dice::metall::create_only, "/tmp/metall");
-    dice::metall::container::vector<std::pair<uint64_t, uint64_t>> vec(
+    dice::copperr::manager mngr(dice::copperr::create_only, "/tmp/metall");
+    dice::copperr::container::vector<std::pair<uint64_t, uint64_t>> vec(
         mngr.get_allocator());
     std::size_t index = 0;
     run_bench(

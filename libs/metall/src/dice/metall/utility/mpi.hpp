@@ -16,9 +16,9 @@
 #include <dice/metall/detail/file.hpp>
 #include <dice/metall/detail/mmap.hpp>
 
-/// \namespace dice::metall::utility::mpi
+/// \namespace dice::copperr::utility::mpi
 /// \brief Namespace for MPI utilities
-namespace dice::metall::utility::mpi {
+namespace dice::copperr::utility::mpi {
 
 inline int comm_rank(const MPI_Comm &comm) {
   int rank;
@@ -116,7 +116,7 @@ inline int determine_local_root(const MPI_Comm &comm) {
 
   // By now, should be ready & correct size
   void *const ptr =
-      dice::metall::mtlldetail::map_file_write_mode(shm_fd, nullptr, shm_size, 0, 0);
+      dice::copperr::mtlldetail::map_file_write_mode(shm_fd, nullptr, shm_size, 0, 0);
   if (!ptr) {
     METALL_ERROR("Failed to map a shm file");
     return -1;
@@ -156,5 +156,5 @@ inline int determine_local_root(const MPI_Comm &comm) {
 
   return local_root_rank;
 }
-}  // namespace dice::metall::utility::mpi
+}  // namespace dice::copperr::utility::mpi
 #endif  // METALL_METALL_UTILITY_MPI_HPP

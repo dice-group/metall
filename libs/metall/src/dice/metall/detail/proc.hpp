@@ -8,7 +8,7 @@
 
 #include <sched.h>
 
-namespace dice::metall::mtlldetail {
+namespace dice::copperr::mtlldetail {
 #ifdef _GNU_SOURCE
 #include <sys/sysinfo.h>
 #define SUPPORT_GET_CPU_NO true
@@ -48,5 +48,5 @@ inline unsigned int get_num_cpus() {
 #endif
 }
 
-}  // namespace dice::metall::mtlldetail
+}  // namespace dice::copperr::mtlldetail
 #endif  // METALL_DETAIL_UTILITY_PROC_HPP

@@ -13,11 +13,11 @@
 #include <dice/metall/detail/utilities.hpp>
 #include <dice/metall/detail/builtin_functions.hpp>
 
-namespace dice::metall {
+namespace dice::copperr {
 namespace kernel {
 
 namespace {
-namespace mdtl = dice::metall::mtlldetail;
+namespace mdtl = dice::copperr::mtlldetail;
 }
 
 namespace object_size_manager_detail {
@@ -181,5 +181,5 @@ class object_size_manager {
 };
 
 }  // namespace kernel
-}  // namespace dice::metall
+}  // namespace dice::copperr
 #endif  // METALL_DETAIL_KERNEL_OBJECT_SIZE_MANAGER_HPP

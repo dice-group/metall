@@ -13,7 +13,7 @@ static_assert(BOOST_VERSION >= 108200, "Unsupported Boost version");
 
 #include <dice/metall/metall.hpp>
 
-namespace dice::metall::container {
+namespace dice::copperr::container {
 
 /// \brief An unordered_node_map container that uses Metall as its default
 /// allocator.
@@ -23,6 +23,6 @@ template <class Key, class T, class Hash = std::hash<Key>,
 using unordered_node_map =
     boost::unordered_node_map<Key, T, Hash, KeyEqual, Allocator>;
 
-}  // namespace dice::metall::container
+}  // namespace dice::copperr::container
 
 #endif  // METALL_CONTAINER_UNORDERED_NODE_MAP_HPP

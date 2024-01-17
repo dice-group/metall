@@ -96,11 +96,11 @@ index df44175..919b063 100644
 +using RRRsetAllocator = libmemkind::pmem::allocator<vertex_type>;
 +#elif defined ENABLE_METALL_RRRSETS
  template<typename vertex_type>
- using RRRsetAllocator = dice::metall::manager::allocator_type<vertex_type>;
+ using RRRsetAllocator = dice::copperr::manager::allocator_type<vertex_type>;
 
- dice::metall::manager &metall_manager_instance() {
--  static dice::metall::manager manager(dice::metall::create_only, "/tmp/ripples");
-+  static dice::metall::manager manager(dice::metall::create_only, "/dev/shm/metall_tmp");
+ dice::copperr::manager &metall_manager_instance() {
+-  static dice::copperr::manager manager(dice::copperr::create_only, "/tmp/ripples");
++  static dice::copperr::manager manager(dice::copperr::create_only, "/dev/shm/metall_tmp");
    return manager;
  }
 
@@ -110,7 +110,7 @@ index df44175..919b063 100644
  using RRRset =
 -#ifdef  ENABLE_METALL
 +#ifdef  ENABLE_METALL_RRRSETS
-     dice::metall::container::vector<typename GraphTy::vertex_type,
+     dice::copperr::container::vector<typename GraphTy::vertex_type,
                                RRRsetAllocator<typename GraphTy::vertex_type>>;
  #else
 diff --git a/include/ripples/graph.h b/include/ripples/graph.h
@@ -616,9 +616,9 @@ index e835c76..870821c 100644
    using dest_type = ripples::WeightedDestination<uint32_t, float>;
 +  #if defined ENABLE_METALL
 +  using GraphFwd =
-+      ripples::Graph<uint32_t, dest_type, ripples::ForwardDirection<uint32_t>, dice::metall::manager::allocator_type<char>>;
++      ripples::Graph<uint32_t, dest_type, ripples::ForwardDirection<uint32_t>, dice::copperr::manager::allocator_type<char>>;
 +  using GraphBwd =
-+      ripples::Graph<uint32_t, dest_type, ripples::BackwardDirection<uint32_t>, dice::metall::manager::allocator_type<char>>;
++      ripples::Graph<uint32_t, dest_type, ripples::BackwardDirection<uint32_t>, dice::copperr::manager::allocator_type<char>>;
 +  #else
    using GraphFwd =
        ripples::Graph<uint32_t, dest_type, ripples::ForwardDirection<uint32_t>>;
@@ -629,10 +629,10 @@ index e835c76..870821c 100644
 +console->info("Loading...");
 +auto loading_start = std::chrono::high_resolution_clock::now();
 +#if defined ENABLE_METALL
-+bool exists = dice::metall::manager::consistent(CFG.metall_dir.c_str());
++bool exists = dice::copperr::manager::consistent(CFG.metall_dir.c_str());
 +metall::manager manager = (exists ?
-+                         dice::metall::manager(dice::metall::open_only, CFG.metall_dir.c_str())
-+                         : dice::metall::manager(dice::metall::create_only, CFG.metall_dir.c_str()));
++                         dice::copperr::manager(dice::copperr::open_only, CFG.metall_dir.c_str())
++                         : dice::copperr::manager(dice::copperr::create_only, CFG.metall_dir.c_str()));
 +  GraphBwd *Gr;
 +  if(exists){
 +    console->info("Previously existing graph exists! Loading...");
@@ -689,9 +689,9 @@ index 60091f8..0ddb121 100644
    using edge_type = ripples::WeightedDestination<uint32_t, float>;
 +  #if defined ENABLE_METALL
 +  using GraphFwd =
-+      ripples::Graph<uint32_t, edge_type, ripples::ForwardDirection<uint32_t>, dice::metall::manager::allocator_type<char>>;
++      ripples::Graph<uint32_t, edge_type, ripples::ForwardDirection<uint32_t>, dice::copperr::manager::allocator_type<char>>;
 +  using GraphBwd =
-+      ripples::Graph<uint32_t, edge_type, ripples::BackwardDirection<uint32_t>, dice::metall::manager::allocator_type<char>>;
++      ripples::Graph<uint32_t, edge_type, ripples::BackwardDirection<uint32_t>, dice::copperr::manager::allocator_type<char>>;
 +  #else
    using GraphFwd =
        ripples::Graph<uint32_t, edge_type, ripples::ForwardDirection<uint32_t>>;
@@ -702,10 +702,10 @@ index 60091f8..0ddb121 100644
 +  #endif
 +console->info("Loading...");
 +#if defined ENABLE_METALL
-+bool exists = dice::metall::manager::consistent(CFG.metall_dir.c_str());
++bool exists = dice::copperr::manager::consistent(CFG.metall_dir.c_str());
 +metall::manager manager = (exists ?
-+                         dice::metall::manager(dice::metall::open_only, CFG.metall_dir.c_str())
-+                         : dice::metall::manager(dice::metall::create_only, CFG.metall_dir.c_str()));
++                         dice::copperr::manager(dice::copperr::open_only, CFG.metall_dir.c_str())
++                         : dice::copperr::manager(dice::copperr::create_only, CFG.metall_dir.c_str()));
 +  GraphBwd *Gr;
 +  if(exists){
 +    console->info("Previously existing graph exists! Loading...");

@@ -8,12 +8,12 @@
 
 #include <boost/interprocess/detail/segment_manager_helper.hpp>
 
-namespace dice::metall {
+namespace dice::copperr {
 namespace mtlldetail {
 
 using boost::interprocess::ipcdetail::array_construct;
 
 }  // namespace mtlldetail
-}  // namespace dice::metall
+}  // namespace dice::copperr
 
 #endif  // METALL_DETAIL_UTILITY_ARRAY_CONSTRUCT_HPP

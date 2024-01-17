@@ -12,11 +12,11 @@
 
 #include <dice/metall/stl_allocator.hpp>
 
-namespace dice::metall::utility {
+namespace dice::copperr::utility {
 
 /// \brief A STL compatible allocator which fallbacks to a heap allocator (e.g.,
 /// malloc) if its constructor receives no argument. \tparam primary_alloc A
-/// primary allocator type, i.e., dice::metall::stl_allocator.
+/// primary allocator type, i.e., dice::copperr::stl_allocator.
 ///
 /// \details
 /// Using this allocator, the following code will work:
@@ -275,7 +275,7 @@ inline bool operator!=(
   return !(rhd == lhd);
 }
 
-}  // namespace dice::metall::utility
+}  // namespace dice::copperr::utility
 
 /// \example fallback_allocator_adaptor.cpp
 /// This is an example of how to use fallback_allocator_adaptor.

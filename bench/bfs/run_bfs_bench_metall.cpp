@@ -17,7 +17,7 @@ using vertex_id_type = uint64_t;
 
 using adjacency_list_type = data_structure::multithread_adjacency_list<
     vertex_id_type, vertex_id_type,
-    typename dice::metall::manager::allocator_type<std::byte>>;
+    typename dice::copperr::manager::allocator_type<std::byte>>;
 
 int main(int argc, char *argv[]) {
   bench_options<vertex_id_type> option;
@@ -26,9 +26,9 @@ int main(int argc, char *argv[]) {
   }
 
   {
-    // dice::metall::logger::set_log_level(dice::metall::logger::level::verbose);
+    // dice::copperr::logger::set_log_level(dice::copperr::logger::level::verbose);
 
-    dice::metall::manager manager(dice::metall::open_read_only,
+    dice::copperr::manager manager(dice::copperr::open_read_only,
                             option.graph_file_name_list[0].c_str());
     auto adj_list =
         manager.find<adjacency_list_type>(option.graph_key_name.c_str()).first;

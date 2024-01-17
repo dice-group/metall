@@ -8,7 +8,7 @@
 
 #include <dice/metall/json/json_fwd.hpp>
 
-namespace dice::metall::json::jsndtl {
+namespace dice::copperr::json::jsndtl {
 
 namespace {
 namespace bj = boost::json;
@@ -56,9 +56,9 @@ inline value<allocator_type> value_from_impl(
   return value_from_impl(tmp_input_bj_value, allocator);
 }
 
-}  // namespace dice::metall::json::jsndtl
+}  // namespace dice::copperr::json::jsndtl
 
-namespace dice::metall::json {
+namespace dice::copperr::json {
 
 /// \brief Convert an input data and construct a JSON value.
 /// \tparam T The type of an input data.
@@ -79,6 +79,6 @@ inline value<allocator_type> value_from(T &&input_data,
   return jsndtl::value_from_impl(std::forward<T>(input_data), allocator);
 }
 
-}  // namespace dice::metall::json
+}  // namespace dice::copperr::json
 
 #endif  // METALL_JSON_VALUE_FROM_HPP

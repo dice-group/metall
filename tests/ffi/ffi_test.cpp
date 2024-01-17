@@ -6,18 +6,18 @@
 
 TEST(FFI, SanityCheck) {
   char const *obj_name = "obj";
-  std::string const path = "/tmp/metall-ffi" + std::to_string(std::random_device{}());
+  std::string const path = "/tmp/copperr-ffi" + std::to_string(std::random_device{}());
   std::string const snap_path = path + "-snap";
 
   {
-    metall_manager *manager = metall_create(path.c_str());
+    copperr_manager *manager = copperr_create(path.c_str());
     if (manager == nullptr) {
       std::cerr << "failed to create: " << strerror(errno) << std::endl;
       FAIL();
     }
 
     {
-      auto *ptr = static_cast<size_t *>(metall_named_malloc(manager, obj_name, sizeof(size_t)));
+      auto *ptr = static_cast<size_t *>(copperr_named_malloc(manager, obj_name, sizeof(size_t)));
       ASSERT_NE(ptr, nullptr);
       ASSERT_EQ(reinterpret_cast<uintptr_t>(ptr) % alignof(size_t), 0);
 
@@ -25,40 +25,40 @@ TEST(FFI, SanityCheck) {
       ASSERT_EQ(*ptr, 55);
     }
 
-    metall_close(manager);
+    copperr_close(manager);
   }
 
     {
-      metall_manager *manager = metall_open(path.c_str());
+      copperr_manager *manager = copperr_open(path.c_str());
       if (manager == nullptr) {
         std::cerr << "failed to create: " << strerror(errno) << std::endl;
         FAIL();
       }
 
-      auto *ptr = static_cast<size_t *>(metall_find(manager, obj_name));
+      auto *ptr = static_cast<size_t *>(copperr_find(manager, obj_name));
       ASSERT_NE(ptr, nullptr);
       ASSERT_EQ(reinterpret_cast<uintptr_t>(ptr) % alignof(size_t), 0);
 
       *ptr = 66;
       ASSERT_EQ(*ptr, 66);
 
-      if (!metall_snapshot(manager, snap_path.c_str())) {
+      if (!copperr_snapshot(manager, snap_path.c_str())) {
         std::cerr << "failed to snapshot: " << strerror(errno) << std::endl;
         FAIL();
       }
 
-      metall_close(manager);
+      copperr_close(manager);
     }
 
     auto check = [obj_name](auto const &path) {
     {
-      metall_manager *manager = metall_open_read_only(path.c_str());
+      copperr_manager *manager = copperr_open_read_only(path.c_str());
       if (manager == nullptr) {
         std::cerr << "failed to open: " << strerror(errno) << std::endl;
         FAIL();
       }
 
-      auto *ptr = static_cast<size_t *>(metall_find(manager, obj_name));
+      auto *ptr = static_cast<size_t *>(copperr_find(manager, obj_name));
       if (ptr == nullptr) {
         std::cerr << "failed to load: " << strerror(errno) << std::endl;
         FAIL();
@@ -66,27 +66,27 @@ TEST(FFI, SanityCheck) {
 
       ASSERT_EQ(*ptr, 66);
 
-      ASSERT_FALSE(metall_named_free(manager, obj_name));
+      ASSERT_FALSE(copperr_named_free(manager, obj_name));
 
-      metall_close(manager);
+      copperr_close(manager);
     }
 
     {
-        metall_manager *manager = metall_open(path.c_str());
+        copperr_manager *manager = copperr_open(path.c_str());
         if (manager == nullptr) {
           std::cerr << "failed to open: " << strerror(errno) << std::endl;
           FAIL();
         }
 
-        if (!metall_named_free(manager, obj_name)) {
+        if (!copperr_named_free(manager, obj_name)) {
           std::cerr << "failed to dealloc: " << strerror(errno) << std::endl;
           FAIL();
         }
 
-        metall_close(manager);
+        copperr_close(manager);
 
-        ASSERT_TRUE(metall_remove(path.c_str()));
-        ASSERT_TRUE(!metall_open(path.c_str()));
+        ASSERT_TRUE(copperr_remove(path.c_str()));
+        ASSERT_TRUE(!copperr_open(path.c_str()));
     }
   };
 
@@ -96,20 +96,20 @@ TEST(FFI, SanityCheck) {
 
 TEST(FFI, PreventOpenSameDatastoreTwice) {
   std::string const path = "/tmp/" + std::to_string(std::random_device{}());
-  metall_manager *manager = metall_create(path.c_str());
+  copperr_manager *manager = copperr_create(path.c_str());
   if (manager == nullptr) {
     std::cerr << "failed to create datastore: " << strerror(errno) << std::endl;
     FAIL();
   }
 
-  metall_manager *manager2 = metall_open(path.c_str());
+  copperr_manager *manager2 = copperr_open(path.c_str());
   ASSERT_EQ(manager2, nullptr);
   ASSERT_EQ(errno, ENOTRECOVERABLE);
 
-  metall_manager *manager3 = metall_open(path.c_str());
+  copperr_manager *manager3 = copperr_open(path.c_str());
   ASSERT_EQ(manager3, nullptr);
   ASSERT_EQ(errno, ENOTRECOVERABLE);
 
-  metall_close(manager);
-  ASSERT_TRUE(metall_remove(path.c_str()));
+  copperr_close(manager);
+  ASSERT_TRUE(copperr_remove(path.c_str()));
 }

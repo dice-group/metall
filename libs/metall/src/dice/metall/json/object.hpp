@@ -9,7 +9,7 @@
 #include <dice/metall/json/json_fwd.hpp>
 #include <dice/metall/json/details/compact_object.hpp>
 
-namespace dice::metall::json {
+namespace dice::copperr::json {
 
 /// \brief JSON object.
 /// An object is a table key and value pairs.
@@ -43,6 +43,6 @@ inline bool general_object_equal(
 
 }  // namespace jsndtl
 
-}  // namespace dice::metall::json
+}  // namespace dice::copperr::json
 
 #endif  // METALL_OBJECT_HPP

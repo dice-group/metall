@@ -1,8 +1,8 @@
 find_package(GTest REQUIRED)
 include(GoogleTest)
 
-function(add_metall_test_executable name source)
-    add_metall_executable(${name} ${source})
+function(add_copperr_test_executable name source)
+    add_copperr_executable(${name} ${source})
 
     target_link_libraries(${name} PRIVATE GTest::gtest_main GTest::gtest)
     gtest_discover_tests(${name})

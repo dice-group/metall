@@ -6,16 +6,16 @@
 #include <dice/metall/metall.hpp>
 
 // define logger ops
-extern "C" void metall_log([[maybe_unused]] metall_log_level lvl,
-                           [[maybe_unused]] char const *file,
-                           [[maybe_unused]] size_t line,
-                           char const *function, char const *message) {
+extern "C" void copperr_log([[maybe_unused]] copperr_log_level lvl,
+                            [[maybe_unused]] char const *file,
+                            [[maybe_unused]] size_t line,
+                            char const *function, char const *message) {
   std::cerr << "(" << function << "): " << message << std::endl;
 }
 
 int main() {
-  // Do Metall operations
-  dice::metall::manager manager(dice::metall::create_only, "/tmp/dir");
+  // Do Copperr operations
+  dice::copperr::manager manager(dice::copperr::create_only, "/tmp/dir");
 
   return 0;
 }

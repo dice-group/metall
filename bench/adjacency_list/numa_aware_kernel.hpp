@@ -14,7 +14,7 @@
 namespace adjacency_list_bench {
 
 namespace {
-namespace mdtl = dice::metall::mtlldetail;
+namespace mdtl = dice::copperr::mtlldetail;
 }
 
 inline void configure_numa() {

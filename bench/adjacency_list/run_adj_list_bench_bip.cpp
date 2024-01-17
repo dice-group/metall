@@ -26,7 +26,7 @@ using adjacency_list_type =
     data_structure::multithread_adjacency_list<key_type, value_type,
                                                allocator_type>;
 
-namespace mdtl = dice::metall::mtlldetail;
+namespace mdtl = dice::copperr::mtlldetail;
 
 int main(int argc, char *argv[]) {
   bench_options option;

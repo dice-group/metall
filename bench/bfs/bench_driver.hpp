@@ -20,8 +20,8 @@
 namespace bfs_bench {
 
 namespace {
-namespace mdtl = dice::metall::mtlldetail;
-namespace omp = dice::metall::utility::omp;
+namespace mdtl = dice::copperr::mtlldetail;
+namespace omp = dice::copperr::utility::omp;
 }  // namespace
 
 // ---------------------------------------- //

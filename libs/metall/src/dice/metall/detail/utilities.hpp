@@ -33,7 +33,7 @@
 #endif
 #endif
 
-namespace dice::metall::mtlldetail {
+namespace dice::copperr::mtlldetail {
 
 /// \brief Computes the next power of 2
 /// \param n Input value
@@ -148,5 +148,5 @@ inline std::pair<std::size_t, std::size_t> partial_range(
 
   return std::make_pair(begin_index, begin_index + partial_length);
 }
-}  // namespace dice::metall::mtlldetail
+}  // namespace dice::copperr::mtlldetail
 #endif  // METALL_DETAIL_UTILITY_COMMON_HPP

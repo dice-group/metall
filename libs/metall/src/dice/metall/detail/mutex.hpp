@@ -8,10 +8,10 @@
 
 #include <mutex>
 
-namespace dice::metall::mtlldetail {
+namespace dice::copperr::mtlldetail {
 
 using mutex = std::mutex;
 using mutex_lock_guard = std::lock_guard<mutex>;
 
-}  // namespace dice::metall::mtlldetail
+}  // namespace dice::copperr::mtlldetail
 #endif  // METALL_DETAIL_UTILITY_MUTEX_HPP

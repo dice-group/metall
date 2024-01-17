@@ -94,21 +94,21 @@ int main(int argc, char **argv) {
   int num_threads = 1;
   parse_options(argc, argv, &rmat_option, &edge_list_file_name, &num_threads);
 
-  dice::metallutility::omp::set_num_threads(num_threads);
+  dice::copperrutility::omp::set_num_threads(num_threads);
 
   OMP_DIRECTIVE(parallel) {
-    const auto range = dice::metall::mtlldetail::partial_range(
-        rmat_option.edge_count, dice::metall::utility::omp::get_thread_num(),
-        dice::metall::utility::omp::get_num_threads());
+    const auto range = dice::copperr::mtlldetail::partial_range(
+        rmat_option.edge_count, dice::copperr::utility::omp::get_thread_num(),
+        dice::copperr::utility::omp::get_num_threads());
     const std::size_t num_edges = range.second - range.first;
     edge_generator::rmat_edge_generator rmat(
-        rmat_option.seed + dice::metall::utility::omp::get_thread_num(),
+        rmat_option.seed + dice::copperr::utility::omp::get_thread_num(),
         rmat_option.vertex_scale, num_edges, rmat_option.a, rmat_option.b,
         rmat_option.c, rmat_option.scramble_id, rmat_option.undirected);
 
     std::ofstream edge_list_file(
         edge_list_file_name + "-" +
-        std::to_string(dice::metall::utility::omp::get_thread_num()));
+        std::to_string(dice::copperr::utility::omp::get_thread_num()));
     if (!edge_list_file.is_open()) {
       std::cerr << "Cannot open " << edge_list_file_name << std::endl;
       std::abort();

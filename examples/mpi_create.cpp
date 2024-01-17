@@ -14,12 +14,12 @@ int main(int argc, char **argv) {
     // MPI ranks.
     // To forcibly　remove the existing datastore, one can use the following
     // code.
-    // dice::metall::utility::filesystem::remove("/tmp/metall_mpi");
+    // dice::copperr::utility::filesystem::remove("/tmp/metall_mpi");
     // ::MPI_Barrier(MPI_COMM_WORLD);
     bool overwrite = true;
 
-    dice::metall::utility::metall_mpi_adaptor mpi_adaptor(
-        dice::metall::create_only, "/tmp/metall_mpi", MPI_COMM_WORLD, overwrite);
+    dice::copperr::utility::copperr_mpi_adaptor mpi_adaptor(
+        dice::copperr::create_only, "/tmp/metall_mpi", MPI_COMM_WORLD, overwrite);
     auto &metall_manager = mpi_adaptor.get_local_manager();
 
     auto rank = metall_manager.construct<int>("my-rank")();

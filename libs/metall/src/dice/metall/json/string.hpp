@@ -10,7 +10,7 @@
 
 #include <dice/metall/json/json_fwd.hpp>
 
-namespace dice::metall::json::jsndtl {
+namespace dice::copperr::json::jsndtl {
 
 template <typename char_t, typename traits, typename allocator,
           typename other_string_type>
@@ -20,6 +20,6 @@ inline bool general_string_equal(
   return std::strcmp(string.c_str(), other_string.c_str()) == 0;
 }
 
-}  // namespace dice::metall::json::jsndtl
+}  // namespace dice::copperr::json::jsndtl
 
 #endif  // METALL_JSON_STRING_HPP

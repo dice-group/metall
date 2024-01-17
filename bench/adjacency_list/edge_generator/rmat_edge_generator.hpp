@@ -21,7 +21,7 @@ namespace edge_generator {
 template <typename parent_type>
 class rmat_edge_generator_iterator {
  private:
-  using rnd_generator_type = dice::metall::utility::rand_512;
+  using rnd_generator_type = dice::copperr::utility::rand_512;
 
  public:
   using value_type = std::pair<uint64_t, uint64_t>;
@@ -94,9 +94,9 @@ class rmat_edge_generator_iterator {
       const uint64_t mask = (1ULL << m_ptr_parent->m_vertex_scale) - 1;
       // Assume utility::hash is a good hash function
       m_current_edge.first =
-          dice::metall::utility::hash<>()(m_current_edge.first) & mask;
+          dice::copperr::utility::hash<>()(m_current_edge.first) & mask;
       m_current_edge.second =
-          dice::metall::utility::hash<>()(m_current_edge.second) & mask;
+          dice::copperr::utility::hash<>()(m_current_edge.second) & mask;
     }
     ++m_num_generated_edges;
   }

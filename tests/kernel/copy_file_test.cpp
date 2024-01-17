@@ -16,14 +16,14 @@
 namespace {
 
 void create(const std::string &dir_path) {
-  dice::metall::manager manager(dice::metall::create_only, dir_path);
+  dice::copperr::manager manager(dice::copperr::create_only, dir_path);
 
   manager.construct<uint32_t>("a")(1);
   manager.construct<uint64_t>("b")(2);
 }
 
 void open(const std::string &dir_path) {
-  dice::metall::manager manager(dice::metall::open_read_only, dir_path);
+  dice::copperr::manager manager(dice::copperr::open_read_only, dir_path);
 
   auto a = manager.find<uint32_t>("a").first;
   ASSERT_EQ(*a, 1);
@@ -43,24 +43,24 @@ const std::filesystem::path &copy_dir_path() {
 }
 
 TEST(CopyFileTest, SyncCopy) {
-  dice::metall::manager::remove(original_dir_path());
-  dice::metall::manager::remove(copy_dir_path());
+  dice::copperr::manager::remove(original_dir_path());
+  dice::copperr::manager::remove(copy_dir_path());
 
   create(original_dir_path());
 
-  ASSERT_TRUE(dice::metall::manager::copy(original_dir_path(),
+  ASSERT_TRUE(dice::copperr::manager::copy(original_dir_path(),
                                     copy_dir_path()));
 
   open(copy_dir_path());
 }
 
 TEST(CopyFileTest, AsyncCopy) {
-  dice::metall::manager::remove(original_dir_path());
-  dice::metall::manager::remove(copy_dir_path());
+  dice::copperr::manager::remove(original_dir_path());
+  dice::copperr::manager::remove(copy_dir_path());
 
   create(original_dir_path());
 
-  auto handler = dice::metall::manager::copy_async(original_dir_path(),
+  auto handler = dice::copperr::manager::copy_async(original_dir_path(),
                                              copy_dir_path());
   ASSERT_TRUE(handler.get());
 
@@ -151,7 +151,7 @@ void sparse_copy_test(std::filesystem::path const &srcp,
         std::exit(1);
       }
 
-      ::dice::metall::mtlldetail::file_copy_detail::copy_file_sparse_linux(src, dst, st.st_size);
+      ::dice::copperr::mtlldetail::file_copy_detail::copy_file_sparse_linux(src, dst, st.st_size);
       close(src);
       close(dst);
     }

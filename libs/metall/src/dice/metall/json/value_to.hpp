@@ -8,10 +8,10 @@
 
 #include <dice/metall/json/json_fwd.hpp>
 
-namespace dice::metall::json::jsndtl {
+namespace dice::copperr::json::jsndtl {
 
 namespace {
-namespace mj = dice::metall::json;
+namespace mj = dice::copperr::json;
 namespace bj = boost::json;
 }  // namespace
 
@@ -55,12 +55,12 @@ inline bj::value value_to_impl(const mj::value<allocator_type> &input_value) {
   return out_value;
 }
 
-}  // namespace dice::metall::json::jsndtl
+}  // namespace dice::copperr::json::jsndtl
 
-namespace dice::metall::json {
+namespace dice::copperr::json {
 
 namespace {
-namespace mj = dice::metall::json;
+namespace mj = dice::copperr::json;
 }
 
 /// \brief Convert a JSON value to another data type.
@@ -73,6 +73,6 @@ T value_to(const mj::value<allocator_type> &value) {
   return jsndtl::value_to_impl(value);
 }
 
-}  // namespace dice::metall::json
+}  // namespace dice::copperr::json
 
 #endif  // METALLAL_JSON_VALUE_TO_HPP

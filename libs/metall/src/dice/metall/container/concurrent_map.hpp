@@ -14,9 +14,9 @@
 #include <dice/metall/utility/mutex.hpp>
 #include <dice/metall/utility/container_of_containers_iterator_adaptor.hpp>
 
-/// \namespace dice::metall::container
+/// \namespace dice::copperr::container
 /// \brief Namespace for Metall container
-namespace dice::metall::container {
+namespace dice::copperr::container {
 
 /// \brief A concurrent map container which can be stored in persistent memory.
 /// This container does not allocate mutex objects internally, but allocates
@@ -62,7 +62,7 @@ class concurrent_map {
 
   /// \brief A const iterator type.
   using const_iterator =
-      dice::metall::utility::container_of_containers_iterator_adaptor<
+      dice::copperr::utility::container_of_containers_iterator_adaptor<
           typename banked_map_type::const_iterator,
           typename internal_map_type::const_iterator>;
 
@@ -95,7 +95,7 @@ class concurrent_map {
   /// whether the insertion took place.
   bool insert(value_type &&value) {
     const auto bank_no = calc_bank_no(value.first);
-    auto lock = dice::metall::utility::mutex::mutex_lock<k_num_banks>(bank_no);
+    auto lock = dice::copperr::utility::mutex::mutex_lock<k_num_banks>(bank_no);
     const bool ret =
         m_banked_map[bank_no].insert(std::forward<value_type>(value)).second;
     m_num_items += (ret) ? 1 : 0;
@@ -109,7 +109,7 @@ class concurrent_map {
   std::pair<mapped_type &, std::unique_lock<std::mutex>> scoped_edit(
       const key_type &key) {
     const auto bank_no = calc_bank_no(key);
-    auto lock = dice::metall::utility::mutex::mutex_lock<k_num_banks>(bank_no);
+    auto lock = dice::copperr::utility::mutex::mutex_lock<k_num_banks>(bank_no);
     if (!count(key)) {
       [[maybe_unused]] const bool ret = register_key_no_lock(key);
       assert(ret);
@@ -126,7 +126,7 @@ class concurrent_map {
   void edit(const key_type &key,
             const std::function<void(mapped_type &mapped_value)> &editor) {
     const auto bank_no = calc_bank_no(key);
-    auto lock = dice::metall::utility::mutex::mutex_lock<k_num_banks>(bank_no);
+    auto lock = dice::copperr::utility::mutex::mutex_lock<k_num_banks>(bank_no);
     if (!count(key)) {
       [[maybe_unused]] const bool ret = register_key_no_lock(key);
       assert(ret);
@@ -186,7 +186,7 @@ class concurrent_map {
   size_type m_num_items;
 };
 
-}  // namespace dice::metall::container
+}  // namespace dice::copperr::container
 
 /// \example concurrent_map.cpp
 /// This is an example of how to use the concurrent_map class with Metall.

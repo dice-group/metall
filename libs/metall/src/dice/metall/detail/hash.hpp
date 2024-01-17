@@ -10,7 +10,7 @@
 
 #include <dice/metall/detail/utilities.hpp>
 
-namespace dice::metall::mtlldetail {
+namespace dice::copperr::mtlldetail {
 
 // -----------------------------------------------------------------------------
 // This file contains public domain code from MurmurHash2.
@@ -135,6 +135,6 @@ struct str_hash {
   }
 };
 
-}  // namespace dice::metall::mtlldetail
+}  // namespace dice::copperr::mtlldetail
 
 #endif  // METALL_DETAIL_UTILITY_HASH_HPP

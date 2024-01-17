@@ -14,7 +14,7 @@
 #include <sstream>
 #include <dice/metall/logger.hpp>
 
-namespace dice::metall::mtlldetail {
+namespace dice::copperr::mtlldetail {
 
 inline ssize_t get_page_size() noexcept {
   const ssize_t page_size = ::sysconf(_SC_PAGE_SIZE);
@@ -139,6 +139,6 @@ inline std::pair<std::size_t, std::size_t> get_num_page_faults() {
   return std::make_pair(minflt, majflt);
 }
 
-}  // namespace dice::metall::mtlldetail
+}  // namespace dice::copperr::mtlldetail
 
 #endif  // METALL_DETAIL_UTILITY_MEMORY_HPP

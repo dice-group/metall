@@ -12,15 +12,15 @@
 #include "../test_utility.hpp"
 
 namespace {
-using chunk_no_type = dice::metall::manager::chunk_number_type;
-constexpr std::size_t k_chunk_size = dice::metall::manager::chunk_size();
+using chunk_no_type = dice::copperr::manager::chunk_number_type;
+constexpr std::size_t k_chunk_size = dice::copperr::manager::chunk_size();
 
 using bin_no_mngr =
-    dice::metall::kernel::bin_number_manager<k_chunk_size, 1ULL << 48>;
+    dice::copperr::kernel::bin_number_manager<k_chunk_size, 1ULL << 48>;
 constexpr int k_num_small_bins = bin_no_mngr::num_small_bins();
 
 using chunk_directory_type =
-    dice::metall::kernel::chunk_directory<chunk_no_type, k_chunk_size, 1ULL << 48>;
+    dice::copperr::kernel::chunk_directory<chunk_no_type, k_chunk_size, 1ULL << 48>;
 
 TEST(ChunkDirectoryTest, InsertSmallChunk) {
   chunk_directory_type directory(k_num_small_bins);

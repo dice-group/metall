@@ -16,10 +16,10 @@
 #include <dice/metall/container/string_key_store_locator.hpp>
 #include <dice/metall/metall.hpp>
 
-namespace dice::metall::container {
+namespace dice::copperr::container {
 
 namespace {
-namespace mc = dice::metall::container;
+namespace mc = dice::copperr::container;
 }
 
 /// \brief A ke-value store that uses string for its key.
@@ -28,7 +28,7 @@ namespace mc = dice::metall::container;
 /// \tparam _value_type A value type.
 /// \tparam allocator_type An allocator type.
 template <typename _value_type,
-          typename allocator_type = dice::metall::manager::allocator_type<std::byte>>
+          typename allocator_type = dice::copperr::manager::allocator_type<std::byte>>
 class string_key_store {
  private:
   template <typename T>
@@ -329,7 +329,7 @@ class string_key_store {
 #ifdef METALL_CONTAINER_STRING_KEY_STORE_USE_SIMPLE_HASH
     internal_id_type hash = key.empty() ? 0 : (uint8_t)key[0] % 2;
 #else
-    auto hash = static_cast<internal_id_type>(metall::mtlldetail::murmur_hash_64a(
+    auto hash = static_cast<internal_id_type>(copperr::mtlldetail::murmur_hash_64a(
         key.data(), static_cast<int>(key.length()), seed));
 #endif
     if (hash == k_max_internal_id) {
@@ -352,6 +352,6 @@ class string_key_store {
   std::size_t m_max_id_probe_distance{0};
 };
 
-}  // namespace dice::metall::container
+}  // namespace dice::copperr::container
 
 #endif  // METALL_CONTAINER_CONCURRENT_STRING_KEY_STORE_HPP

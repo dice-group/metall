@@ -10,7 +10,7 @@
 #include <dice/metall/detail/file_clone.hpp>
 #include <dice/metall/detail/mmap.hpp>
 
-namespace mdtl = dice::metall::mtlldetail;
+namespace mdtl = dice::copperr::mtlldetail;
 
 void init_file(const std::string &file_path, const std::size_t size) {
   mdtl::create_file(file_path);

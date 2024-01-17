@@ -6,7 +6,7 @@
 #ifndef METALL_DETAIL_UTILITY_BUILTIN_FUNCTIONS_HPP
 #define METALL_DETAIL_UTILITY_BUILTIN_FUNCTIONS_HPP
 
-namespace dice::metall::mtlldetail {
+namespace dice::copperr::mtlldetail {
 
 /// \brief Count Leading Zeros.
 inline int clzll(const unsigned long long x) noexcept {
@@ -26,6 +26,6 @@ inline int ctzll(const unsigned long long x) noexcept {
 #endif
 }
 
-}  // namespace dice::metall::mtlldetail
+}  // namespace dice::copperr::mtlldetail
 
 #endif  // METALL_DETAIL_UTILITY_BUILTIN_FUNCTIONS_HPP

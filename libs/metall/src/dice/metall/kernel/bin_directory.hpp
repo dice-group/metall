@@ -28,11 +28,11 @@
 #include <dice/metall/detail/utilities.hpp>
 #include <dice/metall/logger.hpp>
 
-namespace dice::metall {
+namespace dice::copperr {
 namespace kernel {
 
 namespace {
-namespace mdtl = dice::metall::mtlldetail;
+namespace mdtl = dice::copperr::mtlldetail;
 }
 
 /// \brief A simple key-value store designed to store values related to memory
@@ -270,6 +270,6 @@ class bin_directory {
 };
 
 }  // namespace kernel
-}  // namespace dice::metall
+}  // namespace dice::copperr
 
 #endif  // METALL_DETAIL_BIN_DIRECTORY_HPP

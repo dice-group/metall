@@ -10,12 +10,12 @@
 
 #include <dice/metall/metall.hpp>
 
-namespace dice::metall::container {
+namespace dice::copperr::container {
 
 /// \brief A vector container that uses Metall as its default allocator.
 template <typename T, typename Allocator = manager::allocator_type<T>>
 using vector = boost::container::vector<T, Allocator>;
 
-}  // namespace dice::metall::container
+}  // namespace dice::copperr::container
 
 #endif  // METALL_CONTAINER_VECTOR_HPP

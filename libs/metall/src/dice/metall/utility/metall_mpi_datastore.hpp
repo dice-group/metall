@@ -8,9 +8,9 @@
 
 #include <string>
 
-/// \namespace dice::metall::utility::mpi_datastore
+/// \namespace dice::copperr::utility::mpi_datastore
 /// \brief Namespace for MPI datastore
-namespace dice::metall::utility::mpi_datastore {
+namespace dice::copperr::utility::mpi_datastore {
 
 /// \brief Makes a path of a root directory.
 /// The MPI ranks that share the same storage space create their data stores
@@ -24,7 +24,7 @@ inline std::string make_root_dir_path(const std::string &root_dir_prefix) {
 /// \param root_dir_prefix A prefix of a root directory path.
 /// \param rank A MPI rank.
 /// \return A path to a local data store directory.
-/// The path can be passed to, for example, dice::metall::manager to perform
+/// The path can be passed to, for example, dice::copperr::manager to perform
 /// operations.
 inline std::string make_local_dir_path(const std::string &root_dir_prefix,
                                        const int rank) {
@@ -32,6 +32,6 @@ inline std::string make_local_dir_path(const std::string &root_dir_prefix,
          std::to_string(rank);
 }
 
-}  // namespace dice::metall::utility::mpi_datastore
+}  // namespace dice::copperr::utility::mpi_datastore
 
 #endif  // METALL_UTILITY_METALL_MPI_DATASTORE_HPP

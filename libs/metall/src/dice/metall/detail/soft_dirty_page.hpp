@@ -12,7 +12,7 @@
 #include <dice/metall/detail/memory.hpp>
 #include <dice/metall/logger.hpp>
 
-namespace dice::metall::mtlldetail {
+namespace dice::copperr::mtlldetail {
 
 inline bool reset_soft_dirty_bit() {
   std::ofstream ofs("/proc/self/clear_refs");
@@ -44,6 +44,6 @@ inline constexpr bool check_present_page(const uint64_t pagemap_value) {
   return (pagemap_value >> 63ULL) & 1ULL;
 }
 
-}  // namespace dice::metall::mtlldetail
+}  // namespace dice::copperr::mtlldetail
 
 #endif  // METALL_DETAIL_UTILITY_SOFT_DIRTY_PAGE_HPP

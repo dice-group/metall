@@ -11,18 +11,18 @@
 // String with Metall
 using persistent_string =
     boost::container::basic_string<char, std::char_traits<char>,
-                                   dice::metall::manager::allocator_type<char>>;
+                                   dice::copperr::manager::allocator_type<char>>;
 
 int main() {
   {
-    dice::metall::manager manager(dice::metall::create_only, "/tmp/datastore");
+    dice::copperr::manager manager(dice::copperr::create_only, "/tmp/datastore");
     auto pstr = manager.construct<persistent_string>("mystring")(
         "Hello, World!", manager.get_allocator<>());
     std::cout << *pstr << std::endl;
   }
 
   {
-    dice::metall::manager manager(dice::metall::open_only, "/tmp/datastore");
+    dice::copperr::manager manager(dice::copperr::open_only, "/tmp/datastore");
     auto pstr = manager.find<persistent_string>("mystring").first;
     std::cout << *pstr << std::endl;
   }

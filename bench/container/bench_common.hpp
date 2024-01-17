@@ -14,7 +14,7 @@
 
 #include "../bench/adjacency_list/edge_generator/rmat_edge_generator.hpp"
 
-namespace mdtl = dice::metall::mtlldetail;
+namespace mdtl = dice::copperr::mtlldetail;
 
 using rmat_generator_type = edge_generator::rmat_edge_generator;
 
@@ -31,7 +31,7 @@ void gen_edges(const std::size_t vertex_scale, const std::size_t num_edges,
 
 void gen_random_values(const std::size_t num_values,
                        std::vector<std::pair<uint64_t, uint64_t>> &buf) {
-  dice::metall::utility::rand_1024 rnd_generator(std::random_device{}());
+  dice::copperr::utility::rand_1024 rnd_generator(std::random_device{}());
 
   buf.reserve(num_values);
   for (std::size_t i = 0; i < num_values; ++i) {

@@ -11,10 +11,10 @@
 #include <dice/metall/container/string.hpp>
 #include <dice/metall/json/json_fwd.hpp>
 
-namespace dice::metall::json {
+namespace dice::copperr::json {
 
 namespace {
-namespace mc = dice::metall::container;
+namespace mc = dice::copperr::container;
 namespace bj = boost::json;
 }  // namespace
 
@@ -65,6 +65,6 @@ std::ostream &operator<<(std::ostream &os, const array<allocator_type> &arr) {
   return os;
 }
 
-}  // namespace dice::metall::json
+}  // namespace dice::copperr::json
 
 #endif  // METALL_JSON_SERIALIZE_HPP

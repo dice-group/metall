@@ -16,14 +16,14 @@
 /// \endcode
 #define METALL_VERSION 2600
 
-namespace dice::metall {
+namespace dice::copperr {
 /// \brief Variable type to handle a version data.
 using version_type = uint32_t;
 static_assert(std::numeric_limits<version_type>::max() >= METALL_VERSION,
               "version_type cannot handle the current version");
 
 #ifndef DOXYGEN_SKIP
-/// \namespace dice::metall::ver_detail
+/// \namespace dice::copperr::ver_detail
 /// \brief Namespace for the details of Metall version
 namespace ver_detail {
 static constexpr version_type k_error_version = 0;
@@ -44,6 +44,6 @@ inline std::string to_version_string(const version_type version) {
          std::to_string(version / 100 % 1000) + "." +
          std::to_string(version % 100);
 }
-}  // namespace dice::metall
+}  // namespace dice::copperr
 
 #endif  // METALL_VERSION_HPP

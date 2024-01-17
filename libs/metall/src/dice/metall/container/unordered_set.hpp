@@ -12,7 +12,7 @@
 
 #include <dice/metall/metall.hpp>
 
-namespace dice::metall::container {
+namespace dice::copperr::container {
 
 /// \brief An unordered_set container that uses Metall as its default allocator.
 template <class Key, class Hash = std::hash<Key>,
@@ -28,6 +28,6 @@ template <class Key, class Hash = std::hash<Key>,
 using unordered_multiset =
     boost::unordered_multiset<Key, Hash, KeyEqual, Allocator>;
 
-}  // namespace dice::metall::container
+}  // namespace dice::copperr::container
 
 #endif  // METALL_CONTAINER_UNORDERED_SET_HPP

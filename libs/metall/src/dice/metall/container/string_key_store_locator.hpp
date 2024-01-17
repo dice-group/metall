@@ -6,7 +6,7 @@
 #ifndef METALL_CONTAINER_CONCURRENT__STRING_KEY_STORE_LOCATOR_HPP_
 #define METALL_CONTAINER_CONCURRENT__STRING_KEY_STORE_LOCATOR_HPP_
 
-namespace dice::metall::container {
+namespace dice::copperr::container {
 
 template <typename iterator_type>
 class string_key_store_locator {
@@ -40,6 +40,6 @@ class string_key_store_locator {
   iterator_type m_iterator;
 };
 
-}  // namespace dice::metall::container
+}  // namespace dice::copperr::container
 
 #endif  // METALL_CONTAINER_CONCURRENT__STRING_KEY_STORE_LOCATOR_HPP_

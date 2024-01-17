@@ -10,12 +10,12 @@
 
 using vid_t = uint64_t;
 using adj_list_graph_t =
-    adjacency_list<vid_t, dice::metall::manager::allocator_type<char>>;
+    adjacency_list<vid_t, dice::copperr::manager::allocator_type<char>>;
 
 int main() {
   {
     // Create a new Metall datastore in "/tmp/dir"
-    dice::metall::manager manager(dice::metall::create_only, "/tmp/dir");
+    dice::copperr::manager manager(dice::copperr::create_only, "/tmp/dir");
 
     // Allocate and construct an object in the persistent memory with a name
     // "adj_list_graph"
@@ -29,7 +29,7 @@ int main() {
 
   {
     // Open the existing Metall datastore in "/tmp/dir"
-    dice::metall::manager manager(dice::metall::open_only, "/tmp/dir");
+    dice::copperr::manager manager(dice::copperr::open_only, "/tmp/dir");
 
     adj_list_graph_t *adj_list_graph =
         manager.find<adj_list_graph_t>("adj_list_graph").first;

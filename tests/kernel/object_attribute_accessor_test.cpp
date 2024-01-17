@@ -11,7 +11,7 @@
 #include "../test_utility.hpp"
 
 namespace {
-using namespace dice::metall;
+using namespace dice::copperr;
 
 auto attr_accessor_named() {
   return manager::access_named_object_attribute(

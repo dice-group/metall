@@ -16,7 +16,7 @@
 #include <dice/metall/kernel/manager_kernel.hpp>
 #include <dice/metall/detail/named_proxy.hpp>
 
-namespace dice::metall {
+namespace dice::copperr {
 
 #if !defined(DOXYGEN_SKIP)
 // Forward declaration
@@ -64,12 +64,12 @@ class basic_manager {
   /// \brief Construct proxy
   template <typename T>
   using construct_proxy =
-      dice::metall::mtlldetail::named_proxy<manager_kernel_type, T, false>;
+      dice::copperr::mtlldetail::named_proxy<manager_kernel_type, T, false>;
 
   /// \brief Construct iterator proxy
   template <typename T>
   using construct_iter_proxy =
-      dice::metall::mtlldetail::named_proxy<manager_kernel_type, T, true>;
+      dice::copperr::mtlldetail::named_proxy<manager_kernel_type, T, true>;
 
   /// \brief An value that describes the type of the instance constructed in
   /// memory
@@ -423,17 +423,17 @@ class basic_manager {
   ///
   /// Example:
   /// \code
-  /// bool destroyed = basic_manager.destroy<T>(dice::metall::unique_instance);
+  /// bool destroyed = basic_manager.destroy<T>(dice::copperr::unique_instance);
   /// \endcode
   ///
   /// \tparam T The type of the object.
   /// \return Returns false if the object was not destroyed.
   template <typename T>
-  bool destroy(const dice::metall::mtlldetail::unique_instance_t *const) {
+  bool destroy(const dice::copperr::mtlldetail::unique_instance_t *const) {
     if (!check_sanity()) {
       return false;
     }
-    return m_kernel->template destroy<T>(dice::metall::unique_instance);
+    return m_kernel->template destroy<T>(dice::copperr::unique_instance);
   }
 
   /// \brief Destroys a object (named, unique, or anonymous) by its address.
@@ -681,7 +681,7 @@ class basic_manager {
   }
 
   /// \brief Returns Returns the number of anonymous objects (objects
-  /// constructed with dice::metall::anonymous_instance) stored in the managed
+  /// constructed with dice::copperr::anonymous_instance) stored in the managed
   /// segment.
   /// \copydoc doc_object_attrb_obj_const_thread_safe
   ///
@@ -1315,6 +1315,6 @@ class basic_manager {
   // -------------------- //
   std::unique_ptr<manager_kernel_type> m_kernel{nullptr};
 };
-}  // namespace dice::metall
+}  // namespace dice::copperr
 
 #endif  // METALL_BASIC_MANAGER_HPP

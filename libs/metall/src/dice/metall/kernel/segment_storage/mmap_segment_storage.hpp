@@ -19,11 +19,11 @@
 #include <dice/metall/detail/utilities.hpp>
 #include <dice/metall/logger.hpp>
 
-namespace dice::metall {
+namespace dice::copperr {
 namespace kernel {
 
 namespace {
-namespace mdtl = dice::metall::mtlldetail;
+namespace mdtl = dice::copperr::mtlldetail;
 }
 
 /// \brief Segment storage that uses multiple backing files
@@ -751,5 +751,5 @@ class mmap_segment_storage {
 };
 
 }  // namespace kernel
-}  // namespace dice::metall
+}  // namespace dice::copperr
 #endif  // METALL_KERNEL_SEGMENT_STORAGE_MMAP_SEGMENT_STORAGE_HPP

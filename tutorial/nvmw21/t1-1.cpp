@@ -11,7 +11,7 @@
 int main() {
   // Creating data into persistent memory
   {
-    dice::metall::manager manager(dice::metall::create_only, "/tmp/dir");
+    dice::copperr::manager manager(dice::copperr::create_only, "/tmp/dir");
 
     int *n = manager.construct<int>  // Allocates an 'int' object
              ("name")  // Stores the allocated memory address with key "name"
@@ -25,7 +25,7 @@ int main() {
 
   // Reattaching the data
   {
-    dice::metall::manager manager(dice::metall::open_only, "/tmp/dir");
+    dice::copperr::manager manager(dice::copperr::open_only, "/tmp/dir");
 
     int *n = manager.find<int>("name").first;
     std::cout << *n << std::endl;

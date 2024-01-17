@@ -9,12 +9,12 @@
 #include <dice/metall/metall.hpp>
 #include "t4-1.hpp"
 
-using persit_array = dynamic_array<int, dice::metall::manager::allocator_type<int>>;
+using persit_array = dynamic_array<int, dice::copperr::manager::allocator_type<int>>;
 
 int main() {
   // Creating data into persistent memory
   {
-    dice::metall::manager manager(dice::metall::create_only, "/tmp/dir");
+    dice::copperr::manager manager(dice::copperr::create_only, "/tmp/dir");
     auto* array =
         manager.construct<persit_array>("array")(manager.get_allocator());
     init(*array);
@@ -22,7 +22,7 @@ int main() {
 
   // Reattaching the data
   {
-    dice::metall::manager manager(dice::metall::open_only, "/tmp/dir");
+    dice::copperr::manager manager(dice::copperr::open_only, "/tmp/dir");
     auto* array = manager.find<persit_array>("array").first;
     print(*array);
     manager.destroy_ptr(array);

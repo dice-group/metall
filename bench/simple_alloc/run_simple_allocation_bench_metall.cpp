@@ -13,10 +13,10 @@
 int main(int argc, char *argv[]) {
   const auto option = simple_alloc_bench::parse_option(argc, argv);
   {
-    dice::metall::manager manager(dice::metall::create_only, option.datastore_path.c_str());
+    dice::copperr::manager manager(dice::copperr::create_only, option.datastore_path.c_str());
     simple_alloc_bench::run_bench(option, manager.get_allocator<std::byte>());
   }
-  dice::metall::manager::remove(option.datastore_path.c_str());
+  dice::copperr::manager::remove(option.datastore_path.c_str());
 
   return 0;
 }

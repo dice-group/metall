@@ -10,7 +10,7 @@
 #include <cstring>
 #include <cassert>
 
-namespace dice::metall::utility {
+namespace dice::copperr::utility {
 
 #if !defined(DOXYGEN_SKIP)
 namespace detail {
@@ -349,6 +349,6 @@ using rand_512 = detail::base_rand_xoshiro<detail::xoshiro512pp>;
 /// ones in STL The actual algorithm is uses xoshiro1024++ whose period is
 /// 2^(1024-1)
 using rand_1024 = detail::base_rand_xoshiro<detail::xoshiro1024pp>;
-}  // namespace dice::metall::utility
+}  // namespace dice::copperr::utility
 
 #endif  // METALL_UTILITY_RANDOM_HPP

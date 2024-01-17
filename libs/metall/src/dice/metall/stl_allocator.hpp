@@ -15,7 +15,7 @@
 #include <dice/metall/offset_ptr.hpp>
 #include <dice/metall/logger.hpp>
 
-namespace dice::metall {
+namespace dice::copperr {
 
 /// \brief A STL compatible allocator.
 /// \tparam T A object type.
@@ -235,6 +235,6 @@ inline bool operator!=(const stl_allocator<T, kernel> &rhd,
   return !(rhd == lhd);
 }
 
-}  // namespace dice::metall
+}  // namespace dice::copperr
 
 #endif  // METALL_STL_ALLOCATOR_HPP

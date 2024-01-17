@@ -17,10 +17,10 @@
 #include <dice/metall/container/vector.hpp>
 #include <dice/metall/utility/hash.hpp>
 
-namespace dice::metall::json::jsndtl {
+namespace dice::copperr::json::jsndtl {
 
 namespace {
-namespace mc = dice::metall::container;
+namespace mc = dice::copperr::container;
 }
 
 // Forward declarations
@@ -275,6 +275,6 @@ inline bool general_compact_object_equal(
   return true;
 }
 
-}  // namespace dice::metall::json::jsndtl
+}  // namespace dice::copperr::json::jsndtl
 
 #endif  // METALL_JSON_DETAILS_COMPACT_OBJECT_HPP

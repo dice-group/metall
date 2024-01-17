@@ -3,13 +3,13 @@
 
 #include <dice/metall/metall.hpp>
 
-namespace dice::metall_ffi::internal {
+namespace dice::copperr::ffi::internal {
 /**
  * @brief The metall manager type used internally.
- *      This object type is whats actually behind the opaque ::metall_manager *
+ *      This object type is whats actually behind the opaque ::copperr_manager *
  * in the interface
  */
-using metall_manager = metall::manager;
-}  // namespace dice::metall_ffi::internal
+using copperr_manager = copperr::manager;
+}  // namespace dice::copperr::ffi::internal
 
 #endif  // DICE_METALLFFI_METALLINTERNAL_HPP

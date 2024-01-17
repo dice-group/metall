@@ -9,16 +9,16 @@
 #include <mutex>
 #include <cassert>
 
-namespace dice::metall::utility {
+namespace dice::copperr::utility {
 
-/// \namespace dice::metall::utility::mutex
+/// \namespace dice::copperr::utility::mutex
 /// \brief Namespace for mutex
 namespace mutex {
 
 /// \brief A utility function that returns a mutex lock allocated as a static
 /// object. This is an experimental implementation. Example: { // Mutex region
 ///   const int bank_index = hash(key) % num_banks;
-///   auto guard = dice::metall::utility::mutex::mutex_lock<num_banks>(bank_index);
+///   auto guard = dice::copperr::utility::mutex::mutex_lock<num_banks>(bank_index);
 ///   // do some mutex work
 /// }
 template <int num_banks>
@@ -29,7 +29,7 @@ inline std::unique_lock<std::mutex> mutex_lock(const std::size_t index) {
 }
 
 }  // namespace mutex
-}  // namespace dice::metall::utility
+}  // namespace dice::copperr::utility
 
 /// \example static_mutex.cpp
 /// This is an example of how to use the mutex_lock function.

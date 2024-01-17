@@ -12,10 +12,10 @@ using T = int;
 
 // Just a one way to extract the type of the attributed object directory
 // iterator
-using iterator_t = dice::metall::manager::const_named_iterator;
+using iterator_t = dice::copperr::manager::const_named_iterator;
 
 int main() {
-  dice::metall::manager manager(dice::metall::create_only, "/tmp/dir");
+  dice::copperr::manager manager(dice::copperr::create_only, "/tmp/dir");
   T* obj = manager.construct<T>("obj")();
 
   [[maybe_unused]] bool flag;
@@ -23,7 +23,7 @@ int main() {
   [[maybe_unused]] std::string str;
   [[maybe_unused]] iterator_t itr;
 
-  // Accessing object attributes via dice::metall::manager object
+  // Accessing object attributes via dice::copperr::manager object
   {
     manager.get_instance_name<T>(obj);
     manager.get_instance_kind<T>(obj);
@@ -42,7 +42,7 @@ int main() {
   // Attributed Object Directory Accessor
   {
     // Named object
-    auto asn = dice::metall::manager::access_named_object_attribute("/dir");
+    auto asn = dice::copperr::manager::access_named_object_attribute("/dir");
     flag = asn.good();
     n = asn.num_objects();
     n = asn.count("obj");
@@ -53,21 +53,21 @@ int main() {
     flag = asn.set_description(itr, "foo");
 
     // Unique object
-    auto asu = dice::metall::manager::access_unique_object_attribute("/dir");
+    auto asu = dice::copperr::manager::access_unique_object_attribute("/dir");
     flag = asu.good();
     n = asu.num_objects();
     n = asu.count(typeid(T).name());
-    n = asu.count<T>(dice::metall::unique_instance);
+    n = asu.count<T>(dice::copperr::unique_instance);
     itr = asu.find(typeid(T).name());
-    itr = asu.find<T>(dice::metall::unique_instance);
+    itr = asu.find<T>(dice::copperr::unique_instance);
     itr = asu.begin();
     itr = asu.end();
     asu.set_description(typeid(T).name(), "foo");
-    asu.set_description<T>(dice::metall::unique_instance, "foo");
+    asu.set_description<T>(dice::copperr::unique_instance, "foo");
     asu.set_description(itr, "foo");
 
     // Anonymous object
-    auto asa = dice::metall::manager::access_anonymous_object_attribute("/dir");
+    auto asa = dice::copperr::manager::access_anonymous_object_attribute("/dir");
     flag = asa.good();
     n = asa.num_objects();
     itr = asa.begin();

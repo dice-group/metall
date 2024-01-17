@@ -8,9 +8,9 @@
 #include <dice/metall/metall.hpp>
 #include <dice/metall/container/concurrent_map.hpp>
 
-using map_type = dice::metall::container::concurrent_map<
+using map_type = dice::copperr::container::concurrent_map<
     char, int, std::less<char>, std::hash<char>,
-    dice::metall::manager::allocator_type<std::pair<const char, int>>>;
+    dice::copperr::manager::allocator_type<std::pair<const char, int>>>;
 
 bool insert_func1(const char key, const int value, map_type *pmap) {
   return pmap->insert(std::make_pair(key, value));
@@ -41,7 +41,7 @@ void edit(const char key, const int value, map_type *pmap) {
 
 int main() {
   {
-    dice::metall::manager manager(dice::metall::create_only, "/tmp/datastore");
+    dice::copperr::manager manager(dice::copperr::create_only, "/tmp/datastore");
     auto pmap = manager.construct<map_type>("map")(manager.get_allocator<>());
 
     // Insert elements concurrently, using the 3 styles
@@ -69,7 +69,7 @@ int main() {
   }
 
   {
-    dice::metall::manager manager(dice::metall::open_only, "/tmp/datastore");
+    dice::copperr::manager manager(dice::copperr::open_only, "/tmp/datastore");
     auto pmap = manager.find<map_type>("map").first;
 
     // Of course, one can update values after reattaching

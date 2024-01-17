@@ -6,7 +6,7 @@ find_package(metall REQUIRED)
 add_executable(example example.cpp)
 
 target_link_libraries(example PUBLIC
-        metall::metall)
+        metall::copperr)
 
 set_target_properties(
         example PROPERTIES

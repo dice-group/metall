@@ -31,27 +31,27 @@
 
 #include <dice/metall/container/string.hpp>
 
-/// \namespace dice::metall::json
+/// \namespace dice::copperr::json
 /// \brief Namespace for Metall JSON container, which is in an experimental
 /// phase.
-namespace dice::metall::json {
+namespace dice::copperr::json {
 /// \brief JSON null type.
 using null_type = std::monostate;
 
 /// \brief JSON basic string type.
 template <typename char_t, typename traits, typename allocator_type>
 using basic_string =
-    dice::metall::container::basic_string<char_t, traits, allocator_type>;
+    dice::copperr::container::basic_string<char_t, traits, allocator_type>;
 
 /// \brief JSON string.
 template <typename allocator_type = std::allocator<std::byte>>
 using string = basic_string<char, std::char_traits<char>, allocator_type>;
-}  // namespace dice::metall::json
+}  // namespace dice::copperr::json
 
 // Forward declaration
 #if !defined(DOXYGEN_SKIP)
 
-namespace dice::metall::json {
+namespace dice::copperr::json {
 
 template <typename allocator_type = std::allocator<std::byte>>
 class value;
@@ -214,6 +214,6 @@ bool general_key_value_pair_equal(
 
 #endif  // DOXYGEN_SKIP
 
-}  // namespace dice::metall::json
+}  // namespace dice::copperr::json
 
 #endif  // METALL_JSON_JSON_FWD_HPP

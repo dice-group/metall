@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.22)
-project(metall VERSION 0.26.1
+project(copperr VERSION 0.26.1
         DESCRIPTION "A persistent memory allocator for data-centric analytics")
 
 include(cmake/boilerplate_init.cmake)
 boilerplate_init()
 
-option(WITH_DEFAULT_LOGGER "build and use metall's default logger" ON)
+option(WITH_DEFAULT_LOGGER "build and use copperrs's default logger" ON)
 option(BUILD_FFI "build foreign function interface" OFF)
 option(BUILD_TESTING "build tests" OFF)
 option(BUILD_UTILITY "build utility executables" OFF)
@@ -74,7 +74,7 @@ function(add_common_compile_options name)
     endif ()
 endfunction()
 
-function(common_setup_for_metall_executable name)
+function(common_setup_for_copperr_executable name)
     target_link_libraries(${name}
             PRIVATE
             ${PROJECT_NAME}::${PROJECT_NAME}
@@ -95,9 +95,9 @@ function(common_setup_for_metall_executable name)
     endif ()
 endfunction()
 
-function(add_metall_executable name source)
+function(add_copperr_executable name source)
     add_executable(${name} ${source})
-    common_setup_for_metall_executable(${name})
+    common_setup_for_copperr_executable(${name})
 endfunction ()
 
 

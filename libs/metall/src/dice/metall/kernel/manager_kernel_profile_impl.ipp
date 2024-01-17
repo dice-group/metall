@@ -8,7 +8,7 @@
 
 #include <dice/metall/kernel/manager_kernel_fwd.hpp>
 
-namespace dice::metall {
+namespace dice::copperr {
 namespace kernel {
 
 template <typename chunk_no_type, std::size_t k_chunk_size>
@@ -19,6 +19,6 @@ void manager_kernel<chunk_no_type, k_chunk_size>::profile(
 }
 
 }  // namespace kernel
-}  // namespace dice::metall
+}  // namespace dice::copperr
 
 #endif  // METALL_DETAIL_KERNEL_MANAGER_KERNEL_PROFILE_IMPL_IPP

@@ -28,8 +28,8 @@
 #include <dice/metall/container/unordered_node_set.hpp>
 #endif
 
-using namespace dice::metall;
-namespace mc = dice::metall::container;
+using namespace dice::copperr;
+namespace mc = dice::copperr::container;
 
 int main() {
   manager mg(create_only, "/tmp/dir");

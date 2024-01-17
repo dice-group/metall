@@ -12,7 +12,7 @@
 
 #include <dice/metall/json/json_fwd.hpp>
 
-namespace dice::metall::json {
+namespace dice::copperr::json {
 
 namespace {
 namespace bj = boost::json;
@@ -41,9 +41,9 @@ inline value<allocator_type> parse(std::string_view input_json_string,
     return value<allocator_type>{allocator};
   }
 
-  return dice::metall::json::value_from(std::move(bj_value), allocator);
+  return dice::copperr::json::value_from(std::move(bj_value), allocator);
 }
 
-}  // namespace dice::metall::json
+}  // namespace dice::copperr::json
 
 #endif  // METALL_JSON_PARSE_HPP

@@ -14,17 +14,17 @@ using vid_t = uint64_t;
 
 // We have two CSR graph data structures that have the same interfaces
 #if 0
-using csr_graph_t = csr<index_t, vid_t, dice::metall::manager::allocator_type<char>>;
+using csr_graph_t = csr<index_t, vid_t, dice::copperr::manager::allocator_type<char>>;
 #else
 using csr_graph_t =
-    csr_using_vector<index_t, vid_t, dice::metall::manager::allocator_type<char>>;
+    csr_using_vector<index_t, vid_t, dice::copperr::manager::allocator_type<char>>;
 #endif
 
 int main() {
   {
     // Create a new Metall datastore in "/tmp/dir"
     // If 'dir' does not exist, Metall creates automatically
-    dice::metall::manager manager(dice::metall::create_only, "/tmp/dir");
+    dice::copperr::manager manager(dice::copperr::create_only, "/tmp/dir");
 
     std::size_t num_vertices = 16;
     std::size_t num_edges = 256;
@@ -43,7 +43,7 @@ int main() {
 
   {
     // Open the existing Metall datastore in "/tmp/dir"
-    dice::metall::manager manager(dice::metall::open_read_only, "/tmp/dir");
+    dice::copperr::manager manager(dice::copperr::open_read_only, "/tmp/dir");
 
     csr_graph_t *csr_graph = manager.find<csr_graph_t>("csr_graph").first;
     if (!csr_graph) {

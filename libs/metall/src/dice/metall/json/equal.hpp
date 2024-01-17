@@ -8,7 +8,7 @@
 
 #include <dice/metall/json/json_fwd.hpp>
 
-namespace dice::metall::json {
+namespace dice::copperr::json {
 
 namespace {
 namespace bj = boost::json;
@@ -137,5 +137,5 @@ inline bool operator!=(const bj::string &bj_string,
                        const basic_string<char_t, traits, allocator> &string) {
   return string != bj_string;
 }
-}  // namespace dice::metall::json
+}  // namespace dice::copperr::json
 #endif  // METALL_JSON_EQUAL_HPP

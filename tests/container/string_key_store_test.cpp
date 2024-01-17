@@ -18,7 +18,7 @@ namespace {
 namespace bip = boost::interprocess;
 
 TEST(StringKeyStoreTest, DuplicateInsert) {
-  dice::metall::container::string_key_store<std::string, std::allocator<std::byte>>
+  dice::copperr::container::string_key_store<std::string, std::allocator<std::byte>>
       store(false, 111);
 
   ASSERT_FALSE(store.unique());
@@ -48,7 +48,7 @@ TEST(StringKeyStoreTest, DuplicateInsert) {
 }
 
 TEST(StringKeyStoreTest, UniqueInsert) {
-  dice::metall::container::string_key_store<std::string, std::allocator<std::byte>>
+  dice::copperr::container::string_key_store<std::string, std::allocator<std::byte>>
       store(true, 111);
 
   ASSERT_TRUE(store.unique());
@@ -78,7 +78,7 @@ TEST(StringKeyStoreTest, UniqueInsert) {
 }
 
 TEST(StringKeyStoreTest, CopyConstructorDuplicate) {
-  dice::metall::container::string_key_store<std::string, std::allocator<std::byte>>
+  dice::copperr::container::string_key_store<std::string, std::allocator<std::byte>>
       store(false, 111);
   store.insert("a");
   store.insert("b");
@@ -103,7 +103,7 @@ TEST(StringKeyStoreTest, CopyConstructorDuplicate) {
 }
 
 TEST(StringKeyStoreTest, CopyConstructorUnique) {
-  dice::metall::container::string_key_store<std::string, std::allocator<std::byte>>
+  dice::copperr::container::string_key_store<std::string, std::allocator<std::byte>>
       store(true, 111);
   store.insert("a");
   store.insert("b");
@@ -127,7 +127,7 @@ TEST(StringKeyStoreTest, CopyConstructorUnique) {
 }
 
 TEST(StringKeyStoreTest, CopyAsignmentDuplicate) {
-  dice::metall::container::string_key_store<std::string, std::allocator<std::byte>>
+  dice::copperr::container::string_key_store<std::string, std::allocator<std::byte>>
       store(false, 111);
   store.insert("a");
   store.insert("b");
@@ -152,7 +152,7 @@ TEST(StringKeyStoreTest, CopyAsignmentDuplicate) {
 }
 
 TEST(StringKeyStoreTest, CopyAsignmentUnique) {
-  dice::metall::container::string_key_store<std::string, std::allocator<std::byte>>
+  dice::copperr::container::string_key_store<std::string, std::allocator<std::byte>>
       store(true, 111);
   store.insert("a");
   store.insert("b");
@@ -176,7 +176,7 @@ TEST(StringKeyStoreTest, CopyAsignmentUnique) {
 }
 
 TEST(StringKeyStoreTest, MoveConstructorDuplicate) {
-  dice::metall::container::string_key_store<std::string, std::allocator<std::byte>>
+  dice::copperr::container::string_key_store<std::string, std::allocator<std::byte>>
       store(false, 111);
   store.insert("a");
   store.insert("b");
@@ -193,7 +193,7 @@ TEST(StringKeyStoreTest, MoveConstructorDuplicate) {
 }
 
 TEST(StringKeyStoreTest, MoveConstructorUnique) {
-  dice::metall::container::string_key_store<std::string, std::allocator<std::byte>>
+  dice::copperr::container::string_key_store<std::string, std::allocator<std::byte>>
       store(true, 111);
   store.insert("a");
   store.insert("b");
@@ -209,7 +209,7 @@ TEST(StringKeyStoreTest, MoveConstructorUnique) {
 }
 
 TEST(StringKeyStoreTest, MoveAsignmentDuplicate) {
-  dice::metall::container::string_key_store<std::string, std::allocator<std::byte>>
+  dice::copperr::container::string_key_store<std::string, std::allocator<std::byte>>
       store(false, 111);
   store.insert("a");
   store.insert("b");
@@ -226,7 +226,7 @@ TEST(StringKeyStoreTest, MoveAsignmentDuplicate) {
 }
 
 TEST(StringKeyStoreTest, MoveAsignmentUnique) {
-  dice::metall::container::string_key_store<std::string, std::allocator<std::byte>>
+  dice::copperr::container::string_key_store<std::string, std::allocator<std::byte>>
       store(true, 111);
   store.insert("a");
   store.insert("b");
@@ -242,7 +242,7 @@ TEST(StringKeyStoreTest, MoveAsignmentUnique) {
 }
 
 TEST(StringKeyStoreTest, Clear) {
-  dice::metall::container::string_key_store<std::string, std::allocator<std::byte>>
+  dice::copperr::container::string_key_store<std::string, std::allocator<std::byte>>
       store(true, 111);
   store.insert("a");
   store.insert("b", "0");
@@ -251,7 +251,7 @@ TEST(StringKeyStoreTest, Clear) {
 }
 
 TEST(StringKeyStoreTest, EraseMultipleWithKey) {
-  dice::metall::container::string_key_store<std::string, std::allocator<std::byte>>
+  dice::copperr::container::string_key_store<std::string, std::allocator<std::byte>>
       store(false, 111);
   ASSERT_EQ(store.erase("a"), 0);
   store.insert("a");
@@ -265,7 +265,7 @@ TEST(StringKeyStoreTest, EraseMultipleWithKey) {
 }
 
 TEST(StringKeyStoreTest, EraseSingleWithKey) {
-  dice::metall::container::string_key_store<std::string, std::allocator<std::byte>>
+  dice::copperr::container::string_key_store<std::string, std::allocator<std::byte>>
       store(true, 111);
   ASSERT_EQ(store.erase("a"), 0);
   store.insert("a");
@@ -279,7 +279,7 @@ TEST(StringKeyStoreTest, EraseSingleWithKey) {
 }
 
 TEST(StringKeyStoreTest, EraseMultipleWithLocator) {
-  dice::metall::container::string_key_store<std::string, std::allocator<std::byte>>
+  dice::copperr::container::string_key_store<std::string, std::allocator<std::byte>>
       store(false, 111);
   ASSERT_EQ(store.erase(store.find("a")), store.end());
   store.insert("a");
@@ -294,7 +294,7 @@ TEST(StringKeyStoreTest, EraseMultipleWithLocator) {
 }
 
 TEST(StringKeyStoreTest, EraseSingleWithLocator) {
-  dice::metall::container::string_key_store<std::string, std::allocator<std::byte>>
+  dice::copperr::container::string_key_store<std::string, std::allocator<std::byte>>
       store(true, 111);
   ASSERT_EQ(store.erase(store.find("a")), store.end());
   store.insert("a");
@@ -308,7 +308,7 @@ TEST(StringKeyStoreTest, EraseSingleWithLocator) {
 }
 
 TEST(StringKeyStoreTest, LocatorDuplicate) {
-  dice::metall::container::string_key_store<std::string, std::allocator<std::byte>>
+  dice::copperr::container::string_key_store<std::string, std::allocator<std::byte>>
       store(false, 111);
   ASSERT_EQ(store.begin(), store.end());
   ASSERT_EQ(store.find("a"), store.end());
@@ -370,7 +370,7 @@ TEST(StringKeyStoreTest, LocatorDuplicate) {
 }
 
 TEST(StringKeyStoreTest, LocatorUnique) {
-  dice::metall::container::string_key_store<std::string, std::allocator<std::byte>>
+  dice::copperr::container::string_key_store<std::string, std::allocator<std::byte>>
       store(true, 111);
   ASSERT_EQ(store.begin(), store.end());
   ASSERT_EQ(store.find("a"), store.end());
@@ -432,7 +432,7 @@ TEST(StringKeyStoreTest, LocatorUnique) {
 }
 
 TEST(StringKeyStoreTest, MaxProbeDistance) {
-  dice::metall::container::string_key_store<int, std::allocator<std::byte>> store;
+  dice::copperr::container::string_key_store<int, std::allocator<std::byte>> store;
   ASSERT_EQ(store.max_id_probe_distance(), 0);
   store.insert("a");
   ASSERT_EQ(store.max_id_probe_distance(), 0);
@@ -441,7 +441,7 @@ TEST(StringKeyStoreTest, MaxProbeDistance) {
 }
 
 TEST(StringKeyStoreTest, Rehash) {
-  dice::metall::container::string_key_store<std::string, std::allocator<std::byte>>
+  dice::copperr::container::string_key_store<std::string, std::allocator<std::byte>>
       store;
   store.insert("a", "0");
   store.insert("b", "1");
@@ -459,12 +459,12 @@ TEST(StringKeyStoreTest, Rehash) {
 TEST(StringKeyStoreTest, Persistence) {
   using value_type = boost::container::vector<
       int, bip::allocator<int, bip::managed_mapped_file::segment_manager>>;
-  using store_type = dice::metall::container::string_key_store<
+  using store_type = dice::copperr::container::string_key_store<
       value_type,
       bip::allocator<std::byte, bip::managed_mapped_file::segment_manager>>;
   const std::string file_path(test_utility::make_test_path());
   test_utility::create_test_dir();
-  dice::metall::mtlldetail::remove_file(file_path);
+  dice::copperr::mtlldetail::remove_file(file_path);
 
   // Create
   {

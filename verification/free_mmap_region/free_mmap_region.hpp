@@ -18,7 +18,7 @@
 #include <dice/metall/detail/memory.hpp>
 #include <dice/metall/detail/utilities.hpp>
 
-namespace mdtl = dice::metall::mtlldetail;
+namespace mdtl = dice::copperr::mtlldetail;
 
 static constexpr int k_map_nosync =
 #ifdef MAP_NOSYNC

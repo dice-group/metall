@@ -8,7 +8,7 @@
 
 #include <chrono>
 
-namespace dice::metall::mtlldetail {
+namespace dice::copperr::mtlldetail {
 
 inline std::chrono::high_resolution_clock::time_point elapsed_time_sec() {
   return std::chrono::high_resolution_clock::now();
@@ -24,5 +24,5 @@ inline double elapsed_time_sec(
          1e6;
 }
 
-}  // namespace dice::metall::mtlldetail
+}  // namespace dice::copperr::mtlldetail
 #endif  // METALL_DETAIL_UTILITY_TIME_HPP

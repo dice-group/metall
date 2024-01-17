@@ -12,7 +12,7 @@
 #include <dice/metall/kernel/object_size_manager.hpp>
 #include <dice/metall/detail/utilities.hpp>
 
-namespace dice::metall {
+namespace dice::copperr {
 namespace kernel {
 
 /// \brief Bin number manager
@@ -59,5 +59,5 @@ class bin_number_manager {
 };
 
 }  // namespace kernel
-}  // namespace dice::metall
+}  // namespace dice::copperr
 #endif  // METALL_DETAIL_KERNEL_BIN_NUMBER_MANAGER_HPP

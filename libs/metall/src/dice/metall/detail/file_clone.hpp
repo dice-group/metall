@@ -16,7 +16,7 @@
 #include <dice/metall/detail/file.hpp>
 #include <dice/metall/logger.hpp>
 
-namespace dice::metall::mtlldetail {
+namespace dice::copperr::mtlldetail {
 
 namespace file_clone_detail {
 #ifdef __linux__
@@ -108,6 +108,6 @@ inline bool clone_files_in_directory_in_parallel(
       source_dir_path, destination_dir_path, max_num_threads, clone_file);
 }
 
-}  // namespace dice::metall::mtlldetail
+}  // namespace dice::copperr::mtlldetail
 
 #endif  // METALL_DETAIL_UTILITY_FILE_CLONE_HPP

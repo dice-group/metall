@@ -14,7 +14,7 @@
 namespace bc = boost::container;
 
 // Vector of int
-using inner_vector_allocator_type = dice::metall::manager::allocator_type<int>;
+using inner_vector_allocator_type = dice::copperr::manager::allocator_type<int>;
 using inner_vector_type = bc::vector<int, inner_vector_allocator_type>;
 
 // Vector of vectors with scoped allocator adaptor
@@ -23,13 +23,13 @@ using inner_vector_type = bc::vector<int, inner_vector_allocator_type>;
 // arguments from the outer containers's scoped_allocator_adaptor See:
 // https://en.cppreference.com/w/cpp/memory/scoped_allocator_adaptor
 using outer_vector_allocator_type = bc::scoped_allocator_adaptor<
-    dice::metall::manager::allocator_type<inner_vector_type>>;
+    dice::copperr::manager::allocator_type<inner_vector_type>>;
 using outer_vector_type =
     bc::vector<inner_vector_type, outer_vector_allocator_type>;
 
 int main() {
   {
-    dice::metall::manager manager(dice::metall::create_only, "/tmp/datastore");
+    dice::copperr::manager manager(dice::copperr::create_only, "/tmp/datastore");
     auto pvec = manager.construct<outer_vector_type>("vec-of-vecs")(
         manager.get_allocator<>());
 
@@ -51,7 +51,7 @@ int main() {
   }
 
   {
-    dice::metall::manager manager(dice::metall::open_only, "/tmp/datastore");
+    dice::copperr::manager manager(dice::copperr::open_only, "/tmp/datastore");
     auto pvec = manager.find<outer_vector_type>("vec-of-vecs").first;
 
     // Check the result of pattern 1

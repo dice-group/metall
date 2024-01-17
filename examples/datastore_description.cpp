@@ -12,7 +12,7 @@
 int main() {
   // ----- Non-static methods ----- //
   {
-    dice::metall::manager manager(dice::metall::create_only, "/tmp/dir");
+    dice::copperr::manager manager(dice::copperr::create_only, "/tmp/dir");
 
     std::string buf;
     [[maybe_unused]] const auto ret = manager.get_description(&buf);
@@ -26,10 +26,10 @@ int main() {
 
   // ----- Static methods ----- //
   {
-    dice::metall::manager::set_description("/tmp/dir", "description example 2");
+    dice::copperr::manager::set_description("/tmp/dir", "description example 2");
 
     std::string buf;
-    dice::metall::manager::get_description("/tmp/dir", &buf);
+    dice::copperr::manager::get_description("/tmp/dir", &buf);
     std::cout << buf << std::endl;  // Shows "description example 2"
   }
 

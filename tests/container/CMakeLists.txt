@@ -1,9 +1,9 @@
-add_metall_test_executable(concurrent_map_test concurrent_map_test.cpp)
+add_copperr_test_executable(concurrent_map_test concurrent_map_test.cpp)
 
-add_metall_test_executable(stl_allocator_test stl_allocator_test.cpp)
+add_copperr_test_executable(stl_allocator_test stl_allocator_test.cpp)
 
-add_metall_test_executable(fallback_allocator_adaptor_test fallback_allocator_adaptor_test.cpp)
+add_copperr_test_executable(fallback_allocator_adaptor_test fallback_allocator_adaptor_test.cpp)
 
-add_metall_test_executable(string_key_store_test string_key_store_test.cpp)
+add_copperr_test_executable(string_key_store_test string_key_store_test.cpp)
 
 add_subdirectory(json)

@@ -11,17 +11,17 @@
 // String with Metall
 using persistent_string =
     boost::container::basic_string<char, std::char_traits<char>,
-                                   dice::metall::manager::allocator_type<char>>;
+                                   dice::copperr::manager::allocator_type<char>>;
 // Example of string-int map
 void string_int_map() {
   using value_type = std::pair<const persistent_string,  // Key type
                                int>;                     // Mapped type
   using string_int_map =
       boost::container::map<persistent_string, int, std::less<>,
-                            dice::metall::manager::scoped_allocator_type<value_type>>;
+                            dice::copperr::manager::scoped_allocator_type<value_type>>;
 
   {
-    dice::metall::manager manager(dice::metall::create_only, "/tmp/datastore");
+    dice::copperr::manager manager(dice::copperr::create_only, "/tmp/datastore");
     auto pmap = manager.construct<string_int_map>("string-int-map")(
         manager.get_allocator<>());
 
@@ -32,7 +32,7 @@ void string_int_map() {
   }
 
   {
-    dice::metall::manager manager(dice::metall::open_only, "/tmp/datastore");
+    dice::copperr::manager manager(dice::copperr::open_only, "/tmp/datastore");
     auto pmap = manager.find<string_int_map>("string-int-map").first;
 
     std::cout << pmap->at(persistent_string("zero", manager.get_allocator<>()))
@@ -48,12 +48,12 @@ void int_string_map() {
   using value_type = std::pair<const int,           // Key type
                                persistent_string>;  // Mapped type
 
-  using map_allocator_type = dice::metall::manager::scoped_allocator_type<value_type>;
+  using map_allocator_type = dice::copperr::manager::scoped_allocator_type<value_type>;
   using int_string_map = boost::container::map<int, persistent_string,
                                                std::less<>, map_allocator_type>;
 
   {
-    dice::metall::manager manager(dice::metall::create_only, "/tmp/datastore");
+    dice::copperr::manager manager(dice::copperr::create_only, "/tmp/datastore");
     auto pmap = manager.construct<int_string_map>("int-string-map")(
         manager.get_allocator<>());
 
@@ -70,7 +70,7 @@ void int_string_map() {
   }
 
   {
-    dice::metall::manager manager(dice::metall::open_only, "/tmp/datastore");
+    dice::copperr::manager manager(dice::copperr::open_only, "/tmp/datastore");
     auto pmap = manager.find<int_string_map>("int-string-map").first;
 
     std::cout << pmap->at(0) << std::endl;  // Will print "zero"

@@ -9,7 +9,7 @@
 
 static constexpr std::size_t k_max_segment_size = 1ULL << 48ULL;
 using object_size_manager =
-    dice::metall::kernel::object_size_manager<dice::metall::manager::chunk_size(),
+    dice::copperr::kernel::object_size_manager<dice::copperr::manager::chunk_size(),
                                         k_max_segment_size>;
 
 int main() {

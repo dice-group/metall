@@ -12,9 +12,9 @@
 #include <dice/metall/tags.hpp>
 #include <dice/metall/kernel/attributed_object_directory.hpp>
 
-namespace dice::metall {
+namespace dice::copperr {
 
-/// \namespace dice::metall::attraccs_detail
+/// \namespace dice::copperr::attraccs_detail
 /// \brief Namespace for the details of attribute accessor
 namespace attraccs_detail {
 
@@ -447,6 +447,6 @@ class anonymous_object_attr_accessor {
 
   std::unique_ptr<core_data> m_core_data{nullptr};
 };
-}  // namespace dice::metall
+}  // namespace dice::copperr
 
 #endif  // METALL_KERNEL_OBJECT_ATTRIBUTE_ACCESSOR_HPP

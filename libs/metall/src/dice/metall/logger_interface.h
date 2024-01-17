@@ -10,21 +10,21 @@ extern "C" {
 /**
  * Level of log messages
  */
-typedef enum metall_log_level {
+typedef enum copperr_log_level {
   /// Errors
-  METALL_LL_ERROR = 0,
+  COPPERR_LL_ERROR = 0,
   /// Warnings
-  METALL_LL_WARN = 1,
+  COPPERR_LL_WARN = 1,
   /// Informational
-  METALL_LL_INFO = 2,
+  COPPERR_LL_INFO = 2,
   /// Verbose logging
-  METALL_LL_DEBUG = 3,
+  COPPERR_LL_DEBUG = 3,
   /// Very Verbose logging
-  METALL_LL_TRACE = 4,
-} metall_log_level;
+  COPPERR_LL_TRACE = 4,
+} copperr_log_level;
 
 /// \brief Log a message
-void metall_log(metall_log_level lvl, char const *file, size_t line, char const *function, char const *message);
+void copperr_log(copperr_log_level lvl, char const *file, size_t line, char const *function, char const *message);
 
 #ifdef __cplusplus
 } // extern "C"

@@ -18,7 +18,7 @@ namespace {
 TEST(MultilayerBitsetTest, FindAndSet) {
   for (uint64_t num_bits = 1; num_bits <= (64ULL * 64 * 64 * 32);
        num_bits *= 64) {  // Test up to 4 layers,
-    dice::metall::kernel::multilayer_bitset bitset;
+    dice::copperr::kernel::multilayer_bitset bitset;
     bitset.allocate(num_bits);
     for (uint64_t i = 0; i < num_bits; ++i) {
       ASSERT_EQ(bitset.find_and_set(num_bits), i);
@@ -31,7 +31,7 @@ TEST(MultilayerBitsetTest, FindAndSet) {
 TEST(MultilayerBitsetTest, Reset) {
   for (uint64_t num_bits = 1; num_bits <= (64ULL * 64 * 64 * 32);
        num_bits *= 64) {  // Test up to 4 layers
-    dice::metall::kernel::multilayer_bitset bitset;
+    dice::copperr::kernel::multilayer_bitset bitset;
     bitset.allocate(num_bits);
     for (uint64_t i = 0; i < num_bits; ++i) {
       bitset.find_and_set(num_bits);
@@ -49,13 +49,13 @@ TEST(MultilayerBitsetTest, Reset) {
 
 void FindAndSetManyHelper(
     const std::size_t num_bits, const std::size_t num_to_find,
-    dice::metall::kernel::multilayer_bitset &bitset,
-    std::unordered_set<dice::metall::kernel::multilayer_bitset::bit_position_type>
+    dice::copperr::kernel::multilayer_bitset &bitset,
+    std::unordered_set<dice::copperr::kernel::multilayer_bitset::bit_position_type>
         &used_bits) {
   SCOPED_TRACE("#of bits = " + std::to_string(num_bits) +
                ", #of finds = " + std::to_string(num_to_find));
 
-  dice::metall::kernel::multilayer_bitset::bit_position_type buf[num_to_find];
+  dice::copperr::kernel::multilayer_bitset::bit_position_type buf[num_to_find];
 
   bitset.find_and_set_many(num_bits, num_to_find, buf);
 
@@ -74,10 +74,10 @@ void FindAndSetManyHelper(
 TEST(MultilayerBitsetTest, FindAndSetMany) {
   for (std::size_t num_bits = 1; num_bits <= (64ULL * 64 * 64 * 32);
        num_bits *= 64) {  // Test up to 4 layers,
-    dice::metall::kernel::multilayer_bitset bitset;
+    dice::copperr::kernel::multilayer_bitset bitset;
     bitset.allocate(num_bits);
 
-    std::unordered_set<dice::metall::kernel::multilayer_bitset::bit_position_type>
+    std::unordered_set<dice::copperr::kernel::multilayer_bitset::bit_position_type>
         used_bits;
 
     FindAndSetManyHelper(num_bits, 1, bitset, used_bits);
@@ -97,7 +97,7 @@ enum mode : uint8_t { set, reset, set_many };
 void RandomSetAndResetHelper2(const std::size_t num_bits) {
   SCOPED_TRACE("num_bits = " + std::to_string(num_bits));
 
-  dice::metall::kernel::multilayer_bitset bitset;
+  dice::copperr::kernel::multilayer_bitset bitset;
   bitset.allocate(num_bits);
 
   std::vector<bool> reference(num_bits, false);
@@ -129,7 +129,7 @@ void RandomSetAndResetHelper2(const std::size_t num_bits) {
       }
     } else {
       const auto n = std::min<size_t>(dist(rnd_gen), num_bits - cnt_trues);
-      dice::metall::kernel::multilayer_bitset::bit_position_type buf[n];
+      dice::copperr::kernel::multilayer_bitset::bit_position_type buf[n];
       bitset.find_and_set_many(num_bits, n, buf);
       cnt_trues += n;
       for (std::size_t i = 0; i < n; ++i) {
@@ -156,7 +156,7 @@ void RandomSetAndResetHelper2(const std::size_t num_bits) {
   // Set the remaining bits
   {
     const auto num_rem = num_bits - cnt_trues;
-    dice::metall::kernel::multilayer_bitset::bit_position_type buf[num_rem];
+    dice::copperr::kernel::multilayer_bitset::bit_position_type buf[num_rem];
     bitset.find_and_set_many(num_bits, num_rem, buf);
   }
   for (std::size_t pos = 0; pos < num_bits; ++pos) {

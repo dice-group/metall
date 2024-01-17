@@ -6,7 +6,7 @@ from conan.tools.cmake import CMake
 from conan.tools.files import load, rmdir, copy
 
 
-class DiceMetallConan(ConanFile):
+class DiceCopperrConan(ConanFile):
     license = "MIT/Apache"
     author = "DICE Group <info@dice-research.org>"
     homepage = "https://github.com/dice-group/metall"

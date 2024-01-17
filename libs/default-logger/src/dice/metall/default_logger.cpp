@@ -2,21 +2,21 @@
 
 #include <iostream>
 
-static char const *log_level_to_string(metall_log_level lvl) noexcept {
+static char const *log_level_to_string(copperr_log_level lvl) noexcept {
   switch (lvl) {
-    case METALL_LL_ERROR: {
+    case COPPERR_LL_ERROR: {
       return "ERROR";
     }
-    case METALL_LL_WARN: {
+    case COPPERR_LL_WARN: {
       return "WARNING";
     }
-    case METALL_LL_INFO: {
+    case COPPERR_LL_INFO: {
       return "INFO";
     }
-    case METALL_LL_DEBUG: {
+    case COPPERR_LL_DEBUG: {
       return "DEBUG";
     }
-    case METALL_LL_TRACE: {
+    case COPPERR_LL_TRACE: {
       return "TRACE";
     }
     default: {
@@ -25,10 +25,10 @@ static char const *log_level_to_string(metall_log_level lvl) noexcept {
   }
 }
 
-extern "C" void metall_log(metall_log_level lvl,
-                           [[maybe_unused]] char const *file,
-                           [[maybe_unused]] size_t line,
-                           char const *function,
-                           char const *message) {
+extern "C" void copperr_log(copperr_log_level lvl,
+                            [[maybe_unused]] char const *file,
+                            [[maybe_unused]] size_t line,
+                            char const *function,
+                            char const *message) {
   std::cerr << log_level_to_string(lvl) << " (" << function << "): " << message << std::endl;
 }

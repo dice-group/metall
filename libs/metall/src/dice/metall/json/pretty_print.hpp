@@ -10,7 +10,7 @@
 
 #include <dice/metall/json/json_fwd.hpp>
 
-namespace dice::metall::json::jsndtl {
+namespace dice::copperr::json::jsndtl {
 template <typename allocator_type, int indent_size>
 inline void pretty_print_impl(std::ostream &os, const value<allocator_type> &jv,
                               const std::string &indent) {
@@ -58,9 +58,9 @@ inline void pretty_print_impl(std::ostream &os, const value<allocator_type> &jv,
   }
 }
 
-}  // namespace dice::metall::json::jsndtl
+}  // namespace dice::copperr::json::jsndtl
 
-namespace dice::metall::json {
+namespace dice::copperr::json {
 
 /// \brief Pretty-prints a JSON value.
 /// \tparam allocator_type An allocator type used in the value.
@@ -80,6 +80,6 @@ inline void pretty_print(std::ostream &os,
   os << std::endl;
 }
 
-}  // namespace dice::metall::json
+}  // namespace dice::copperr::json
 
 #endif  // METALL_JSON_PRETTY_PRINT_HPP

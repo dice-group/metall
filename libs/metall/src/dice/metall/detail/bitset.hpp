@@ -15,7 +15,7 @@
 
 #include <dice/metall/detail/utilities.hpp>
 
-namespace dice::metall::mtlldetail {
+namespace dice::copperr::mtlldetail {
 namespace bitset_detail {
 
 // example (sizeof(block_type) is 8 byte)
@@ -371,5 +371,5 @@ class bitset {
   internal_table_t m_table;
 };
 
-}  // namespace dice::metall::mtlldetail
+}  // namespace dice::copperr::mtlldetail
 #endif  // METALL_DETAIL_UTILITY_BITSET_HPP

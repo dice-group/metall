@@ -1,12 +1,11 @@
 cmake_minimum_required(VERSION 3.22)
-set(lib_suffix "metall")
-set(lib "${PROJECT_NAME}-${lib_suffix}")
+set(lib "${PROJECT_NAME}-${PROJECT_NAME}")
 
 find_package(Boost REQUIRED COMPONENTS)
 find_package(Threads REQUIRED)
 
 add_library(${lib} INTERFACE)
-add_library(${PROJECT_NAME}::${lib_suffix} ALIAS ${lib})
+add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${lib})
 
 target_include_directories(${lib}
         INTERFACE
@@ -24,4 +23,4 @@ set_target_properties(${lib}
         )
 
 include(${CMAKE_SOURCE_DIR}/cmake/install_components.cmake)
-install_component(INTERFACE ${lib_suffix} src)
+install_component(INTERFACE ${PROJECT_NAME} src)

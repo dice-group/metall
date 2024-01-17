@@ -18,18 +18,18 @@
 #include <dice/metall/utility/hash.hpp>
 #include <dice/metall/json/json.hpp>
 
-/// \namespace dice::metall::container::experimental
+/// \namespace dice::copperr::container::experimental
 /// \brief Namespace for Metall containers in an experimental phase.
-namespace dice::metall::container::experimental {}
+namespace dice::copperr::container::experimental {}
 
-/// \namespace dice::metall::container::experimental::jgraph
+/// \namespace dice::copperr::container::experimental::jgraph
 /// \brief Namespace for Metall JSON graph container, which is in an
 /// experimental phase.
-namespace dice::metall::container::experimental::jgraph {
+namespace dice::copperr::container::experimental::jgraph {
 
 namespace {
-namespace mc = dice::metall::container;
-namespace mj = dice::metall::json;
+namespace mc = dice::copperr::container;
+namespace mj = dice::copperr::json;
 }  // namespace
 
 // --- Forward declarations --- //
@@ -118,7 +118,7 @@ class jgraph {
 
   using vertex_storage_type =
       mc::unordered_map<internal_id_type, vertex_data_type,
-                        dice::metall::utility::hash<>, std::equal_to<>,
+                        dice::copperr::utility::hash<>, std::equal_to<>,
                         other_scoped_allocator<std::pair<const internal_id_type,
                                                          vertex_data_type>>>;
 
@@ -184,7 +184,7 @@ class jgraph {
 
   using edge_storage_type =
       mc::unordered_map<internal_id_type, edge_data_type,
-                        dice::metall::utility::hash<>, std::equal_to<>,
+                        dice::copperr::utility::hash<>, std::equal_to<>,
                         other_scoped_allocator<
                             std::pair<const internal_id_type, edge_data_type>>>;
 
@@ -210,7 +210,7 @@ class jgraph {
 
  public:
   /// \brief Vertex iterator over a container of vertex data,
-  /// which is dice::metall::container::experimental::json::key_value_pair_type.
+  /// which is dice::copperr::container::experimental::json::key_value_pair_type.
   using vertex_iterator =
       jgdtl::vertex_iterator_impl<typename vertex_storage_type::iterator>;
 
@@ -219,7 +219,7 @@ class jgraph {
       jgdtl::vertex_iterator_impl<typename vertex_storage_type::const_iterator>;
 
   /// \brief Edge iterator over a container of edge data,
-  /// which is dice::metall::container::experimental::json::key_value_pair_type.
+  /// which is dice::copperr::container::experimental::json::key_value_pair_type.
   using edge_iterator = jgdtl::edge_iterator_impl<
       typename adj_list_edge_list_type::iterator,
       typename std::pointer_traits<typename std::allocator_traits<
@@ -439,7 +439,7 @@ class jgraph {
   internal_id_type priv_generate_edge_id() { return ++m_max_edge_id; }
 
   static internal_id_type priv_hash_id(const std::string_view &id) {
-    return dice::metall::mtlldetail::murmur_hash_64a(id.data(), id.length(), 1234);
+    return dice::copperr::mtlldetail::murmur_hash_64a(id.data(), id.length(), 1234);
   }
 
   vertex_storage_type m_vertex_storage;
@@ -622,7 +622,7 @@ inline bool operator!=(
 
 }  // namespace jgdtl
 
-}  // namespace dice::metall::container::experimental::jgraph
+}  // namespace dice::copperr::container::experimental::jgraph
 
 /// \example jgraph.cpp
 /// This is an example of how to use the jgraph.

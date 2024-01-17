@@ -1,1 +1,1 @@
-add_metall_executable(show_object_sizes show_object_sizes.cpp)
+add_copperr_executable(show_object_sizes show_object_sizes.cpp)

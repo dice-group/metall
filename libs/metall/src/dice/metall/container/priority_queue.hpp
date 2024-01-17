@@ -11,13 +11,13 @@
 
 #include <dice/metall/container/vector.hpp>
 
-namespace dice::metall::container {
+namespace dice::copperr::container {
 
 /// \brief A priority_queue container that uses Metall as its default allocator.
 template <typename T, typename Container = vector<T>,
           typename Compare = std::less<typename Container::value_type>>
 using priority_queue = std::priority_queue<T, Container>;
 
-}  // namespace dice::metall::container
+}  // namespace dice::copperr::container
 
 #endif  // METALL_CONTAINER_PRIORITY_QUEUE_HPP

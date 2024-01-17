@@ -12,7 +12,7 @@
 
 #include <dice/metall/metall.hpp>
 
-namespace dice::metall::container {
+namespace dice::copperr::container {
 
 /// \brief A map container that uses Metall as its default allocator.
 template <class Key, class T, class Compare = std::less<Key>,
@@ -24,6 +24,6 @@ template <class Key, class T, class Compare = std::less<Key>,
           class Allocator = manager::allocator_type<std::pair<const Key, T>>>
 using multimap = boost::container::multimap<Key, T, Compare, Allocator>;
 
-}  // namespace dice::metall::container
+}  // namespace dice::copperr::container
 
 #endif  // METALL_CONTAINER_MAP_HPP

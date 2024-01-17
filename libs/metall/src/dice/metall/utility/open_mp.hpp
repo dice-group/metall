@@ -28,9 +28,9 @@
 #define OMP_DIRECTIVE(directive)
 #endif
 
-namespace dice::metall::utility {
+namespace dice::copperr::utility {
 
-/// \namespace dice::metall::utility::omp
+/// \namespace dice::copperr::utility::omp
 /// \brief Namespace for utility items for OpenMP
 namespace omp {
 
@@ -120,6 +120,6 @@ inline void set_num_threads([[maybe_unused]] const int n) noexcept {
 }
 
 }  // namespace omp
-}  // namespace dice::metall::utility
+}  // namespace dice::copperr::utility
 
 #endif  // METALL_UTILITY_OPEN_MP_HPP

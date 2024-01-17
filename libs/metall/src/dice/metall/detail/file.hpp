@@ -36,7 +36,7 @@
 
 #include <dice/metall/logger.hpp>
 
-namespace dice::metall::mtlldetail {
+namespace dice::copperr::mtlldetail {
 
 /**
  * Calls ::close, logs a warning on error
@@ -624,6 +624,6 @@ inline bool copy_files_in_directory_in_parallel(
         return copy_file(src, dst, sparse_copy);
       });
 }
-}  // namespace dice::metall::mtlldetail
+}  // namespace dice::copperr::mtlldetail
 
 #endif  // METALL_DETAIL_UTILITY_FILE_HPP

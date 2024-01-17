@@ -6,7 +6,7 @@
 #ifndef METALL_KERNEL_MANAGER_KERNEL_FWD_HPP
 #define METALL_KERNEL_MANAGER_KERNEL_FWD_HPP
 
-namespace dice::metall {
+namespace dice::copperr {
 namespace kernel {
 
 /// \brief Manager kernel class version 0
@@ -16,6 +16,6 @@ template <typename _chunk_no_type, std::size_t _chunk_size>
 class manager_kernel;
 
 }  // namespace kernel
-}  // namespace dice::metall
+}  // namespace dice::copperr
 
 #endif  // METALL_KERNEL_MANAGER_KERNEL_FWD_HPP

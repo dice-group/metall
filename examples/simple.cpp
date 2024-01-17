@@ -12,14 +12,14 @@
 // Type alias
 // This is the standard way to give a custom allocator to a container
 using vector_t =
-    boost::container::vector<int, dice::metall::manager::allocator_type<int>>;
+    boost::container::vector<int, dice::copperr::manager::allocator_type<int>>;
 
 int main() {
   {
     // Construct a manager instance
     // A process can allocate multiple manager instances
-    dice::metall::manager manager(
-        dice::metall::create_only,  // Create a new one
+    dice::copperr::manager manager(
+        dice::copperr::create_only,  // Create a new one
         "/tmp/dir");          // The directory to store backing datastore
 
     // Allocate and construct a vector instance of vector_t.
@@ -31,15 +31,15 @@ int main() {
     // From now on, the vector instance can be used normally.
     pvec->push_back(5);
   }  // Implicitly sync with backing files, i.e., sync() is called in
-     // dice::metall::manager's destructor
+     // dice::copperr::manager's destructor
 
   // ---------- Assume exit and restart the program at this point ---------- //
 
   /// consistent() returns true if a Metall data store exits at the path and
   /// was closed property.
-  if (dice::metall::manager::consistent("/tmp/dir")) {
+  if (dice::copperr::manager::consistent("/tmp/dir")) {
     // Reattach the manager instance
-    dice::metall::manager manager(dice::metall::open_only, "/tmp/dir");
+    dice::copperr::manager manager(dice::copperr::open_only, "/tmp/dir");
 
     // Find the previously constructed instance
     // Please do not forget to use ".first" at the end

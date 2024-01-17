@@ -51,8 +51,8 @@ int main() {
   }
 
   {
-    dice::metall::manager mngr(dice::metall::create_only, "/tmp/metall");
-    dice::metall::container::unordered_map<uint64_t, uint64_t> map(
+    dice::copperr::manager mngr(dice::copperr::create_only, "/tmp/metall");
+    dice::copperr::container::unordered_map<uint64_t, uint64_t> map(
         mngr.get_allocator());
 
     const auto start = mdtl::elapsed_time_sec();

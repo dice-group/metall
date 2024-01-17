@@ -14,29 +14,29 @@
 #include "../test_utility.hpp"
 
 namespace {
-namespace omp = dice::metall::utility::omp;
+namespace omp = dice::copperr::utility::omp;
 
 using chunk_no_type = uint32_t;
 constexpr std::size_t k_chunk_size = 1UL << 21UL;
 
-using manager_type = dice::metall::basic_manager<chunk_no_type, k_chunk_size>;
+using manager_type = dice::copperr::basic_manager<chunk_no_type, k_chunk_size>;
 
 template <typename T>
-using metall_allocator = typename manager_type::allocator_type<T>;
+using copperr_allocator = typename manager_type::allocator_type<T>;
 
 TEST(MultiManagerTest, SingleThread) {
   using element_type = uint64_t;
   using vector_type =
-      boost::interprocess::vector<element_type, metall_allocator<element_type>>;
+      boost::interprocess::vector<element_type, copperr_allocator<element_type>>;
 
   test_utility::create_test_dir();
   const auto dir_path1(test_utility::make_test_path(std::to_string(1)));
   const auto dir_path2(test_utility::make_test_path(std::to_string(2)));
 
   {
-    manager_type manager1(dice::metall::create_only, dir_path1,
+    manager_type manager1(dice::copperr::create_only, dir_path1,
                           k_chunk_size * 8);
-    manager_type manager2(dice::metall::create_only, dir_path2,
+    manager_type manager2(dice::copperr::create_only, dir_path2,
                           k_chunk_size * 8);
 
     vector_type *vector1 =
@@ -52,8 +52,8 @@ TEST(MultiManagerTest, SingleThread) {
   }
 
   {
-    manager_type manager1(dice::metall::open_only, dir_path1);
-    manager_type manager2(dice::metall::open_only, dir_path2);
+    manager_type manager1(dice::copperr::open_only, dir_path1);
+    manager_type manager2(dice::copperr::open_only, dir_path2);
 
     vector_type *vector1;
     std::size_t n1;
@@ -73,8 +73,8 @@ TEST(MultiManagerTest, SingleThread) {
   }
 
   {
-    manager_type manager1(dice::metall::open_only, dir_path1);
-    manager_type manager2(dice::metall::open_only, dir_path2);
+    manager_type manager1(dice::copperr::open_only, dir_path1);
+    manager_type manager2(dice::copperr::open_only, dir_path2);
 
     vector_type *vector1;
     std::size_t n1;
@@ -105,13 +105,13 @@ int get_num_threads() {
 TEST(MultiManagerTest, MultiThread) {
   using element_type = uint64_t;
   using vector_type =
-      boost::interprocess::vector<element_type, metall_allocator<element_type>>;
+      boost::interprocess::vector<element_type, copperr_allocator<element_type>>;
 
   OMP_DIRECTIVE(parallel) {
     const auto dir_path(test_utility::make_test_path(
         "/" + std::to_string(omp::get_thread_num())));
 
-    manager_type manager(dice::metall::create_only, dir_path,
+    manager_type manager(dice::copperr::create_only, dir_path,
                          k_chunk_size * 16);
     vector_type *vector =
         manager.construct<vector_type>("vector")(manager.get_allocator<>());
@@ -123,7 +123,7 @@ TEST(MultiManagerTest, MultiThread) {
 
   for (int t = 0; t < get_num_threads(); ++t) {
     const auto dir_path(test_utility::make_test_path("/" + std::to_string(t)));
-    manager_type manager(dice::metall::open_only, dir_path);
+    manager_type manager(dice::copperr::open_only, dir_path);
 
     vector_type *vector;
     std::size_t n;

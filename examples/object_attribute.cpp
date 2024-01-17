@@ -9,9 +9,9 @@
 #include <dice/metall/metall.hpp>
 
 int main() {
-  // Set and get object attributes via dice::metall::manager object
+  // Set and get object attributes via dice::copperr::manager object
   {
-    dice::metall::manager manager(dice::metall::create_only, "/tmp/dir");
+    dice::copperr::manager manager(dice::copperr::create_only, "/tmp/dir");
     auto *obj = manager.construct<int>("obj")();
 
     std::string description;
@@ -25,9 +25,9 @@ int main() {
 
   // Set and get object attributes via object attribute accessor object
   // Using object attribute accessor, one can access object attribute without
-  // allocating a dice::metall::manager object (i.e., w/o memory mapping files).
+  // allocating a dice::copperr::manager object (i.e., w/o memory mapping files).
   {
-    auto accessor = dice::metall::manager::access_named_object_attribute("/tmp/dir");
+    auto accessor = dice::copperr::manager::access_named_object_attribute("/tmp/dir");
     for (const auto &object : accessor) {
       std::cout << "Name: " << object.name() << ", Length: " << object.length()
                 << ", Description: " << object.description() << std::endl;

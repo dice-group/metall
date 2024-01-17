@@ -24,11 +24,11 @@
 #include <dice/metall/detail/builtin_functions.hpp>
 #include <dice/metall/logger.hpp>
 
-namespace dice::metall {
+namespace dice::copperr {
 namespace kernel {
 
 namespace {
-namespace mdtl = dice::metall::mtlldetail;
+namespace mdtl = dice::copperr::mtlldetail;
 }
 
 namespace multilayer_bitset_detail {
@@ -63,7 +63,7 @@ static constexpr std::array<std::array<std::size_t, 4>, 25> k_num_blocks_table =
 }  // namespace multilayer_bitset_detail
 
 namespace {
-namespace bs = dice::metall::mtlldetail::bitset_detail;
+namespace bs = dice::copperr::mtlldetail::bitset_detail;
 namespace mlbs = multilayer_bitset_detail;
 }  // namespace
 
@@ -495,5 +495,5 @@ class multilayer_bitset {
 };
 
 }  // namespace kernel
-}  // namespace dice::metall
+}  // namespace dice::copperr
 #endif  // METALL_MULTILAYER_BITSET_HPP

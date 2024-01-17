@@ -9,7 +9,7 @@
 #include <boost/interprocess/offset_ptr.hpp>
 #include <boost/interprocess/detail/utilities.hpp>
 
-namespace dice::metall {
+namespace dice::copperr {
 
 /// \tparam T A type.
 /// \brief Holds an offset between the address pointing at and itself.
@@ -18,7 +18,7 @@ using offset_ptr = boost::interprocess::offset_ptr<T>;
 
 /// \brief Convert a offset pointer to the corresponding raw pointer
 using boost::interprocess::ipcdetail::to_raw_pointer;
-}  // namespace dice::metall
+}  // namespace dice::copperr
 
 /// \example offset_pointer.cpp
 /// This is an example of how to use offset_pointer.

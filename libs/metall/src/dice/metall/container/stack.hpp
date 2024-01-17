@@ -10,12 +10,12 @@
 
 #include <dice/metall/container/deque.hpp>
 
-namespace dice::metall::container {
+namespace dice::copperr::container {
 
 /// \brief A stack container that uses Metall as its default allocator.
 template <typename T, typename Container = deque<T>>
 using stack = std::stack<T, Container>;
 
-}  // namespace dice::metall::container
+}  // namespace dice::copperr::container
 
 #endif  // METALL_CONTAINER_STACK_HPP

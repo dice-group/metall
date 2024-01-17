@@ -6,7 +6,7 @@
 #ifndef METALL_KERNEL_SEGMENT_HEADER_HPP
 #define METALL_KERNEL_SEGMENT_HEADER_HPP
 
-namespace dice::metall::kernel {
+namespace dice::copperr::kernel {
 
 struct segment_header {
   void *manager_kernel_address;
@@ -14,6 +14,6 @@ struct segment_header {
   ~segment_header() noexcept { manager_kernel_address = nullptr; }
 };
 
-}  // namespace dice::metall::kernel
+}  // namespace dice::copperr::kernel
 
 #endif  // METALL_KERNEL_SEGMENT_HEADER_HPP

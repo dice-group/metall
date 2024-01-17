@@ -18,22 +18,22 @@ int main(int argc, char *argv[]) {
   const int mpi_rank = (argc < 3) ? 0 : std::stoi(argv[2]);
 
   const auto local_datastore_path =
-      dice::metall::utility::mpi_datastore::make_local_dir_path(datastore_path,
+      dice::copperr::utility::mpi_datastore::make_local_dir_path(datastore_path,
                                                           mpi_rank);
 
-  if (!dice::metall::manager::consistent(local_datastore_path.c_str())) {
+  if (!dice::copperr::manager::consistent(local_datastore_path.c_str())) {
     std::cerr << "Inconsistent datastore or invalid datastore path"
               << std::endl;
     std::abort();
   }
 
-  dice::metall::utility::ls_named_object(local_datastore_path);
+  dice::copperr::utility::ls_named_object(local_datastore_path);
   std::cout << std::endl;
 
-  dice::metall::utility::ls_unique_object(local_datastore_path);
+  dice::copperr::utility::ls_unique_object(local_datastore_path);
   std::cout << std::endl;
 
-  dice::metall::utility::ls_anonymous_object(local_datastore_path);
+  dice::copperr::utility::ls_anonymous_object(local_datastore_path);
   std::cout << std::endl;
 
   return 0;

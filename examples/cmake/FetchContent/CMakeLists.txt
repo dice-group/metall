@@ -61,5 +61,5 @@ if (BUILD_C)
     add_executable(c_example ../src/c_example.c)
 
     # Link Metall C library (libmetall_c)
-    target_link_libraries(c_example PRIVATE Metall::metall_c)
+    target_link_libraries(c_example PRIVATE Metall::copperr_c)
 endif ()
