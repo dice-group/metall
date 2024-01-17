@@ -44,7 +44,7 @@ cd ripples
 git checkout da08b3e759642a93556f081169c61607354ecd3e
 
 # Apply the patch file (download from the link under this code block)
-git apply ripples-metall.patch
+git apply ripples-copperr.patch
 
 # Hereafter, build instructions are described in the original Ripples:
 # https://github.com/pnnl/ripples/blob/master
@@ -73,21 +73,21 @@ conan profile update env.CXX=$(which g++) default
 # Install dependencies
 conan create conan/waf-generator user/stable
 conan create conan/trng user/stable
-conan create conan/metall user/stable
+conan create conan/copperr user/stable
 
 # Enable the Metall mode
 conan install --install-folder build . --build fmt -o metal=True
 
 # Build
-./waf configure --enable-metall build_release
+./waf configure --enable-copperr build_release
 ```
 
-Download a patch file from here [ripples-metall.patch](./ripples-metall.patch).
+Download a patch file from here [ripples-copperr.patch](./ripples-copperr.patch).
 
 ## Run Example
 
 ```shell
-./build/release/tools/imm -i test-data/karate.tsv -e 0.5 -k 100 -d LT --parallel --metall-store-dir=/mnt/ssd/graph
+./build/release/tools/imm -i test-data/karate.tsv -e 0.5 -k 100 -d LT --parallel --copperr-store-dir=/mnt/ssd/graph
 ```
 
 - Reads edge data from test-data/karate.tsv
@@ -99,4 +99,4 @@ Ripples + Metall has another mode that allocates intermediate data (called RRRSe
 
 To enable the mode, define `ENABLE_METALL_RRRSETS` macro (e.g., insert `#define ENABLE_METALL_RRRSETS` at the beginning of `tools/imm.cc`).
 
-RRRSet (intermediate data) is allocated in `/dev/shm` (tmpfs) by default. To change the location, modify line 82 `include/ripples/generate_rrr_sets.h` and re-build the program (`./waf configure --enable-metall build_release`).
+RRRSet (intermediate data) is allocated in `/dev/shm` (tmpfs) by default. To change the location, modify line 82 `include/ripples/generate_rrr_sets.h` and re-build the program (`./waf configure --enable-copperr build_release`).

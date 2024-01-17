@@ -7,7 +7,7 @@
 #include <string>
 #include <cstddef>
 
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 #include "../bench_driver.hpp"
 #include "../../data_structure/multithread_adjacency_list.hpp"
 

@@ -9,7 +9,7 @@
 #include <boost/container/scoped_allocator.hpp>
 #include <boost/interprocess/containers/vector.hpp>
 #include <boost/unordered_map.hpp>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 #include "../test_utility.hpp"
 
 template <typename T>

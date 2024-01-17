@@ -9,10 +9,10 @@
 #include <memory>
 #include <scoped_allocator>
 
-#include <dice/metall/container/vector.hpp>
-#include <dice/metall/container/string.hpp>
+#include <dice/copperr/container/vector.hpp>
+#include <dice/copperr/container/string.hpp>
 
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 // A simple allocator-aware class, which uses an allocator to allocate internal
 // contents and can be stored in an STL container.
@@ -78,7 +78,7 @@ using vec_t =
 
 int main() {
   {
-    dice::copperr::manager manager(dice::copperr::create_only, "/tmp/metall-dir");
+    dice::copperr::manager manager(dice::copperr::create_only, "/tmp/copperr-dir");
     auto *vec = manager.construct<vec_t>("vec")(manager.get_allocator());
 
     vec->resize(2);
@@ -91,7 +91,7 @@ int main() {
   }
 
   {
-    dice::copperr::manager manager(dice::copperr::open_read_only, "/tmp/metall-dir");
+    dice::copperr::manager manager(dice::copperr::open_read_only, "/tmp/copperr-dir");
     auto *vec = manager.find<vec_t>("vec").first;
     for (const auto &e : *vec) {
       std::cout << e.key << " : " << e.value << std::endl;

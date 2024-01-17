@@ -5,7 +5,7 @@
 
 #include "gtest/gtest.h"
 #include <memory>
-#include <dice/metall/kernel/attributed_object_directory.hpp>
+#include <dice/copperr/kernel/attributed_object_directory.hpp>
 #include "../test_utility.hpp"
 
 namespace {

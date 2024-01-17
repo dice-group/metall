@@ -7,8 +7,8 @@
 #include <fstream>
 #include <string>
 
-#include <dice/metall/utility/open_mp.hpp>
-#include <dice/metall/detail/utilities.hpp>
+#include <dice/copperr/utility/open_mp.hpp>
+#include <dice/copperr/detail/utilities.hpp>
 #include "rmat_edge_generator.hpp"
 
 // ---------------------------------------- //

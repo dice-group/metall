@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Usage
-# cd metall/build/bench/bfs
+# cd copperr/build/bench/bfs
 # sh run_bench.sh -v 31 -f $((2**40)) -t 24 -s static[dynamic,10000] -g /dev/shm
 
 # ----- Options----- #
@@ -164,8 +164,8 @@ run() {
 
 main() {
     run bip
-    run metall
-    #run metall_numa
+    run copperr
+    #run copperr_numa
 }
 
 main "$@"

@@ -18,8 +18,8 @@
 #include <boost/interprocess/containers/vector.hpp>
 #include <boost/unordered_map.hpp>
 
-#include <dice/metall/metall.hpp>
-#include <dice/metall/utility/open_mp.hpp>
+#include <dice/copperr/copperr.hpp>
+#include <dice/copperr/utility/open_mp.hpp>
 #include "../test_utility.hpp"
 
 namespace {

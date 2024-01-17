@@ -3,10 +3,10 @@
 //
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-#include <dice/metall/detail/soft_dirty_page.hpp>
-#include <dice/metall/detail/mmap.hpp>
-#include <dice/metall/detail/file.hpp>
-#include <dice/metall/detail/memory.hpp>
+#include <dice/copperr/detail/soft_dirty_page.hpp>
+#include <dice/copperr/detail/mmap.hpp>
+#include <dice/copperr/detail/file.hpp>
+#include <dice/copperr/detail/memory.hpp>
 
 bool run_in_core_test(const ssize_t page_size, const std::size_t num_pages,
                       char *const map) {

@@ -10,9 +10,9 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
-#include <dice/metall/metall.hpp>
-#include <dice/metall/detail/time.hpp>
-#include <dice/metall/detail/file_clone.hpp>
+#include <dice/copperr/copperr.hpp>
+#include <dice/copperr/detail/time.hpp>
+#include <dice/copperr/detail/file_clone.hpp>
 #include "../data_structure/multithread_adjacency_list.hpp"
 #include "bench_driver.hpp"
 

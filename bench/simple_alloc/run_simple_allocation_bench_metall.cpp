@@ -7,7 +7,7 @@
 #include <string>
 #include <cstddef>
 
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 #include "kernel.hpp"
 
 int main(int argc, char *argv[]) {

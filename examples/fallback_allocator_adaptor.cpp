@@ -7,11 +7,11 @@
 
 #include <boost/container/vector.hpp>
 
-#include <dice/metall/metall.hpp>
-#include <dice/metall/utility/fallback_allocator_adaptor.hpp>
+#include <dice/copperr/copperr.hpp>
+#include <dice/copperr/utility/fallback_allocator_adaptor.hpp>
 
 // The line below is the only change required to use fallback_allocator_adaptor.
-// Wraps up 'metall::manager::allocator_type<..>' with
+// Wraps up 'copperr::manager::allocator_type<..>' with
 // fallback_allocator_adaptor.
 using allocator_t = dice::copperr::utility::fallback_allocator_adaptor<
     dice::copperr::manager::allocator_type<int>>;
@@ -21,7 +21,7 @@ using vector_t = boost::container::vector<int, allocator_t>;
 int main() {
   // Allocation with Metall
   // The code below works with both 'fallback_allocator_adaptor<..>' and
-  // 'metall::manager::allocator_type<...>'.
+  // 'copperr::manager::allocator_type<...>'.
   {
     dice::copperr::manager manager(dice::copperr::create_only, "/tmp/dir");
     auto pvec = manager.construct<vector_t>("vec")(manager.get_allocator());

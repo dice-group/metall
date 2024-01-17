@@ -7,7 +7,7 @@
 // offset pointer
 
 #include <iostream>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 // dice::copperr::offset_ptr is just an alias of offset_ptr in Boost.Interprocess
 // https://www.boost.org/doc/libs/release/doc/html/interprocess/offset_ptr.html

@@ -5,7 +5,7 @@ In this page, we describe how to use Metall with your program.
 Metall consists of only header files and requires some header files in Boost C++ Libraries.
 
 All core files exist under
-[metall/include/metall/](https://github.com/LLNL/metall/tree/master/include/metall).
+[copperr/include/copperr/](https://github.com/LLNL/copperr/tree/master/include/copperr).
 
 ## Required
 
@@ -39,8 +39,8 @@ wget https://dl.bintray.com/boostorg/release/1.77.0/source/boost_1_77_0.tar.gz
 tar xvf boost_1_77_0.tar.gz
 export BOOST_ROOT=$PWD/boost_1_77_0
 
-git clone https://github.com/LLNL/metall
-export METALL_INCLUDE=$PWD/metall/include
+git clone https://github.com/LLNL/copperr
+export METALL_INCLUDE=$PWD/copperr/include
 
 g++ -std=c++17 your_program.cpp -lstdc++fs -I${BOOST_ROOT} -I${METALL_INCLUDE}
 ```
@@ -54,11 +54,11 @@ Spack also installs a proper version of Boost C++ Libraries automatically, if ne
 
 ```bash
 # Install Metall and Boost C++ Libraries
-spack install metall
+spack install copperr
 
 # Sets environment variables: BOOST_ROOT and METALL_ROOT.
 # Boost C++ Libraries and Metall are installed at the locations, respectively.
-spack load metall
+spack load copperr
 
 # Build a program that uses Metall
 # Please note that one has to put 'include' at the end of BOOST_ROOT and METALL_ROOT

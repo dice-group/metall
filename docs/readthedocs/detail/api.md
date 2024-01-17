@@ -17,7 +17,7 @@ Here, we list Metall's main APIs.
 
 ```C++
 // The main header file
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 // The main class of Metall
 class dice::copperr::manager;
@@ -118,16 +118,16 @@ bool get_description(std::string *description)
 static bool dice::copperr::get_description(const char *dir_path, std::string *description)
 ```
 
-Example programs are located in [example](https://github.com/LLNL/metall/tree/master/example).
+Example programs are located in [example](https://github.com/LLNL/copperr/tree/master/example).
 
 ## FUll API document
 
-The full API document is available [here](https://software.llnl.gov/metall/api/).
+The full API document is available [here](https://software.llnl.gov/copperr/api/).
 
 To generate the full API document locally using Doxygen:
 
 ```bash
-cd metall
+cd copperr
 mkdir build_doc
 cd build_doc
 doxygen ../docs/Doxyfile.in

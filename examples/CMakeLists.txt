@@ -30,7 +30,7 @@ add_copperr_executable(static_mutex static_mutex.cpp)
 
 add_copperr_executable(concurrent_map concurrent_map.cpp)
 
-add_copperr_executable(copperr_containers metall_containers.cpp)
+add_copperr_executable(copperr_containers copperr_containers.cpp)
 
 add_copperr_executable(allocator_aware_type allocator_aware_type.cpp)
 

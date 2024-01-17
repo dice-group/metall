@@ -6,7 +6,7 @@
 // This program allocates an simple (int) object and reattaches it using Metall.
 
 #include <iostream>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 int main() {
   // Creating data into persistent memory

@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include <dice/ffi/metall.h>
+#include <dice/ffi/copperr.h>
 
 #include <random>
 #include <string>

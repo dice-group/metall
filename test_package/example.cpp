@@ -6,7 +6,7 @@
 #include <iostream>
 #include <boost/container/vector.hpp>
 
-#include <dice/metall/metall.hpp> // Only one header file is required to be included
+#include <dice/copperr/copperr.hpp> // Only one header file is required to be included
 
 // Type alias
 // This is a standard way to give a custom allocator to a container
@@ -27,7 +27,7 @@ int main() {
 
     pvec->push_back(5); // Can use containers normally
 
-  } // Implicitly sync with backing files, i.e., sync() is called in metall::manager's destructor
+  } // Implicitly sync with backing files, i.e., sync() is called in copperr::manager's destructor
 
   // ---------- Assume exit and restart the program at this point ---------- //
 

@@ -8,8 +8,8 @@
 #include <boost/interprocess/managed_mapped_file.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
 #include <boost/container/map.hpp>
-#include <dice/metall/container/concurrent_map.hpp>
-#include <dice/metall/detail/file.hpp>
+#include <dice/copperr/container/concurrent_map.hpp>
+#include <dice/copperr/detail/file.hpp>
 #include "../test_utility.hpp"
 
 namespace bip = boost::interprocess;

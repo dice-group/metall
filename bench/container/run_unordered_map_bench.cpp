@@ -11,9 +11,9 @@
 #include <iostream>
 #include <unordered_map>
 #include <boost/unordered_map.hpp>
-#include <dice/metall/container/unordered_map.hpp>
-#include <dice/metall/metall.hpp>
-#include <dice/metall/detail/time.hpp>
+#include <dice/copperr/container/unordered_map.hpp>
+#include <dice/copperr/copperr.hpp>
+#include <dice/copperr/detail/time.hpp>
 
 #include "bench_common.hpp"
 
@@ -51,7 +51,7 @@ int main() {
   }
 
   {
-    dice::copperr::manager mngr(dice::copperr::create_only, "/tmp/metall");
+    dice::copperr::manager mngr(dice::copperr::create_only, "/tmp/copperr");
     dice::copperr::container::unordered_map<uint64_t, uint64_t> map(
         mngr.get_allocator());
 

@@ -6,7 +6,7 @@
 // This program shows how to make and use an allocator-aware data structure.
 
 #include <iostream>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 #include "t4-1.hpp"
 
 using persit_array = dynamic_array<int, dice::copperr::manager::allocator_type<int>>;

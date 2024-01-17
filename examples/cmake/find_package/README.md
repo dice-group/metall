@@ -14,7 +14,7 @@ Here is how to build example programs.
 
 To install Metall at `"/path/to/install"`, for example:
 ```bash
-cd metall
+cd copperr
 mkdir build
 cd build
 
@@ -35,7 +35,7 @@ Please note that Metall C API is not supported with Spack.
 ```bash
 # Install Metall using Spack
 # Boost is also install
-spack install metall
+spack install copperr
 ```
 
 
@@ -49,7 +49,7 @@ cd build
 
 export CMAKE_PREFIX_PATH="/path/to/install"
 # Or (if one uses Spack)
-spack load metall # Spack exports CMAKE_PREFIX_PATH (and also BOOST_ROOT).
+spack load copperr # Spack exports CMAKE_PREFIX_PATH (and also BOOST_ROOT).
 
 cmake ../ \
 -DBOOST_ROOT=/path/to/boost # Required if one wants to build programs that uses Metall C++ API.

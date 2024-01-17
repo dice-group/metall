@@ -3,7 +3,7 @@
 //
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 // define logger ops
 extern "C" void copperr_log([[maybe_unused]] copperr_log_level lvl,

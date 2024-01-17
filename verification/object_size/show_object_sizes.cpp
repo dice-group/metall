@@ -4,8 +4,8 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 #include <iostream>
-#include <dice/metall/metall.hpp>
-#include <dice/metall/kernel/object_size_manager.hpp>
+#include <dice/copperr/copperr.hpp>
+#include <dice/copperr/kernel/object_size_manager.hpp>
 
 static constexpr std::size_t k_max_segment_size = 1ULL << 48ULL;
 using object_size_manager =

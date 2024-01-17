@@ -31,7 +31,7 @@ tar xvf boost_1_75_0.tar.gz
 
 # 1. Lecture Materials
 
-* [Metall 101 slides](metall_101.pdf)
+* [Metall 101 slides](copperr_101.pdf)
 
 # 2. Hands-on
 
@@ -54,8 +54,8 @@ wget https://dl.bintray.com/boostorg/release/1.75.0/source/boost_1_75_0.tar.gz
 tar xvf boost_1_75_0.tar.gz
 export BOOST_ROOT=$PWD/boost_1_75_0
 
-git clone https://github.com/LLNL/metall
-cd metall/tutorial/nvmw21
+git clone https://github.com/LLNL/copperr
+cd copperr/tutorial/nvmw21
 g++ -std=c++17 [tutorial_program.cpp] -lstdc++fs -I../../include -I${BOOST_ROOT}
 
 # All tutorial programs does not take command-line options

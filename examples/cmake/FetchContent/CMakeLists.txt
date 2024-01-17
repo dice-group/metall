@@ -29,7 +29,7 @@ if (NOT BUILD_C)
 endif()
 FetchContent_Declare(
         Metall
-        GIT_REPOSITORY https://github.com/LLNL/metall.git
+        GIT_REPOSITORY https://github.com/LLNL/copperr.git
         GIT_TAG master
 )
 FetchContent_MakeAvailable(Metall)
@@ -60,6 +60,6 @@ target_link_libraries(cpp_example PRIVATE Metall::Metall)
 if (BUILD_C)
     add_executable(c_example ../src/c_example.c)
 
-    # Link Metall C library (libmetall_c)
+    # Link Metall C library (libcopperr_c)
     target_link_libraries(c_example PRIVATE Metall::copperr_c)
 endif ()

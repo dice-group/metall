@@ -9,8 +9,8 @@
 
 #include <pmem_allocator.h>
 
-#include <dice/metall/detail/time.hpp>
-#include <dice/metall/detail/file.hpp>
+#include <dice/copperr/detail/time.hpp>
+#include <dice/copperr/detail/file.hpp>
 #include "../data_structure/multithread_adjacency_list.hpp"
 #include "bench_driver.hpp"
 

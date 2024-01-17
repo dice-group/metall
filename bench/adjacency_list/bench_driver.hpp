@@ -12,8 +12,8 @@
 #include <string>
 #include <vector>
 #include <boost/algorithm/string.hpp>
-#include <dice/metall/detail/utilities.hpp>
-#include <dice/metall/utility/open_mp.hpp>
+#include <dice/copperr/detail/utilities.hpp>
+#include <dice/copperr/utility/open_mp.hpp>
 #include "edge_generator/rmat_edge_generator.hpp"
 #include "../utility/pair_reader.hpp"
 #include "kernel.hpp"

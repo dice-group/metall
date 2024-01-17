@@ -10,7 +10,7 @@
 #include <utility>
 #include <random>
 
-#include <dice/metall/utility/random.hpp>
+#include <dice/copperr/utility/random.hpp>
 
 #include "../bench/adjacency_list/edge_generator/rmat_edge_generator.hpp"
 

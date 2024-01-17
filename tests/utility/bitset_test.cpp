@@ -6,7 +6,7 @@
 #include "gtest/gtest.h"
 #include <bitset>
 #include <random>
-#include <dice/metall/detail/bitset.hpp>
+#include <dice/copperr/detail/bitset.hpp>
 
 namespace {
 

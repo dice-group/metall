@@ -12,7 +12,7 @@
 #warning "Does not use NUMA"
 #endif
 
-#include <dice/metall/detail/utilities.hpp>
+#include <dice/copperr/detail/utilities.hpp>
 
 namespace bench_utility::numa {
 

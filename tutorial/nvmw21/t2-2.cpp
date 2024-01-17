@@ -6,8 +6,8 @@
 // This program shows how to use multi-layer STL containers with Metall
 
 #include <iostream>
-#include <dice/metall/metall.hpp>
-#include <dice/metall/container/vector.hpp>
+#include <dice/copperr/copperr.hpp>
+#include <dice/copperr/container/vector.hpp>
 
 // Vector of int
 using inner_vector_t = dice::copperr::container::vector<int>;

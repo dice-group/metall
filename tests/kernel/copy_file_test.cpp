@@ -5,9 +5,9 @@
 
 #include "gtest/gtest.h"
 
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
-#include <dice/metall/detail/file.hpp>
+#include <dice/copperr/detail/file.hpp>
 #include "../test_utility.hpp"
 
 #include <random>

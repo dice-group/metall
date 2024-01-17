@@ -8,7 +8,7 @@
 #include <boost/interprocess/managed_mapped_file.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
 #include <boost/container/vector.hpp>
-#include <dice/metall/container/string_key_store.hpp>
+#include <dice/copperr/container/string_key_store.hpp>
 #include "../test_utility.hpp"
 
 #define METALL_CONTAINER_STRING_KEY_STORE_USE_SIMPLE_HASH

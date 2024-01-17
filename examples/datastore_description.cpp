@@ -7,7 +7,7 @@
 #include <string>
 #include <cassert>
 
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 int main() {
   // ----- Non-static methods ----- //

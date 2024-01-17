@@ -5,7 +5,7 @@
 
 #include <assert.h>
 #include <stdint.h>
-#include <dice/ffi/metall.h>
+#include <dice/ffi/copperr.h>
 
 int main(void) {
   // Basic allocation

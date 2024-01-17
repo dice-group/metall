@@ -6,7 +6,7 @@
 // This program shows how to use the snapshot feature in Metall
 
 #include <iostream>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 int main() {
   {

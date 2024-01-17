@@ -7,7 +7,7 @@
 #define METALL_EXAMPLE_GRAPH_DATA_STRUCTURE_CSR_HPP
 
 #include <memory>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 /// \brief Simple CSR graph data structure that can take a custom C++ allocator
 /// and be stored in persistent memory \tparam index_t Index type \tparam vid_t

@@ -7,7 +7,7 @@
 
 #include <boost/container/vector.hpp>
 
-#include <dice/metall/metall.hpp>  // Only one header file is required to be included
+#include <dice/copperr/copperr.hpp>  // Only one header file is required to be included
 
 // Type alias
 // This is the standard way to give a custom allocator to a container

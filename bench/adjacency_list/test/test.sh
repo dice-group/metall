@@ -1,11 +1,11 @@
 #!/bin/sh
 
 # USAGE
-# cd metall/build/bench/adjacency_list/
+# cd copperr/build/bench/adjacency_list/
 # sh ./test/test.sh
 
 DATA=./test/data/edge_list_rmat_s10_
-DATASTORE_DIR_ROOT="/tmp/metall_adj_test"
+DATASTORE_DIR_ROOT="/tmp/copperr_adj_test"
 
 err() {
   echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $@" >&2
@@ -72,7 +72,7 @@ main() {
   mkdir -p ${DATASTORE_DIR_ROOT}
 
   echo "Create Test"
-  ./run_adj_list_bench_metall -o ${DATASTORE_DIR_ROOT}/metall_test_dir -d ${DATASTORE_DIR_ROOT}/adj_out ${DATA}*
+  ./run_adj_list_bench_copperr -o ${DATASTORE_DIR_ROOT}/copperr_test_dir -d ${DATASTORE_DIR_ROOT}/adj_out ${DATA}*
   check_program_exit_status
   rm -f ${DATASTORE_DIR_ROOT}/adj_ref
   cat ${DATA}* >> ${DATASTORE_DIR_ROOT}/adj_ref
@@ -82,7 +82,7 @@ main() {
   # Open the adj-list with the open mode and add more edges
   echo ""
   echo "Extend Test"
-  ./test/extend_metall -o ${DATASTORE_DIR_ROOT}/metall_test_dir -d ${DATASTORE_DIR_ROOT}/adj_out_extend ${DATA}*
+  ./test/extend_copperr -o ${DATASTORE_DIR_ROOT}/copperr_test_dir -d ${DATASTORE_DIR_ROOT}/adj_out_extend ${DATA}*
   check_program_exit_status
   cat ${DATA}* >> ${DATASTORE_DIR_ROOT}/adj_ref
   compare "${DATASTORE_DIR_ROOT}/adj_out_extend" "${DATASTORE_DIR_ROOT}/adj_ref"
@@ -90,14 +90,14 @@ main() {
   # Open the adj-list with the read only open mode
   echo ""
   echo "Open Test"
-  ./test/open_metall -o ${DATASTORE_DIR_ROOT}/metall_test_dir -d ${DATASTORE_DIR_ROOT}/adj_out_open
+  ./test/open_copperr -o ${DATASTORE_DIR_ROOT}/copperr_test_dir -d ${DATASTORE_DIR_ROOT}/adj_out_open
   check_program_exit_status
   compare "${DATASTORE_DIR_ROOT}/adj_out_open" "${DATASTORE_DIR_ROOT}/adj_ref"
 
   # Open the adj-list and destroy it to test memory leak
   echo ""
   echo "Destroy Test"
-  ./test/destroy_metall -o ${DATASTORE_DIR_ROOT}/metall_test_dir
+  ./test/destroy_copperr -o ${DATASTORE_DIR_ROOT}/copperr_test_dir
   check_program_exit_status
 
   echo "<< Passed all tests!! >>"

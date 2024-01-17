@@ -6,9 +6,9 @@
 #include <iostream>
 #include <string>
 
-#include <dice/metall/detail/file.hpp>
-#include <dice/metall/detail/file_clone.hpp>
-#include <dice/metall/detail/mmap.hpp>
+#include <dice/copperr/detail/file.hpp>
+#include <dice/copperr/detail/file_clone.hpp>
+#include <dice/copperr/detail/mmap.hpp>
 
 namespace mdtl = dice::copperr::mtlldetail;
 

@@ -14,12 +14,12 @@ run_build_and_test_kernel() {
 
   local test_dir=${METALL_TEST_DIR}
   if [ -d ${test_dir} ]; then
-    test_dir="${test_dir}/metall-test-${RANDOM}"
+    test_dir="${test_dir}/copperr-test-${RANDOM}"
   fi
 
   local build_dir=${METALL_BUILD_DIR}
   if [ -d ${build_dir} ]; then
-    build_dir="${build_dir}/metall-build-${RANDOM}"
+    build_dir="${build_dir}/copperr-build-${RANDOM}"
   fi
 
   mkdir -p ${build_dir}
@@ -72,7 +72,7 @@ build_docs() {
 
   local build_dir=${METALL_BUILD_DIR}
   if [ -d ${build_dir} ]; then
-    build_dir="${build_dir}/metall-build-${RANDOM}"
+    build_dir="${build_dir}/copperr-build-${RANDOM}"
   fi
 
   mkdir -p ${build_dir}

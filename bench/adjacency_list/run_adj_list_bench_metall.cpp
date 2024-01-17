@@ -7,8 +7,8 @@
 #include <string>
 #include <memory>
 
-#include <dice/metall/metall.hpp>
-#include <dice/metall/detail/time.hpp>
+#include <dice/copperr/copperr.hpp>
+#include <dice/copperr/detail/time.hpp>
 #include "../data_structure/multithread_adjacency_list.hpp"
 #include "bench_driver.hpp"
 
@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
     std::cout << "\nStage in took (s)\t" << elapsed_time << std::endl;
   }
 
-  std::unique_ptr<metall::manager> manager;
+  std::unique_ptr<copperr::manager> manager;
 
   // Bench main
   {
@@ -48,9 +48,9 @@ int main(int argc, char *argv[]) {
                                      ? option.datastore_path_list[0]
                                      : option.staging_location;
     manager = (option.append)
-                  ? std::make_unique<metall::manager>(dice::copperr::open_only,
+                  ? std::make_unique<copperr::manager>(dice::copperr::open_only,
                                                       data_store_path.c_str())
-                  : std::make_unique<metall::manager>(dice::copperr::create_only,
+                  : std::make_unique<copperr::manager>(dice::copperr::create_only,
                                                       data_store_path.c_str());
 
     auto adj_list =

@@ -11,4 +11,4 @@ rm -rf ${FILE}*
 ./run_simple_allocation_bench_bip -n ${NUM_ALLOCS} -o ${FILE} | tee ${LOG_FILE_PREFIX}"bip.log"
 
 rm -rf ${FILE}*
-./run_simple_allocation_bench_metall -n ${NUM_ALLOCS} -o ${FILE} | tee ${LOG_FILE_PREFIX}"metall.log"
+./run_simple_allocation_bench_copperr -n ${NUM_ALLOCS} -o ${FILE} | tee ${LOG_FILE_PREFIX}"copperr.log"

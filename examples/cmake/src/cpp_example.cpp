@@ -3,7 +3,7 @@
 //
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 int main() {
   dice::copperr::manager manager(dice::copperr::create_only, "/tmp/dir");

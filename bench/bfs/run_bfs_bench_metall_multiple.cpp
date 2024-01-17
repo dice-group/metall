@@ -7,7 +7,7 @@
 #include <string>
 #include <cstddef>
 
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 #include "../data_structure/multithread_adjacency_list.hpp"
 #include "../data_structure/partitioned_multithread_adjacency_list.hpp"
 #include "bench_driver.hpp"
@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
   }
 
   {
-    std::vector<metall::manager *> managers;
+    std::vector<copperr::manager *> managers;
     for (const auto &file_name : option.graph_file_name_list) {
       managers.emplace_back(
           new dice::copperr::manager(dice::copperr::open_read_only, file_name.c_str()));

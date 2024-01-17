@@ -8,8 +8,8 @@
 /// ./run_offset_ptr_bench
 
 #include <iostream>
-#include <dice/metall/offset_ptr.hpp>
-#include <dice/metall/detail/time.hpp>
+#include <dice/copperr/offset_ptr.hpp>
+#include <dice/copperr/detail/time.hpp>
 
 namespace mdtl = dice::copperr::mtlldetail;
 

@@ -7,7 +7,7 @@ An actual build command would be something like:
 
 ```bash
 g++ -std=c++17 -lstdc++fs your_program.cpp \
--I/path/to/metall/include -I/path/to/boost/include \
+-I/path/to/copperr/include -I/path/to/boost/include \
 -I/path/to/umap/include -L/path/to/umap/lib -lumap -DMETALL_USE_UMAP
 ```
 

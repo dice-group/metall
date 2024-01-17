@@ -13,8 +13,8 @@
 #include <boost/interprocess/managed_mapped_file.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
 
-#include <dice/metall/detail/file.hpp>
-#include <dice/metall/detail/mmap.hpp>
+#include <dice/copperr/detail/file.hpp>
+#include <dice/copperr/detail/mmap.hpp>
 
 #include "../data_structure/multithread_adjacency_list.hpp"
 #include "bench_driver.hpp"
@@ -43,7 +43,7 @@ void *map_file(const std::string &backing_file_name, const size_t file_size) {
     std::abort();
   }
 
-  if (!metall::mtlldetail::os_close(ret.first)) {
+  if (!copperr::mtlldetail::os_close(ret.first)) {
     std::cerr << "Failed to close the file" << std::endl;
     std::abort();
   }

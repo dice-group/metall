@@ -9,7 +9,7 @@ that is, physical memory space both in DRAM and persistent memory is not consume
 
 
 The figure below is the internal architecture of Metall
-![metall_architecture](../img/metall_architecture.png "Metall's Internal Architecture")
+![copperr_architecture](../img/copperr_architecture.png "Metall's Internal Architecture")
 
 
 ### Backing Data Store

@@ -12,11 +12,11 @@
 #include <functional>
 #include <thread>
 
-#include <dice/metall/detail/file.hpp>
-#include <dice/metall/detail/mmap.hpp>
-#include <dice/metall/detail/time.hpp>
-#include <dice/metall/detail/memory.hpp>
-#include <dice/metall/detail/utilities.hpp>
+#include <dice/copperr/detail/file.hpp>
+#include <dice/copperr/detail/mmap.hpp>
+#include <dice/copperr/detail/time.hpp>
+#include <dice/copperr/detail/memory.hpp>
+#include <dice/copperr/detail/utilities.hpp>
 
 namespace mdtl = dice::copperr::mtlldetail;
 

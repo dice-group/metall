@@ -10,9 +10,9 @@
 #include <utility>
 #include <random>
 
-#include <dice/metall/metall.hpp>
-#include <dice/metall/kernel/bin_number_manager.hpp>
-#include <dice/metall/kernel/object_cache.hpp>
+#include <dice/copperr/copperr.hpp>
+#include <dice/copperr/kernel/bin_number_manager.hpp>
+#include <dice/copperr/kernel/object_cache.hpp>
 #include "../test_utility.hpp"
 
 using bin_no_manager =

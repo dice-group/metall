@@ -3,8 +3,8 @@
 //
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-#include <dice/metall/utility/metall_mpi_adaptor.hpp>
-#include <dice/metall/utility/filesystem.hpp>
+#include <dice/copperr/utility/copperr_mpi_adaptor.hpp>
+#include <dice/copperr/utility/filesystem.hpp>
 
 int main(int argc, char **argv) {
   ::MPI_Init(&argc, &argv);
@@ -14,15 +14,15 @@ int main(int argc, char **argv) {
     // MPI ranks.
     // To forcibly　remove the existing datastore, one can use the following
     // code.
-    // dice::copperr::utility::filesystem::remove("/tmp/metall_mpi");
+    // dice::copperr::utility::filesystem::remove("/tmp/copperr_mpi");
     // ::MPI_Barrier(MPI_COMM_WORLD);
     bool overwrite = true;
 
     dice::copperr::utility::copperr_mpi_adaptor mpi_adaptor(
-        dice::copperr::create_only, "/tmp/metall_mpi", MPI_COMM_WORLD, overwrite);
-    auto &metall_manager = mpi_adaptor.get_local_manager();
+        dice::copperr::create_only, "/tmp/copperr_mpi", MPI_COMM_WORLD, overwrite);
+    auto &copperr_manager = mpi_adaptor.get_local_manager();
 
-    auto rank = metall_manager.construct<int>("my-rank")();
+    auto rank = copperr_manager.construct<int>("my-rank")();
     ::MPI_Comm_rank(MPI_COMM_WORLD, rank);  // Stores my rank
   }
   ::MPI_Finalize();

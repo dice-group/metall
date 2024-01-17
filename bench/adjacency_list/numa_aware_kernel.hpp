@@ -6,8 +6,8 @@
 #ifndef METALL_BENCH_ADJACENCY_LIST_NUMA_AWARE_KERNEL_HPP
 #define METALL_BENCH_ADJACENCY_LIST_NUMA_AWARE_KERNEL_HPP
 
-#include <dice/metall/detail/utilities.hpp>
-#include <dice/metall/detail/time.hpp>
+#include <dice/copperr/detail/utilities.hpp>
+#include <dice/copperr/detail/time.hpp>
 #include "../utility/numa.hpp"
 #include "kernel.hpp"
 

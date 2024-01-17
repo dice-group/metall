@@ -7,9 +7,9 @@
 
 #include <limits>
 
-#include <dice/metall/kernel/bin_number_manager.hpp>
-#include <dice/metall/kernel/object_size_manager.hpp>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/kernel/bin_number_manager.hpp>
+#include <dice/copperr/kernel/object_size_manager.hpp>
+#include <dice/copperr/copperr.hpp>
 
 namespace {
 using namespace dice::copperr::kernel::object_size_manager_detail;

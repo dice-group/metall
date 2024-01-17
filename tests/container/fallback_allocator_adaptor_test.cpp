@@ -9,8 +9,8 @@
 #include <boost/container/scoped_allocator.hpp>
 #include <boost/interprocess/containers/vector.hpp>
 #include <boost/unordered_map.hpp>
-#include <dice/metall/metall.hpp>
-#include <dice/metall/utility/fallback_allocator_adaptor.hpp>
+#include <dice/copperr/copperr.hpp>
+#include <dice/copperr/utility/fallback_allocator_adaptor.hpp>
 #include "../test_utility.hpp"
 
 template <typename T>

@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 int main() {
   // Set and get object attributes via dice::copperr::manager object

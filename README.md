@@ -1,10 +1,10 @@
-[![CI Test](https://github.com/LLNL/metall/actions/workflows/ci-test.yml/badge.svg?branch=master)](https://github.com/LLNL/metall/actions/workflows/ci-test.yml)
-[![Documentation Status](https://readthedocs.org/projects/metall/badge/?version=latest)](https://metall.readthedocs.io/en/latest/?badge=latest)
-[![Deploy API Doc](https://github.com/LLNL/metall/actions/workflows/deploy-api-doc.yml/badge.svg?branch=master)](https://github.com/LLNL/metall/actions/workflows/deploy-api-doc.yml)
+[![Documentation Status](https://readthedocs.org/projects/metall/badge/?version=latest)](https://copperr.readthedocs.io/en/latest/?badge=latest)
+[![Deploy API Doc](https://github.com/LLNL/copperr/actions/workflows/deploy-api-doc.yml/badge.svg?branch=master)](https://github.com/LLNL/metall/actions/workflows/deploy-api-doc.yml)
 
-Metall: A Persistent Memory Allocator for Data-Centric Analytics
+Copperr: A Persistent Memory Allocator for Data-Centric Analytics based on Metall
 ===============================================
 
+* Copper is based on [Metall](https://github.com/LLNL/metall) but will be adapted to the needs of dice-group over time
 * Provides rich memory allocation interfaces for C++ applications that
   use persistent memory devices to persistently store heap data on such
   devices.
@@ -12,53 +12,47 @@ Metall: A Persistent Memory Allocator for Data-Centric Analytics
   space so that users can access the mapped region just as normal memory
   regions allocated in DRAM.
 * Actual persistent memory hardware could be any non-volatile memory (NVM) with file system support.
-* To provide persistent memory allocation, Metall employs concepts and
+* To provide persistent memory allocation, Copperr employs concepts and
   APIs developed by
   [Boost.Interprocess](https://www.boost.org/doc/libs/1_69_0/doc/html/interprocess.html).
 * Supports multi-thread
 * Also provides a space-efficient snapshot/versioning, leveraging reflink
-  copy mechanism in filesystem. In case reflink is not supported, Metall
+  copy mechanism in filesystem. In case reflink is not supported, Copperr
   automatically falls back to regular copy.
 * See details: [Metall overview slides](docs/publications/metall_101.pdf).
   
 
 # Getting Started
 
-Metall consists of only header files and requires some header files in Boost C++ Libraries.
+Copperr consists of only header files and requires some header files in Boost C++ Libraries.
 
 All core files exist under
-[metall/include/metall/](https://github.com/LLNL/metall/tree/master/include/metall).
+[copperr/include/copperr/](https://github.com/dice-group/copperr/tree/master/include/copperr).
 
 ## Required
 
-- Boost C++ Libraries 1.64 or more.
+- Boost C++ Libraries >=1.64.
   - Build is not required; needs only their header files.
-  - To use JSON containers in Metall, Boost C++ Libraries 1.75 or more is required.
-- C++17 compiler
-  - Tested with GCC 8.1 or more; however, 8.3 or more is recommended due to early implementation of the C++ Filesystem library.
+  - To use JSON containers in Copperr, Boost C++ Libraries >=1.75 is required.
+- C++20 compiler
+  - Tested with GCC>=13 / Clang>=15
 
-## Build
+## Usage with conan
 
-To build your program with Metall, all you have to do is just setting include paths such as '-I' or CPLUS_INCLUDE_PATH.
+You need the package manager Conan installed and set up. You can add the DICE artifactory with:
+```shell
+conan remote add dice-group https://conan.dice-research.org/artifactory/api/conan/tentris
+```
 
-For example,
-
-```bash
-# Download Boost (Boost C++ Libraries 1.64 or more is required)
-# One can skip this step if Boost is already available.
-wget https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.tar.gz
-tar xvf boost_1_78_0.tar.gz
-export BOOST_ROOT=$PWD/boost_1_78_0
-
-git clone https://github.com/dice-group/metall
-export METALL_INCLUDE=$PWD/metall/include
-
-g++ -std=c++17 your_program.cpp -lstdc++fs -I${BOOST_ROOT} -I${METALL_INCLUDE}
+To use copperr, add it to your conanfile.txt:
+```shell
+[requires]
+copperr/0.0.x
 ```
 
 ### Defining a sink for the logger
-To Use Metall your application must define a logger sink for Metall.
-A reasonable default sink is provided via the Metall::default_logger cmake target you can link against that
+To Use Copperr your application must define a logger sink for Copperr.
+A reasonable default sink is provided via the Copperr::default_logger cmake target you can link against that
 if you do not want to provide your own logger implementation.
 
 The interface you need to implement is defined in `include/logger_interface.h`.
@@ -69,50 +63,23 @@ If you don't you will get the following linker error:
 Error: Undefined reference to `copperr_log`
 ```
 
-### Unofficial Support For Clang
-Clang can be used instead of GCC to build Metall.
-However, we haven't tested it intensively.
-Also, Boost C++ Libraries 1.69 or more may be required
-if one wants to build Metall with Clang + CUDA.
+## Use Copperr from Another CMake Project
 
-## Metall with Spack
-
-Metall package is also available on [Spack](https://spack.io/).
-
-As Metall depends on Boost C++ Libraries,
-Spack also installs a proper version of Boost C++ Libraries automatically, if needed.
-
-```bash
-# Install Metall and Boost C++ Libraries
-spack install metall
-
-# Sets environment variables: BOOST_ROOT and METALL_ROOT.
-# Boost C++ Libraries and Metall are installed at the locations, respectively.
-spack load metall
-
-# Build a program that uses Metall
-# Please note that one has to put 'include' at the end of BOOST_ROOT and METALL_ROOT
-g++ -std=c++17 your_program.cpp -lstdc++fs -I${BOOST_ROOT}/include -I${METALL_ROOT}/include
-```
-
-
-## Use Metall from Another CMake Project
-
-To download and/or link Metall package from a CMake project,
+To download and/or link Copperr package from a CMake project,
 see example CMake files placed [here](./example/cmake).
 
 # Build Example Programs
 
-Metall repository contains some example programs under [example directory](./example).
+Copperr repository contains some example programs under [example directory](./example).
 One can use CMake to build the examples.
 For more details, see a page
-[here](https://metall.readthedocs.io/en/latest/advanced_build/cmake/).
+[here](https://copperr.readthedocs.io/en/latest/advanced_build/cmake/).
 
 
-# Documentations
+# Documentation
 
-- [Full documentation](https://metall.readthedocs.io/)
-- [API documentation](https://software.llnl.gov/metall/api/)
+- [Full documentation](https://copperr.readthedocs.io/)
+- [API documentation](https://software.llnl.gov/copperr/api/)
 
 ## Generate API documentation using Doxygen
 
@@ -121,18 +88,18 @@ A Doxygen configuration file is [here](docs/Doxyfile.in).
 To generate API document:
 
 ```bash
-cd metall
+cd copperr
 mkdir build_doc
 cd build_doc
 doxygen ../docs/Doxyfile.in
 ```
 
 
-# Publication
+# Publication related to Metall
 
 ```
 Keita Iwabuchi, Karim Youssef, Kaushik Velusamy, Maya Gokhale, Roger Pearce,
-Metall: A persistent memory allocator for data-centric analytics,
+Copperr: A persistent memory allocator for data-centric analytics,
 Parallel Computing, 2022, 102905, ISSN 0167-8191, https://doi.org/10.1016/j.parco.2022.102905.
 ```
 
@@ -143,14 +110,11 @@ Parallel Computing, 2022, 102905, ISSN 0167-8191, https://doi.org/10.1016/j.parc
 # About
 
 ## Contact
-
-- [GitHub Issues](https://github.com/LLNL/metall/issues) is open.
-  
-- Primary contact: [Keita Iwabuchi (LLNL)](https://github.com/KIwabuchi).
+- [GitHub Issues](https://github.com/dice-group/copperr/issues) are open.
 
 ## License
 
-Metall is distributed under the terms of both the MIT license and the
+Copperr is distributed under the terms of both the MIT license and the
 Apache License (Version 2.0). Users may choose either license, at their
 option.
 

@@ -5,7 +5,7 @@
 
 #include <string>
 
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 int main() {
   const std::string master_path("/tmp/dir_path");

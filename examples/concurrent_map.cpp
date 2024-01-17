@@ -5,8 +5,8 @@
 #include <iostream>
 #include <thread>
 
-#include <dice/metall/metall.hpp>
-#include <dice/metall/container/concurrent_map.hpp>
+#include <dice/copperr/copperr.hpp>
+#include <dice/copperr/container/concurrent_map.hpp>
 
 using map_type = dice::copperr::container::concurrent_map<
     char, int, std::less<char>, std::hash<char>,

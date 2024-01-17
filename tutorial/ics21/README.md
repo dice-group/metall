@@ -39,5 +39,5 @@ Thanks to the recent notable performance improvements and cost reductions in non
 
 ## Tutorial Materials
 
-* [Lecture slides](metall_101.pdf)
+* [Lecture slides](copperr_101.pdf)
 * [Hands-on Examples](../hands_on)

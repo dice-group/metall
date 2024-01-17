@@ -3,7 +3,7 @@ set(lib_suffix "ffi")
 set(lib "${PROJECT_NAME}-${lib_suffix}")
 
 add_library(${lib}
-        src/dice/ffi/metall.cpp
+        src/dice/ffi/copperr.cpp
         )
 add_library(${PROJECT_NAME}::${lib_suffix} ALIAS ${lib})
 

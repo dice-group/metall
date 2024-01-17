@@ -6,7 +6,7 @@
 // This program shows how to allocate memory using Metall.
 
 #include <iostream>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 int main() {
   dice::copperr::manager manager(dice::copperr::create_only, "/tmp/dir");

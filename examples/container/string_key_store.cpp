@@ -3,9 +3,9 @@
 //
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-#include <dice/metall/metall.hpp>
-#include <dice/metall/container/string_key_store.hpp>
-#include <dice/metall/json/json.hpp>
+#include <dice/copperr/copperr.hpp>
+#include <dice/copperr/container/string_key_store.hpp>
+#include <dice/copperr/json/json.hpp>
 
 namespace mc = dice::copperr::container;
 namespace mj = dice::copperr::json;

@@ -7,8 +7,8 @@
 
 #include <unordered_set>
 
-#include <dice/metall/metall.hpp>
-#include <dice/metall/kernel/object_size_manager.hpp>
+#include <dice/copperr/copperr.hpp>
+#include <dice/copperr/kernel/object_size_manager.hpp>
 #include "../test_utility.hpp"
 
 namespace {

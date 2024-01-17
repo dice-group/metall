@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 #include "../test_utility.hpp"
 

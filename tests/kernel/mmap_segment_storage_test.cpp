@@ -5,7 +5,7 @@
 
 #include "gtest/gtest.h"
 
-#include <dice/metall/kernel/segment_storage/mmap_segment_storage.hpp>
+#include <dice/copperr/kernel/segment_storage/mmap_segment_storage.hpp>
 #include "../test_utility.hpp"
 
 namespace {

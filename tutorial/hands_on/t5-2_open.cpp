@@ -7,7 +7,7 @@
 // it is consistent Please execute t5-2_create.cpp beforehand
 
 #include <iostream>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 int main() {
   if (dice::copperr::manager::consistent("/tmp/dir")) {

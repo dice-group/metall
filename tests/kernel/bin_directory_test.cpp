@@ -5,9 +5,9 @@
 
 #include "gtest/gtest.h"
 #include <memory>
-#include <dice/metall/kernel/bin_directory.hpp>
-#include <dice/metall/kernel/bin_number_manager.hpp>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/kernel/bin_directory.hpp>
+#include <dice/copperr/kernel/bin_number_manager.hpp>
+#include <dice/copperr/copperr.hpp>
 #include "../test_utility.hpp"
 
 namespace {

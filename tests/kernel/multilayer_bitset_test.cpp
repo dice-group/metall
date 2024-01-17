@@ -10,8 +10,8 @@
 #include <unordered_set>
 #include <cstddef>
 
-#include <dice/metall/detail/bitset.hpp>
-#include <dice/metall/kernel/multilayer_bitset.hpp>
+#include <dice/copperr/detail/bitset.hpp>
+#include <dice/copperr/kernel/multilayer_bitset.hpp>
 
 namespace {
 

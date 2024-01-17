@@ -6,7 +6,7 @@
 #include <iostream>
 #include <boost/container/string.hpp>
 #include <boost/container/map.hpp>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 // String with Metall
 using persistent_string =

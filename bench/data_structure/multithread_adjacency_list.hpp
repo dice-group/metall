@@ -19,14 +19,14 @@
 #include <scoped_allocator>
 namespace container = std;
 #else
-#include <dice/metall/container/vector.hpp>
-#include <dice/metall/container/unordered_map.hpp>
-#include <dice/metall/container/scoped_allocator.hpp>
+#include <dice/copperr/container/vector.hpp>
+#include <dice/copperr/container/unordered_map.hpp>
+#include <dice/copperr/container/scoped_allocator.hpp>
 namespace container = dice::copperr::container;
 #endif
 
-#include <dice/metall/utility/hash.hpp>
-#include <dice/metall/utility/mutex.hpp>
+#include <dice/copperr/utility/hash.hpp>
+#include <dice/copperr/utility/mutex.hpp>
 
 namespace data_structure {
 

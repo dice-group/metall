@@ -7,7 +7,7 @@
 
 #include <unordered_set>
 
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 #include "../test_utility.hpp"
 
 namespace {

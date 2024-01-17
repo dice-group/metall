@@ -9,7 +9,7 @@
 #include <iostream>
 #include <boost/container/scoped_allocator.hpp>
 #include <boost/container/vector.hpp>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 namespace bc = boost::container;
 

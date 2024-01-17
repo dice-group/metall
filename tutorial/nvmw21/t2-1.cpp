@@ -6,18 +6,18 @@
 // This program shows how to use STL containers with Metall
 
 #include <iostream>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
-// Metall contains basic STL containers that use metall as their default
+// Metall contains basic STL containers that use copperr as their default
 // allocators.
-#include <dice/metall/container/vector.hpp>
+#include <dice/copperr/container/vector.hpp>
 
 int main() {
   {
     dice::copperr::manager manager(dice::copperr::create_only, "/tmp/dir");
 
     // Allocate a vector object, passing an allocator object
-    auto* vec = manager.construct<metall::container::vector<int>>("vec")(
+    auto* vec = manager.construct<copperr::container::vector<int>>("vec")(
         manager.get_allocator<int>());
     vec->resize(1);
     (*vec)[0] = 10;
@@ -27,7 +27,7 @@ int main() {
   {
     dice::copperr::manager manager(dice::copperr::open_only, "/tmp/dir");
 
-    auto* vec = manager.find<metall::container::vector<int>>("vec").first;
+    auto* vec = manager.find<copperr::container::vector<int>>("vec").first;
     std::cout << "Size = " << vec->size() << std::endl;
     std::cout << "Value at 0 = " << (*vec)[0] << std::endl;
     std::cout << "Value at 1 = " << (*vec)[1] << std::endl;
@@ -38,7 +38,7 @@ int main() {
   {
     dice::copperr::manager manager(dice::copperr::open_read_only, "/tmp/dir");
 
-    auto* vec = manager.find<metall::container::vector<int>>("vec").first;
+    auto* vec = manager.find<copperr::container::vector<int>>("vec").first;
     std::cout << "Value at 2 = " << (*vec)[2] << std::endl;
   }
 

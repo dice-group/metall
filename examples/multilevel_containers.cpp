@@ -18,7 +18,7 @@
 
 #include <iostream>
 #include <functional>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 // We recommend you to use containers implemented in Boost libraries because
 // they fully support the offset pointer
@@ -52,7 +52,7 @@ using map_type =
 
 int main() {
   {
-    // Create a new metall object
+    // Create a new copperr object
     dice::copperr::manager manager(dice::copperr::create_only, "/tmp/datastore");
 
     // Construct an object of map_type

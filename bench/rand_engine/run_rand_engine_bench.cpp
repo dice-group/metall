@@ -6,8 +6,8 @@
 #include <iostream>
 #include <random>
 #include <boost/random/mersenne_twister.hpp>
-#include <dice/metall/utility/random.hpp>
-#include <dice/metall/detail/time.hpp>
+#include <dice/copperr/utility/random.hpp>
+#include <dice/copperr/detail/time.hpp>
 
 template <typename rand_engine_type>
 auto run_bench(const uint64_t num_generate) {
@@ -29,9 +29,9 @@ int main() {
   std::cout << "boost::mt19937_64\t"
             << run_bench<boost::random::mt19937_64>(num_generate) << std::endl;
   std::cout << "xoshiro512++     \t"
-            << run_bench<metall::utility::rand_512>(num_generate) << std::endl;
+            << run_bench<copperr::utility::rand_512>(num_generate) << std::endl;
   std::cout << "xoshiro1024++    \t"
-            << run_bench<metall::utility::rand_1024>(num_generate) << std::endl;
+            << run_bench<copperr::utility::rand_1024>(num_generate) << std::endl;
 
   return 0;
 }

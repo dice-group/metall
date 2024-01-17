@@ -5,10 +5,10 @@ Users may choose either license, at their option.
 
 All new contributions must be made under both the MIT and Apache-2.0 licenses.
 
-See [LICENSE-MIT](https://github.com/LLNL/metall/blob/develop/LICENSE-MIT),
-[LICENSE-APACHE](https://github.com/LLNL/metall/blob/develop/LICENSE-APACHE),
-[NOTICE](https://github.com/LLNL/metall/blob/develop/NOTICE),
-and [COPYRIGHT](https://github.com/LLNL/metall/blob/develop/COPYRIGHT) for details.
+See [LICENSE-MIT](https://github.com/LLNL/copperr/blob/develop/LICENSE-MIT),
+[LICENSE-APACHE](https://github.com/LLNL/copperr/blob/develop/LICENSE-APACHE),
+[NOTICE](https://github.com/LLNL/copperr/blob/develop/NOTICE),
+and [COPYRIGHT](https://github.com/LLNL/copperr/blob/develop/COPYRIGHT) for details.
 
 SPDX-License-Identifier: (Apache-2.0 OR MIT)
 

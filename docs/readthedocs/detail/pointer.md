@@ -8,7 +8,7 @@ To fix the problem, the **offset pointer** has to be used instead of the raw poi
 An offset pointer holds an offset between the address pointing at and itself so that it can always point to the same location regardless of the VM address it is mapped.
 Additionally, references, virtual functions, and virtual base classes have to be removed since those mechanisms also use raw pointers internally.
 
-The [offset pointer in Metall](https://github.com/KIwabuchi/metall/blob/develop/include/metall/offset_ptr.hpp) is just an alias of [offset pointer in Boost.Interprocess](https://www.boost.org/doc/libs/release/doc/html/interprocess/offset_ptr.html).
+The [offset pointer in Metall](https://github.com/KIwabuchi/copperr/blob/develop/include/copperr/offset_ptr.hpp) is just an alias of [offset pointer in Boost.Interprocess](https://www.boost.org/doc/libs/release/doc/html/interprocess/offset_ptr.html).
 
 
 ## STL Container

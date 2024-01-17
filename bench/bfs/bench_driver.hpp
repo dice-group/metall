@@ -11,11 +11,11 @@
 #include <unistd.h>
 #include <boost/algorithm/string.hpp>
 
-#include <dice/metall/detail/time.hpp>
-#include <dice/metall/detail/memory.hpp>
+#include <dice/copperr/detail/time.hpp>
+#include <dice/copperr/detail/memory.hpp>
 
 #include "kernel.hpp"
-#include <dice/metall/utility/open_mp.hpp>
+#include <dice/copperr/utility/open_mp.hpp>
 
 namespace bfs_bench {
 

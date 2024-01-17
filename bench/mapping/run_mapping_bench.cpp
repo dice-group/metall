@@ -13,10 +13,10 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <dice/metall/metall.hpp>
-#include <dice/metall/utility/random.hpp>
-#include <dice/metall/detail/time.hpp>
-#include <dice/metall/detail/mmap.hpp>
+#include <dice/copperr/copperr.hpp>
+#include <dice/copperr/utility/random.hpp>
+#include <dice/copperr/detail/time.hpp>
+#include <dice/copperr/detail/mmap.hpp>
 
 using rand_engine = dice::copperr::utility::rand_512;
 static constexpr std::size_t k_page_size = 4096;

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # USAGE
-# cd metall/build/bench/adjacency_list/
+# cd copperr/build/bench/adjacency_list/
 # sh ./test/test_large.sh
 
 # ----- Default Configuration ----- #
@@ -15,8 +15,8 @@ seed=123
 # The default path to store data.
 # This value is overwritten if '-d' option is specified
 case "$OSTYPE" in
-  darwin*)  out_dir_path="/tmp/metall_adj_test";;
-  linux*)   out_dir_path="/dev/shm/metall_adj_test";;
+  darwin*)  out_dir_path="/tmp/copperr_adj_test";;
+  linux*)   out_dir_path="/dev/shm/copperr_adj_test";;
 esac
 # --------------- #
 
@@ -70,7 +70,7 @@ main() {
   parse_option "$@"
   mkdir -p ${out_dir_path}
 
-  data_store_path="${out_dir_path}/metall_test_dir"
+  data_store_path="${out_dir_path}/copperr_test_dir"
   adj_list_dump_file="${out_dir_path}/dumped_edge_list"
 
   # Contains edges generated directly from the edge generator
@@ -79,7 +79,7 @@ main() {
 
   local e=$((2**$((${v}+4)))) # The number of edges to generate
 
-  ./run_adj_list_bench_metall -o ${data_store_path} -d ${adj_list_dump_file} -s ${seed} -v ${v} -e ${e} -a ${a} -b ${b} -c ${c} -r 1 -u 1 -D ${ref_edge_dump_file1}
+  ./run_adj_list_bench_copperr -o ${data_store_path} -d ${adj_list_dump_file} -s ${seed} -v ${v} -e ${e} -a ${a} -b ${b} -c ${c} -r 1 -u 1 -D ${ref_edge_dump_file1}
   check_program_exit_status
   echo ""
 
@@ -90,7 +90,7 @@ main() {
 
   # ---------- Reopen the file for persistence test ---------- #
   # Open and add another edge list
-  ./test/extend_metall -o ${data_store_path} -d ${adj_list_dump_file} -s $(($seed+1024)) -v ${v} -e ${e} -a ${a} -b ${b} -c ${c} -r 1 -u 1 -D ${ref_edge_dump_file2}
+  ./test/extend_copperr -o ${data_store_path} -d ${adj_list_dump_file} -s $(($seed+1024)) -v ${v} -e ${e} -a ${a} -b ${b} -c ${c} -r 1 -u 1 -D ${ref_edge_dump_file2}
   check_program_exit_status
   echo ""
 
@@ -103,7 +103,7 @@ main() {
   /bin/rm -rf ${adj_list_dump_file}
 
   # Open the datastore as the read only mode
-  ./test/open_metall -o ${data_store_path} -d ${adj_list_dump_file}
+  ./test/open_copperr -o ${data_store_path} -d ${adj_list_dump_file}
   check_program_exit_status
   echo ""
 
@@ -111,7 +111,7 @@ main() {
   echo ""
 
   # Open the adj-list and destroy it to test memory leak
-  ./test/destroy_metall -o ${data_store_path}
+  ./test/destroy_copperr -o ${data_store_path}
   check_program_exit_status
 
   echo "<< Passed all tests!! >>"

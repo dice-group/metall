@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 #include <iostream>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 // This program allocates a user-defined struct/class object and reattaches it
 // using Metall. One can learn how non-primitive data type object is constructed

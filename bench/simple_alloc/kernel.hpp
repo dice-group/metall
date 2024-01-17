@@ -17,8 +17,8 @@
 #include <algorithm>
 #include <iostream>
 #include <iomanip>
-#include <dice/metall/detail/time.hpp>
-#include <dice/metall/detail/utilities.hpp>
+#include <dice/copperr/detail/time.hpp>
+#include <dice/copperr/detail/utilities.hpp>
 
 namespace simple_alloc_bench {
 

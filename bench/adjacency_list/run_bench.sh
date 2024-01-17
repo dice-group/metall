@@ -3,7 +3,7 @@
 # ------------------------- #
 # Usage
 # ------------------------- #
-# cd metall/build/bench/adjacency_list
+# cd copperr/build/bench/adjacency_list
 # sh run_bench.sh [options]
 
 # ------------------------- #
@@ -21,7 +21,7 @@ linux*) DATASTORE_DIR_ROOT="/dev/shm" ;;
 esac
 NO_CLEANING_FILES_AT_END=false
 UMAP_PAGESIZE=""
-EXEC_NAME="metall" # "run_adj_list_bench_${EXEC_NAME}" is the execution file
+EXEC_NAME="copperr" # "run_adj_list_bench_${EXEC_NAME}" is the execution file
 
 while getopts "v:f:l:t:s:d:n:cp:E:" OPT; do
   case $OPT in
@@ -47,7 +47,7 @@ A=0.57
 B=0.19
 C=0.19
 RND_SEED=123
-DATASTORE_NAME="metall_adjlist_bench"
+DATASTORE_NAME="copperr_adjlist_bench"
 
 #case "$OSTYPE" in
 #  darwin*)

@@ -3,11 +3,11 @@
 //
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-#include <dice/metall/c_api/metall.h>
+#include <dice/copperr/c_api/copperr.h>
 
 int main(void) {
-  metall_open(METALL_CREATE_ONLY, "/tmp/dir");
-  metall_close();
+  copperr_open(METALL_CREATE_ONLY, "/tmp/dir");
+  copperr_close();
 
   return 0;
 }

@@ -5,7 +5,7 @@
 
 #include "gtest/gtest.h"
 #include <memory>
-#include <dice/metall/json/json.hpp>
+#include <dice/copperr/json/json.hpp>
 
 namespace mj = dice::copperr::json;
 
