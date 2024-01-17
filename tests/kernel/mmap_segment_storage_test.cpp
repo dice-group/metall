@@ -5,12 +5,12 @@
 
 #include "gtest/gtest.h"
 
-#include <dice/metall/kernel/segment_storage/mmap_segment_storage.hpp>
+#include <dice/copperr/kernel/segment_storage/mmap_segment_storage.hpp>
 #include "../test_utility.hpp"
 
 namespace {
 using segment_storage_type =
-    dice::metall::kernel::mmap_segment_storage<std::ptrdiff_t, std::size_t>;
+    dice::copperr::kernel::mmap_segment_storage<std::ptrdiff_t, std::size_t>;
 
 const std::filesystem::path &test_dir() {
   const static auto path = test_utility::make_test_path();
@@ -23,8 +23,8 @@ const std::filesystem::path &test_file_prefix() {
 }
 
 void prepare_test_dir() {
-  ASSERT_TRUE(dice::metall::mtlldetail::remove_file(test_dir()));
-  ASSERT_TRUE(dice::metall::mtlldetail::create_directory(test_dir()));
+  ASSERT_TRUE(dice::copperr::mtlldetail::remove_file(test_dir()));
+  ASSERT_TRUE(dice::copperr::mtlldetail::create_directory(test_dir()));
 }
 
 TEST(MultifileSegmentStorageTest, PageSize) {
@@ -34,7 +34,7 @@ TEST(MultifileSegmentStorageTest, PageSize) {
 
 TEST(MultifileSegmentStorageTest, Create) {
   constexpr std::size_t vm_size = 1ULL << 22ULL;
-  auto addr = dice::metall::mtlldetail::reserve_vm_region(vm_size);
+  auto addr = dice::copperr::mtlldetail::reserve_vm_region(vm_size);
   ASSERT_NE(addr, nullptr);
 
   {
@@ -67,12 +67,12 @@ TEST(MultifileSegmentStorageTest, Create) {
     }
   }
 
-  ASSERT_TRUE(dice::metall::mtlldetail::munmap(addr, vm_size, true));
+  ASSERT_TRUE(dice::copperr::mtlldetail::munmap(addr, vm_size, true));
 }
 
 TEST(MultifileSegmentStorageTest, GetSize) {
   constexpr std::size_t vm_size = 1ULL << 22ULL;
-  auto addr = dice::metall::mtlldetail::reserve_vm_region(vm_size);
+  auto addr = dice::copperr::mtlldetail::reserve_vm_region(vm_size);
   ASSERT_NE(addr, nullptr);
 
   // vm_size < single_file_size
@@ -95,12 +95,12 @@ TEST(MultifileSegmentStorageTest, GetSize) {
     ASSERT_GE(segment_storage_type::get_size(test_file_prefix()), vm_size);
   }
 
-  ASSERT_TRUE(dice::metall::mtlldetail::munmap(addr, vm_size, true));
+  ASSERT_TRUE(dice::copperr::mtlldetail::munmap(addr, vm_size, true));
 }
 
 TEST(MultifileSegmentStorageTest, Extend) {
   constexpr std::size_t vm_size = 1ULL << 22ULL;
-  auto addr = dice::metall::mtlldetail::reserve_vm_region(vm_size);
+  auto addr = dice::copperr::mtlldetail::reserve_vm_region(vm_size);
   ASSERT_NE(addr, nullptr);
 
   {
@@ -125,12 +125,12 @@ TEST(MultifileSegmentStorageTest, Extend) {
     }
   }
 
-  ASSERT_TRUE(dice::metall::mtlldetail::munmap(addr, vm_size, true));
+  ASSERT_TRUE(dice::copperr::mtlldetail::munmap(addr, vm_size, true));
 }
 
 TEST(MultifileSegmentStorageTest, Openable) {
   constexpr std::size_t vm_size = 1ULL << 22ULL;
-  auto addr = dice::metall::mtlldetail::reserve_vm_region(vm_size);
+  auto addr = dice::copperr::mtlldetail::reserve_vm_region(vm_size);
   ASSERT_NE(addr, nullptr);
   {
     prepare_test_dir();
@@ -138,7 +138,7 @@ TEST(MultifileSegmentStorageTest, Openable) {
     ASSERT_TRUE(
         segment_storage.create(test_file_prefix(), vm_size, addr, vm_size));
   }
-  ASSERT_TRUE(dice::metall::mtlldetail::munmap(addr, vm_size, true));
+  ASSERT_TRUE(dice::copperr::mtlldetail::munmap(addr, vm_size, true));
 
   ASSERT_TRUE(segment_storage_type::openable(test_file_prefix()));
   ASSERT_FALSE(segment_storage_type::openable(test_file_prefix() / "dummy"));
@@ -146,7 +146,7 @@ TEST(MultifileSegmentStorageTest, Openable) {
 
 TEST(MultifileSegmentStorageTest, Open) {
   constexpr std::size_t vm_size = 1ULL << 22ULL;
-  auto addr = dice::metall::mtlldetail::reserve_vm_region(vm_size);
+  auto addr = dice::copperr::mtlldetail::reserve_vm_region(vm_size);
   ASSERT_NE(addr, nullptr);
 
   {
@@ -187,12 +187,12 @@ TEST(MultifileSegmentStorageTest, Open) {
       ASSERT_EQ(buf[i], '2');
     }
   }
-  ASSERT_TRUE(dice::metall::mtlldetail::munmap(addr, vm_size, true));
+  ASSERT_TRUE(dice::copperr::mtlldetail::munmap(addr, vm_size, true));
 }
 
 TEST(MultifileSegmentStorageTest, Sync) {
   constexpr std::size_t vm_size = 1ULL << 22ULL;
-  auto addr = dice::metall::mtlldetail::reserve_vm_region(vm_size);
+  auto addr = dice::copperr::mtlldetail::reserve_vm_region(vm_size);
   ASSERT_NE(addr, nullptr);
 
   {
@@ -223,6 +223,6 @@ TEST(MultifileSegmentStorageTest, Sync) {
     }
   }
 
-  ASSERT_TRUE(dice::metall::mtlldetail::munmap(addr, vm_size, true));
+  ASSERT_TRUE(dice::copperr::mtlldetail::munmap(addr, vm_size, true));
 }
 }  // namespace

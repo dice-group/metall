@@ -7,11 +7,11 @@
 // it is consistent Please execute t5-2_create.cpp beforehand
 
 #include <iostream>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 int main() {
-  if (dice::metall::manager::consistent("/tmp/dir")) {
-    dice::metall::manager manager(dice::metall::open_read_only, "/tmp/dir");
+  if (dice::copperr::manager::consistent("/tmp/dir")) {
+    dice::copperr::manager manager(dice::copperr::open_read_only, "/tmp/dir");
     std::cout << "Opened /tmp/dir" << std::endl;
     auto *n = manager.find<int>("n").first;
     std::cout << *n << std::endl;
@@ -22,8 +22,8 @@ int main() {
         << std::endl;
   }
 
-  if (dice::metall::manager::consistent("/tmp/snapshot")) {
-    dice::metall::manager manager(dice::metall::open_read_only, "/tmp/snapshot");
+  if (dice::copperr::manager::consistent("/tmp/snapshot")) {
+    dice::copperr::manager manager(dice::copperr::open_read_only, "/tmp/snapshot");
     std::cout << "Opened /tmp/snapshot" << std::endl;
     auto *n = manager.find<int>("n").first;
     std::cout << *n << std::endl;

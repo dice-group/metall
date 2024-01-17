@@ -10,9 +10,9 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
-#include <dice/metall/metall.hpp>
-#include <dice/metall/detail/time.hpp>
-#include <dice/metall/detail/file_clone.hpp>
+#include <dice/copperr/copperr.hpp>
+#include <dice/copperr/detail/time.hpp>
+#include <dice/copperr/detail/file_clone.hpp>
 #include "../data_structure/multithread_adjacency_list.hpp"
 #include "bench_driver.hpp"
 
@@ -22,7 +22,7 @@ using key_type = uint64_t;
 using value_type = uint64_t;
 
 using adjacency_list_type = data_structure::multithread_adjacency_list<
-    key_type, value_type, typename dice::metall::manager::allocator_type<std::byte>>;
+    key_type, value_type, typename dice::copperr::manager::allocator_type<std::byte>>;
 
 ssize_t g_directory_total = 0;
 int sum_file_sizes(const char *, const struct stat *statbuf, int typeflag) {
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
   option.verbose = true;
 
   {
-    dice::metall::manager manager(dice::metall::create_only,
+    dice::copperr::manager manager(dice::copperr::create_only,
                             option.datastore_path_list[0].c_str());
 
     // This function is called after inserting each chunk
@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
             option.datastore_path_list[0] + "-snapshot-" + snapshot_id.str();
         const auto start = mdtl::elapsed_time_sec();
         // Use copy() so that flush() is not called again
-        dice::metall::manager::copy(option.datastore_path_list[0].c_str(),
+        dice::copperr::manager::copy(option.datastore_path_list[0].c_str(),
                               snapshot_dir.c_str());
         const auto elapsed_time = mdtl::elapsed_time_sec(start);
         std::cout << "Snapshot took (s)\t" << elapsed_time << std::endl;

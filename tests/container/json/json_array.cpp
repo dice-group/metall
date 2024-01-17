@@ -5,9 +5,9 @@
 
 #include "gtest/gtest.h"
 #include <memory>
-#include <dice/metall/json/json.hpp>
+#include <dice/copperr/json/json.hpp>
 
-namespace mj = dice::metall::json;
+namespace mj = dice::copperr::json;
 
 namespace {
 using array_type = mj::array<std::allocator<std::byte>>;

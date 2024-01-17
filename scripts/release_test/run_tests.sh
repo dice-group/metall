@@ -12,8 +12,8 @@ BOOST_VERSiONS=('1.74.0' '1.73.0' '1.72.0' '1.71.0' '1.70.0' '1.69.0' '1.68.0' '
 
 for GCC_VER in "${GCC_VERSIONS[@]}"; do
   for BOOST_VER in "${BOOST_VERSiONS[@]}"; do
-    export METALL_TEST_DIR="/dev/shm/metall_test_gcc${GCC_VER}_boost${BOOST_VER}"
-    export METALL_BUILD_DIR="/dev/shm/metall_test_build_gcc${GCC_VER}_boost${BOOST_VER}"
+    export METALL_TEST_DIR="/dev/shm/copperr_test_gcc${GCC_VER}_boost${BOOST_VER}"
+    export METALL_BUILD_DIR="/dev/shm/copperr_test_build_gcc${GCC_VER}_boost${BOOST_VER}"
 
     spack load gcc@${GCC_VER}
     spack load boost@${BOOST_VER}

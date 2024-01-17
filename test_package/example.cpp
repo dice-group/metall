@@ -6,18 +6,18 @@
 #include <iostream>
 #include <boost/container/vector.hpp>
 
-#include <dice/metall/metall.hpp> // Only one header file is required to be included
+#include <dice/copperr/copperr.hpp> // Only one header file is required to be included
 
 // Type alias
 // This is a standard way to give a custom allocator to a container
-using vector_t = boost::container::vector<int, dice::metall::manager::allocator_type<int>>;
+using vector_t = boost::container::vector<int, dice::copperr::manager::allocator_type<int>>;
 
 int main() {
 
   {
     // Construct a manager object
     // A process can allocate multiple manager objects
-    dice::metall::manager manager(dice::metall::create_only,  // Create a new one
+    dice::copperr::manager manager(dice::copperr::create_only,  // Create a new one
                                   "/tmp/dir");          // The directory to store backing datastore
 
     // Allocate and construct a vector object in the persistent memory with a name "vec"
@@ -27,13 +27,13 @@ int main() {
 
     pvec->push_back(5); // Can use containers normally
 
-  } // Implicitly sync with backing files, i.e., sync() is called in metall::manager's destructor
+  } // Implicitly sync with backing files, i.e., sync() is called in copperr::manager's destructor
 
   // ---------- Assume exit and restart the program at this point ---------- //
 
   {
     // Reattach the manager object
-    dice::metall::manager manager(dice::metall::open_only, "/tmp/dir");
+    dice::copperr::manager manager(dice::copperr::open_only, "/tmp/dir");
 
     // Find the previously constructed object
     // Please do not forget to use ".first" at the end

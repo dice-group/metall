@@ -7,20 +7,20 @@
 
 #include <unordered_set>
 
-#include <dice/metall/metall.hpp>
-#include <dice/metall/kernel/object_size_manager.hpp>
+#include <dice/copperr/copperr.hpp>
+#include <dice/copperr/kernel/object_size_manager.hpp>
 #include "../test_utility.hpp"
 
 namespace {
-using namespace dice::metall::mtlldetail;
+using namespace dice::copperr::mtlldetail;
 
-using manager_type = dice::metall::manager;
+using manager_type = dice::copperr::manager;
 template <typename T>
 using allocator_type = typename manager_type::allocator_type<T>;
 
 constexpr auto k_chunk_size = manager_type::chunk_size();
 using object_size_mngr =
-    dice::metall::kernel::object_size_manager<k_chunk_size, 1ULL << 48>;
+    dice::copperr::kernel::object_size_manager<k_chunk_size, 1ULL << 48>;
 constexpr std::size_t k_min_object_size = object_size_mngr::at(0);
 
 const std::string &dir_path() {
@@ -32,13 +32,13 @@ TEST(ManagerTest, CreateAndOpenModes) {
   {
     manager_type::remove(dir_path());
     {
-      manager_type manager(dice::metall::create_only, dir_path(),
+      manager_type manager(dice::copperr::create_only, dir_path(),
                            1UL << 30UL);
       ASSERT_NE(manager.construct<int>("int")(10), nullptr);
       ASSERT_TRUE(manager.destroy<int>("int"));
     }
     {
-      manager_type manager(dice::metall::create_only, dir_path(),
+      manager_type manager(dice::copperr::create_only, dir_path(),
                            1UL << 30UL);
       auto ret = manager.find<int>("int");
       ASSERT_EQ(ret.first, nullptr);
@@ -49,12 +49,12 @@ TEST(ManagerTest, CreateAndOpenModes) {
   {
     manager_type::remove(dir_path());
     {
-      manager_type manager(dice::metall::create_only, dir_path(),
+      manager_type manager(dice::copperr::create_only, dir_path(),
                            1UL << 30UL);
       ASSERT_NE(manager.construct<int>("int")(10), nullptr);
     }
     {
-      manager_type manager(dice::metall::open_only, dir_path());
+      manager_type manager(dice::copperr::open_only, dir_path());
       auto ret = manager.find<int>("int");
       ASSERT_NE(ret.first, nullptr);
       ASSERT_EQ(*(static_cast<int *>(ret.first)), 10);
@@ -65,18 +65,18 @@ TEST(ManagerTest, CreateAndOpenModes) {
   {
     manager_type::remove(dir_path());
     {
-      manager_type manager(dice::metall::create_only, dir_path(),
+      manager_type manager(dice::copperr::create_only, dir_path(),
                            1UL << 30UL);
       ASSERT_NE(manager.construct<int>("int")(10), nullptr);
     }
     {
-      manager_type manager(dice::metall::open_read_only, dir_path());
+      manager_type manager(dice::copperr::open_read_only, dir_path());
       auto ret = manager.find<int>("int");
       ASSERT_NE(ret.first, nullptr);
       ASSERT_EQ(*(static_cast<int *>(ret.first)), 10);
     }
     {
-      manager_type manager(dice::metall::open_only, dir_path());
+      manager_type manager(dice::copperr::open_only, dir_path());
       auto ret = manager.find<int>("int");
       ASSERT_NE(ret.first, nullptr);
       ASSERT_EQ(*(static_cast<int *>(ret.first)), 10);
@@ -91,13 +91,13 @@ TEST(ManagerTest, ConstructArray) {
     manager_type::remove(dir_path() + "-snap");
 
     {
-      manager_type manager(dice::metall::create_only, dir_path(),
+      manager_type manager(dice::copperr::create_only, dir_path(),
                            1UL << 30UL);
       ASSERT_NE(manager.construct<char>("arr")[8]('a'), nullptr);
     }
 
     {
-      manager_type manager(dice::metall::open_read_only, dir_path());
+      manager_type manager(dice::copperr::open_read_only, dir_path());
       auto ret = manager.find<char>("arr");
       ASSERT_NE(ret.first, nullptr);
       ASSERT_EQ(ret.second, 8);
@@ -109,7 +109,7 @@ TEST(ManagerTest, ConstructArray) {
     }
 
     {
-      manager_type manager(dice::metall::open_only, dir_path() + "-snap");
+      manager_type manager(dice::copperr::open_only, dir_path() + "-snap");
       auto [ptr, _] = manager.find<char>("arr");
       ASSERT_EQ(ptr[0], 'a');
 
@@ -117,7 +117,7 @@ TEST(ManagerTest, ConstructArray) {
     }
 
     {
-      manager_type manager(dice::metall::open_only, dir_path());
+      manager_type manager(dice::copperr::open_only, dir_path());
       ASSERT_TRUE(manager.destroy<char>("arr"));
     }
   }
@@ -127,19 +127,19 @@ TEST(ManagerTest, findOrConstruct) {
   {
     {
       manager_type::remove(dir_path());
-      manager_type manager(dice::metall::create_only, dir_path(),
+      manager_type manager(dice::copperr::create_only, dir_path(),
                            1UL << 30UL);
       ASSERT_NE(manager.find_or_construct<int>("int")(10), nullptr);
     }
 
     {
-      manager_type manager(dice::metall::open_read_only, dir_path());
+      manager_type manager(dice::copperr::open_read_only, dir_path());
       int *a = manager.find_or_construct<int>("int")(20);
       ASSERT_EQ(*a, 10);
     }
 
     {
-      manager_type manager(dice::metall::open_only, dir_path());
+      manager_type manager(dice::copperr::open_only, dir_path());
       ASSERT_TRUE(manager.destroy<int>("int"));
     }
   }
@@ -149,20 +149,20 @@ TEST(ManagerTest, findOrConstructArray) {
   {
     {
       manager_type::remove(dir_path());
-      manager_type manager(dice::metall::create_only, dir_path(),
+      manager_type manager(dice::copperr::create_only, dir_path(),
                            1UL << 30UL);
       ASSERT_NE(manager.find_or_construct<int>("int")[2](10), nullptr);
     }
 
     {
-      manager_type manager(dice::metall::open_read_only, dir_path());
+      manager_type manager(dice::copperr::open_read_only, dir_path());
       int *a = manager.find_or_construct<int>("int")[2](20);
       ASSERT_EQ(a[0], 10);
       ASSERT_EQ(a[1], 10);
     }
 
     {
-      manager_type manager(dice::metall::open_only, dir_path());
+      manager_type manager(dice::copperr::open_only, dir_path());
       ASSERT_TRUE(manager.destroy<int>("int"));
     }
   }
@@ -170,10 +170,10 @@ TEST(ManagerTest, findOrConstructArray) {
 
 TEST(ManagerTest, ConstructContainers) {
   {
-    using vec_t = std::vector<int, dice::metall::manager::allocator_type<int>>;
+    using vec_t = std::vector<int, dice::copperr::manager::allocator_type<int>>;
     {
       manager_type::remove(dir_path());
-      manager_type manager(dice::metall::create_only, dir_path(),
+      manager_type manager(dice::copperr::create_only, dir_path(),
                            1UL << 30UL);
       ASSERT_NE(manager.construct<vec_t>("vecs")[2](
                     2, 10, manager.get_allocator<int>()),
@@ -181,7 +181,7 @@ TEST(ManagerTest, ConstructContainers) {
     }
 
     {
-      manager_type manager(dice::metall::open_read_only, dir_path());
+      manager_type manager(dice::copperr::open_read_only, dir_path());
       auto ret = manager.find<vec_t>("vecs");
       ASSERT_NE(ret.first, nullptr);
       ASSERT_EQ(ret.second, 2);
@@ -195,7 +195,7 @@ TEST(ManagerTest, ConstructContainers) {
     }
 
     {
-      manager_type manager(dice::metall::open_only, dir_path());
+      manager_type manager(dice::copperr::open_only, dir_path());
       ASSERT_TRUE(manager.destroy<vec_t>("vecs"));
       ASSERT_TRUE(manager.all_memory_deallocated());
     }
@@ -206,14 +206,14 @@ TEST(ManagerTest, ConstructWithIterator) {
   {
     {
       manager_type::remove(dir_path());
-      manager_type manager(dice::metall::create_only, dir_path(),
+      manager_type manager(dice::copperr::create_only, dir_path(),
                            1UL << 30UL);
       int values[2] = {10, 20};
       ASSERT_NE(manager.construct_it<int>("int")[2](&values[0]), nullptr);
     }
 
     {
-      manager_type manager(dice::metall::open_read_only, dir_path());
+      manager_type manager(dice::copperr::open_read_only, dir_path());
       auto ret = manager.find<int>("int");
       ASSERT_NE(ret.first, nullptr);
       ASSERT_EQ(ret.second, 2);
@@ -223,7 +223,7 @@ TEST(ManagerTest, ConstructWithIterator) {
     }
 
     {
-      manager_type manager(dice::metall::open_only, dir_path());
+      manager_type manager(dice::copperr::open_only, dir_path());
       ASSERT_TRUE(manager.destroy<int>("int"));
     }
   }
@@ -239,7 +239,7 @@ TEST(ManagerTest, ConstructObjectsWithIterator) {
   {
     {
       manager_type::remove(dir_path());
-      manager_type manager(dice::metall::create_only, dir_path(),
+      manager_type manager(dice::copperr::create_only, dir_path(),
                            1UL << 30UL);
       int values1[2] = {10, 20};
       float values2[2] = {0.1, 0.2};
@@ -248,7 +248,7 @@ TEST(ManagerTest, ConstructObjectsWithIterator) {
     }
 
     {
-      manager_type manager(dice::metall::open_read_only, dir_path());
+      manager_type manager(dice::copperr::open_read_only, dir_path());
       auto ret = manager.find<data>("data");
       ASSERT_NE(ret.first, nullptr);
       ASSERT_EQ(ret.second, 2);
@@ -260,7 +260,7 @@ TEST(ManagerTest, ConstructObjectsWithIterator) {
     }
 
     {
-      manager_type manager(dice::metall::open_only, dir_path());
+      manager_type manager(dice::copperr::open_only, dir_path());
       ASSERT_TRUE(manager.destroy<data>("data"));
     }
   }
@@ -270,7 +270,7 @@ TEST(ManagerTest, FindOrConstructWithIterator) {
   {
     {
       manager_type::remove(dir_path());
-      manager_type manager(dice::metall::create_only, dir_path(),
+      manager_type manager(dice::copperr::create_only, dir_path(),
                            1UL << 30UL);
       int values[2] = {10, 20};
       ASSERT_NE(manager.find_or_construct_it<int>("int")[2](&values[0]),
@@ -278,7 +278,7 @@ TEST(ManagerTest, FindOrConstructWithIterator) {
     }
 
     {
-      manager_type manager(dice::metall::open_read_only, dir_path());
+      manager_type manager(dice::copperr::open_read_only, dir_path());
       int values[2] = {30, 40};
       int *a = manager.find_or_construct_it<int>("int")[2](&values[0]);
       ASSERT_NE(a, nullptr);
@@ -287,7 +287,7 @@ TEST(ManagerTest, FindOrConstructWithIterator) {
     }
 
     {
-      manager_type manager(dice::metall::open_only, dir_path());
+      manager_type manager(dice::copperr::open_only, dir_path());
       ASSERT_TRUE(manager.destroy<int>("int"));
     }
   }
@@ -296,21 +296,21 @@ TEST(ManagerTest, FindOrConstructWithIterator) {
 TEST(ManagerTest, Destroy) {
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     ASSERT_FALSE(manager.destroy<int>("named_obj"));
-    ASSERT_FALSE(manager.destroy<int>(dice::metall::unique_instance));
+    ASSERT_FALSE(manager.destroy<int>(dice::copperr::unique_instance));
     ASSERT_FALSE(manager.destroy<int>("array_obj"));
 
     manager.construct<int>("named_obj")();
-    manager.construct<int>(dice::metall::unique_instance)();
+    manager.construct<int>(dice::copperr::unique_instance)();
     manager.construct<int>("array_obj")[2](10);
 
     ASSERT_TRUE(manager.destroy<int>("named_obj"));
     ASSERT_FALSE(manager.destroy<int>("named_obj"));
 
-    ASSERT_TRUE(manager.destroy<int>(dice::metall::unique_instance));
-    ASSERT_FALSE(manager.destroy<int>(dice::metall::unique_instance));
+    ASSERT_TRUE(manager.destroy<int>(dice::copperr::unique_instance));
+    ASSERT_FALSE(manager.destroy<int>(dice::copperr::unique_instance));
 
     ASSERT_TRUE(manager.destroy<int>("array_obj"));
     ASSERT_FALSE(manager.destroy<int>("array_obj"));
@@ -320,19 +320,19 @@ TEST(ManagerTest, Destroy) {
 
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     manager.construct<int>("named_obj")();
-    manager.construct<int>(dice::metall::unique_instance)();
+    manager.construct<int>(dice::copperr::unique_instance)();
     manager.construct<int>("array_obj")[2](10);
   }
 
   // Destroy after restoring
   {
-    manager_type manager(dice::metall::open_only, dir_path());
+    manager_type manager(dice::copperr::open_only, dir_path());
 
     ASSERT_TRUE(manager.destroy<int>("named_obj"));
-    ASSERT_TRUE(manager.destroy<int>(dice::metall::unique_instance));
+    ASSERT_TRUE(manager.destroy<int>(dice::copperr::unique_instance));
     ASSERT_TRUE(manager.destroy<int>("array_obj"));
 
     ASSERT_TRUE(manager.all_memory_deallocated());
@@ -342,11 +342,11 @@ TEST(ManagerTest, Destroy) {
 TEST(ManagerTest, DestroyPtr) {
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     int *named_obj = manager.construct<int>("named_obj")();
-    int *unique_obj = manager.construct<int>(dice::metall::unique_instance)();
-    int *anonymous_obj = manager.construct<int>(dice::metall::anonymous_instance)();
+    int *unique_obj = manager.construct<int>(dice::copperr::unique_instance)();
+    int *anonymous_obj = manager.construct<int>(dice::copperr::anonymous_instance)();
     int *array_obj = manager.construct<int>("array_obj")[2](10);
 
     ASSERT_TRUE(manager.destroy_ptr(named_obj));
@@ -364,26 +364,26 @@ TEST(ManagerTest, DestroyPtr) {
 
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     manager.construct<int>("named_obj")();
-    manager.construct<int>(dice::metall::unique_instance)();
+    manager.construct<int>(dice::copperr::unique_instance)();
     manager.construct<int>("array_obj")[2](10);
-    int *anonymous_obj = manager.construct<int>(dice::metall::anonymous_instance)();
-    manager.construct<dice::metall::offset_ptr<int>>("metall::offset_ptr<int>")(
+    int *anonymous_obj = manager.construct<int>(dice::copperr::anonymous_instance)();
+    manager.construct<dice::copperr::offset_ptr<int>>("copperr::offset_ptr<int>")(
         anonymous_obj);
   }
 
   // Destroy after restoring
   {
-    manager_type manager(dice::metall::open_only, dir_path());
+    manager_type manager(dice::copperr::open_only, dir_path());
 
     ASSERT_TRUE(manager.destroy_ptr(manager.find<int>("named_obj").first));
     ASSERT_TRUE(
-        manager.destroy_ptr(manager.find<int>(dice::metall::unique_instance).first));
+        manager.destroy_ptr(manager.find<int>(dice::copperr::unique_instance).first));
     ASSERT_TRUE(manager.destroy_ptr(manager.find<int>("array_obj").first));
-    dice::metall::offset_ptr<int> *ptr =
-        manager.find<dice::metall::offset_ptr<int>>("metall::offset_ptr<int>").first;
+    dice::copperr::offset_ptr<int> *ptr =
+        manager.find<dice::copperr::offset_ptr<int>>("copperr::offset_ptr<int>").first;
     ASSERT_TRUE(manager.destroy_ptr(ptr->get()));  // destroy anonymous object
     ASSERT_TRUE(manager.destroy_ptr(ptr));
   }
@@ -398,7 +398,7 @@ TEST(ManagerTest, DestroyDestruct) {
   // -- Check if destructors are called in destroy() -- //
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     int count = 3;
     auto *data_obj = manager.construct<data>("named_obj")();
@@ -419,33 +419,33 @@ TEST(ManagerTest, DestroyDestruct) {
 TEST(ManagerTest, GetInstanceName) {
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     ASSERT_STREQ(
         manager.get_instance_name(manager.construct<int>("named_obj")()),
         "named_obj");
     ASSERT_STREQ(manager.get_instance_name(
-                     manager.construct<int>(dice::metall::unique_instance)()),
+                     manager.construct<int>(dice::copperr::unique_instance)()),
                  typeid(int).name());
     ASSERT_STREQ(manager.get_instance_name(
-                     manager.construct<int>(dice::metall::anonymous_instance)()),
+                     manager.construct<int>(dice::copperr::anonymous_instance)()),
                  nullptr);
 
-    manager.construct<dice::metall::offset_ptr<int>>("ptr<int>")(
-        manager.construct<int>(dice::metall::anonymous_instance)());
+    manager.construct<dice::copperr::offset_ptr<int>>("ptr<int>")(
+        manager.construct<int>(dice::copperr::anonymous_instance)());
   }
 
   {
-    manager_type manager(dice::metall::open_read_only, dir_path());
+    manager_type manager(dice::copperr::open_read_only, dir_path());
     ASSERT_STREQ(
         manager.get_instance_name(manager.find<int>("named_obj").first),
         "named_obj");
     ASSERT_STREQ(manager.get_instance_name(
-                     manager.find<int>(dice::metall::unique_instance).first),
+                     manager.find<int>(dice::copperr::unique_instance).first),
                  typeid(int).name());
 
-    dice::metall::offset_ptr<int> *ptr =
-        manager.find<dice::metall::offset_ptr<int>>("ptr<int>").first;
+    dice::copperr::offset_ptr<int> *ptr =
+        manager.find<dice::copperr::offset_ptr<int>>("ptr<int>").first;
     int *anonymous_obj = ptr->get();
     ASSERT_STREQ(manager.get_instance_name(anonymous_obj), nullptr);
   }
@@ -467,7 +467,7 @@ TEST(ManagerTest, ConstructException) {
 
   manager_type::remove(dir_path());
   {
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
     bool do_throw[2] = {false, true};
     bool wrong_destroy = false;
     bool *flags[2] = {&wrong_destroy, &wrong_destroy};
@@ -491,9 +491,9 @@ TEST(ManagerTest, DestructException) {
 
   manager_type::remove(dir_path());
   {
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
-    manager.construct<object>(dice::metall::unique_instance)();
-    ASSERT_THROW(manager.destroy<object>(dice::metall::unique_instance),
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
+    manager.construct<object>(dice::copperr::unique_instance)();
+    ASSERT_THROW(manager.destroy<object>(dice::copperr::unique_instance),
                  std::exception);
   }
 }
@@ -501,53 +501,53 @@ TEST(ManagerTest, DestructException) {
 TEST(ManagerTest, GetInstanceType) {
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     ASSERT_EQ(manager.get_instance_kind(manager.construct<int>("named_obj")()),
-              dice::metall::manager::instance_kind::named_kind);
+              dice::copperr::manager::instance_kind::named_kind);
     ASSERT_EQ(manager.get_instance_kind(
-                  manager.construct<int>(dice::metall::unique_instance)()),
-              dice::metall::manager::instance_kind::unique_kind);
+                  manager.construct<int>(dice::copperr::unique_instance)()),
+              dice::copperr::manager::instance_kind::unique_kind);
     ASSERT_EQ(manager.get_instance_kind(
-                  manager.construct<int>(dice::metall::anonymous_instance)()),
-              dice::metall::manager::instance_kind::anonymous_kind);
+                  manager.construct<int>(dice::copperr::anonymous_instance)()),
+              dice::copperr::manager::instance_kind::anonymous_kind);
 
-    manager.construct<dice::metall::offset_ptr<int>>("ptr<int>")(
-        manager.construct<int>(dice::metall::anonymous_instance)());
+    manager.construct<dice::copperr::offset_ptr<int>>("ptr<int>")(
+        manager.construct<int>(dice::copperr::anonymous_instance)());
   }
 
   {
-    manager_type manager(dice::metall::open_read_only, dir_path());
+    manager_type manager(dice::copperr::open_read_only, dir_path());
 
     ASSERT_EQ(manager.get_instance_kind(manager.find<int>("named_obj").first),
-              dice::metall::manager::instance_kind::named_kind);
+              dice::copperr::manager::instance_kind::named_kind);
     ASSERT_EQ(manager.get_instance_kind(
-                  manager.find<int>(dice::metall::unique_instance).first),
-              dice::metall::manager::instance_kind::unique_kind);
+                  manager.find<int>(dice::copperr::unique_instance).first),
+              dice::copperr::manager::instance_kind::unique_kind);
 
-    dice::metall::offset_ptr<int> *ptr =
-        manager.find<dice::metall::offset_ptr<int>>("ptr<int>").first;
+    dice::copperr::offset_ptr<int> *ptr =
+        manager.find<dice::copperr::offset_ptr<int>>("ptr<int>").first;
     int *anonymous_obj = ptr->get();
     ASSERT_EQ(manager.get_instance_kind(anonymous_obj),
-              dice::metall::manager::instance_kind::anonymous_kind);
+              dice::copperr::manager::instance_kind::anonymous_kind);
   }
 }
 
 TEST(ManagerTest, GetInstanceLength) {
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     ASSERT_EQ(
         manager.get_instance_length(manager.construct<int>("named_obj")()), 1);
     ASSERT_EQ(manager.get_instance_length(
-                  manager.construct<int>(dice::metall::unique_instance)()),
+                  manager.construct<int>(dice::copperr::unique_instance)()),
               1);
     ASSERT_EQ(manager.get_instance_length(
-                  manager.construct<int>(dice::metall::anonymous_instance)()),
+                  manager.construct<int>(dice::copperr::anonymous_instance)()),
               1);
-    manager.construct<dice::metall::offset_ptr<int>>("ptr<int>")(
-        manager.construct<int>(dice::metall::anonymous_instance)());
+    manager.construct<dice::copperr::offset_ptr<int>>("ptr<int>")(
+        manager.construct<int>(dice::copperr::anonymous_instance)());
 
     // Change data type to avoid duplicate unique instances and anonymous
     // instances
@@ -555,26 +555,26 @@ TEST(ManagerTest, GetInstanceLength) {
         manager.get_instance_length(manager.construct<float>("array_obj")[2]()),
         2);
     ASSERT_EQ(manager.get_instance_length(
-                  manager.construct<float>(dice::metall::unique_instance)[2]()),
+                  manager.construct<float>(dice::copperr::unique_instance)[2]()),
               2);
     ASSERT_EQ(manager.get_instance_length(
-                  manager.construct<float>(dice::metall::anonymous_instance)[2]()),
+                  manager.construct<float>(dice::copperr::anonymous_instance)[2]()),
               2);
-    manager.construct<dice::metall::offset_ptr<float>>("ptr<float>")(
-        manager.construct<float>(dice::metall::anonymous_instance)[2]());
+    manager.construct<dice::copperr::offset_ptr<float>>("ptr<float>")(
+        manager.construct<float>(dice::copperr::anonymous_instance)[2]());
   }
 
   {
-    manager_type manager(dice::metall::open_read_only, dir_path());
+    manager_type manager(dice::copperr::open_read_only, dir_path());
 
     {
       ASSERT_EQ(
           manager.get_instance_length(manager.find<int>("named_obj").first), 1);
       ASSERT_EQ(manager.get_instance_length(
-                    manager.find<int>(dice::metall::unique_instance).first),
+                    manager.find<int>(dice::copperr::unique_instance).first),
                 1);
-      dice::metall::offset_ptr<int> *ptr =
-          manager.find<dice::metall::offset_ptr<int>>("ptr<int>").first;
+      dice::copperr::offset_ptr<int> *ptr =
+          manager.find<dice::copperr::offset_ptr<int>>("ptr<int>").first;
       int *anonymous_obj = ptr->get();
       ASSERT_EQ(manager.get_instance_length(anonymous_obj), 1);
     }
@@ -584,10 +584,10 @@ TEST(ManagerTest, GetInstanceLength) {
           manager.get_instance_length(manager.find<float>("array_obj").first),
           2);
       ASSERT_EQ(manager.get_instance_length(
-                    manager.find<float>(dice::metall::unique_instance).first),
+                    manager.find<float>(dice::copperr::unique_instance).first),
                 2);
-      dice::metall::offset_ptr<float> *ptr =
-          manager.find<dice::metall::offset_ptr<float>>("ptr<float>").first;
+      dice::copperr::offset_ptr<float> *ptr =
+          manager.find<dice::copperr::offset_ptr<float>>("ptr<float>").first;
       float *anonymous_obj = ptr->get();
       ASSERT_EQ(manager.get_instance_length(anonymous_obj), 2);
     }
@@ -597,37 +597,37 @@ TEST(ManagerTest, GetInstanceLength) {
 TEST(ManagerTest, IsInstanceType) {
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     ASSERT_TRUE(
         manager.is_instance_type<int>(manager.construct<int>("named_obj")()));
     ASSERT_FALSE(
         manager.is_instance_type<float>(manager.construct<int>("named_obj")()));
     ASSERT_TRUE(manager.is_instance_type<int>(
-        manager.construct<int>(dice::metall::unique_instance)()));
+        manager.construct<int>(dice::copperr::unique_instance)()));
     ASSERT_FALSE(manager.is_instance_type<float>(
-        manager.construct<int>(dice::metall::unique_instance)()));
+        manager.construct<int>(dice::copperr::unique_instance)()));
     ASSERT_TRUE(manager.is_instance_type<int>(
-        manager.construct<int>(dice::metall::anonymous_instance)()));
+        manager.construct<int>(dice::copperr::anonymous_instance)()));
     ASSERT_FALSE(manager.is_instance_type<float>(
-        manager.construct<int>(dice::metall::anonymous_instance)()));
-    manager.construct<dice::metall::offset_ptr<int>>("ptr<int>")(
-        manager.construct<int>(dice::metall::anonymous_instance)());
+        manager.construct<int>(dice::copperr::anonymous_instance)()));
+    manager.construct<dice::copperr::offset_ptr<int>>("ptr<int>")(
+        manager.construct<int>(dice::copperr::anonymous_instance)());
   }
 
   {
-    manager_type manager(dice::metall::open_read_only, dir_path());
+    manager_type manager(dice::copperr::open_read_only, dir_path());
 
     ASSERT_TRUE(
         manager.is_instance_type<int>(manager.find<int>("named_obj").first));
     ASSERT_FALSE(
         manager.is_instance_type<char>(manager.find<char>("named_obj").first));
     ASSERT_TRUE(manager.is_instance_type<int>(
-        manager.find<int>(dice::metall::unique_instance).first));
+        manager.find<int>(dice::copperr::unique_instance).first));
     ASSERT_FALSE(manager.is_instance_type<char>(
-        manager.find<char>(dice::metall::unique_instance).first));
-    dice::metall::offset_ptr<int> *ptr =
-        manager.find<dice::metall::offset_ptr<int>>("ptr<int>").first;
+        manager.find<char>(dice::copperr::unique_instance).first));
+    dice::copperr::offset_ptr<int> *ptr =
+        manager.find<dice::copperr::offset_ptr<int>>("ptr<int>").first;
     int *anonymous_obj = ptr->get();
     ASSERT_TRUE(manager.is_instance_type<int>(anonymous_obj));
     ASSERT_FALSE(manager.is_instance_type<char>(anonymous_obj));
@@ -637,16 +637,16 @@ TEST(ManagerTest, IsInstanceType) {
 TEST(ManagerTest, InstanceDescription) {
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     auto *named_obj = manager.construct<int>("named_obj")();
     std::string desc_name = "desc name";
     ASSERT_TRUE(manager.set_instance_description(named_obj, desc_name));
 
-    auto *unique_obj = manager.construct<int>(dice::metall::unique_instance)();
+    auto *unique_obj = manager.construct<int>(dice::copperr::unique_instance)();
     ASSERT_TRUE(manager.set_instance_description(unique_obj, "desc unique"));
 
-    auto *anonymous_obj = manager.construct<int>(dice::metall::anonymous_instance)();
+    auto *anonymous_obj = manager.construct<int>(dice::copperr::anonymous_instance)();
     ASSERT_TRUE(
         manager.set_instance_description(anonymous_obj, "desc anonymous"));
 
@@ -659,11 +659,11 @@ TEST(ManagerTest, InstanceDescription) {
 
     ASSERT_TRUE(manager.get_instance_description(anonymous_obj, &buf));
     ASSERT_EQ(buf, "desc anonymous");
-    manager.construct<dice::metall::offset_ptr<int>>("ptr<int>")(anonymous_obj);
+    manager.construct<dice::copperr::offset_ptr<int>>("ptr<int>")(anonymous_obj);
   }
 
   {
-    manager_type manager(dice::metall::open_only, dir_path());
+    manager_type manager(dice::copperr::open_only, dir_path());
 
     std::string buf;
 
@@ -672,24 +672,24 @@ TEST(ManagerTest, InstanceDescription) {
     ASSERT_EQ(buf, "desc name");
 
     ASSERT_TRUE(manager.get_instance_description(
-        manager.find<int>(dice::metall::unique_instance).first, &buf));
+        manager.find<int>(dice::copperr::unique_instance).first, &buf));
     ASSERT_EQ(buf, "desc unique");
 
     ASSERT_TRUE(manager.get_instance_description(
-        manager.find<dice::metall::offset_ptr<int>>("ptr<int>").first->get(), &buf));
+        manager.find<dice::copperr::offset_ptr<int>>("ptr<int>").first->get(), &buf));
     ASSERT_EQ(buf, "desc anonymous");
 
     ASSERT_TRUE(manager.set_instance_description(
         manager.find<int>("named_obj").first, "desc name 2"));
     ASSERT_TRUE(manager.set_instance_description(
-        manager.find<int>(dice::metall::unique_instance).first, "desc unique 2"));
+        manager.find<int>(dice::copperr::unique_instance).first, "desc unique 2"));
     ASSERT_TRUE(manager.set_instance_description(
-        manager.find<dice::metall::offset_ptr<int>>("ptr<int>").first->get(),
+        manager.find<dice::copperr::offset_ptr<int>>("ptr<int>").first->get(),
         "desc anonymous 2"));
   }
 
   {
-    manager_type manager(dice::metall::open_read_only, dir_path());
+    manager_type manager(dice::copperr::open_read_only, dir_path());
 
     std::string buf;
 
@@ -698,20 +698,20 @@ TEST(ManagerTest, InstanceDescription) {
     ASSERT_EQ(buf, "desc name 2");
 
     ASSERT_TRUE(manager.get_instance_description(
-        manager.find<int>(dice::metall::unique_instance).first, &buf));
+        manager.find<int>(dice::copperr::unique_instance).first, &buf));
     ASSERT_EQ(buf, "desc unique 2");
 
     ASSERT_TRUE(manager.get_instance_description(
-        manager.find<dice::metall::offset_ptr<int>>("ptr<int>").first->get(), &buf));
+        manager.find<dice::copperr::offset_ptr<int>>("ptr<int>").first->get(), &buf));
     ASSERT_EQ(buf, "desc anonymous 2");
 
     // Cannot change with the read only mode
     ASSERT_FALSE(manager.set_instance_description(
         manager.find<int>("named_obj").first, "desc name 3"));
     ASSERT_FALSE(manager.set_instance_description(
-        manager.find<int>(dice::metall::unique_instance).first, "desc unique 3"));
+        manager.find<int>(dice::copperr::unique_instance).first, "desc unique 3"));
     ASSERT_FALSE(manager.set_instance_description(
-        manager.find<dice::metall::offset_ptr<int>>("ptr<int>").first->get(),
+        manager.find<dice::copperr::offset_ptr<int>>("ptr<int>").first->get(),
         "desc anonymous 3"));
   }
 }
@@ -719,7 +719,7 @@ TEST(ManagerTest, InstanceDescription) {
 TEST(ManagerTest, CountObjects) {
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     ASSERT_EQ(manager.get_num_named_objects(), 0);
     manager.construct<int>("named_obj1")();
@@ -728,15 +728,15 @@ TEST(ManagerTest, CountObjects) {
     ASSERT_EQ(manager.get_num_named_objects(), 2);
 
     ASSERT_EQ(manager.get_num_unique_objects(), 0);
-    manager.construct<int>(dice::metall::unique_instance)();
+    manager.construct<int>(dice::copperr::unique_instance)();
     ASSERT_EQ(manager.get_num_unique_objects(), 1);
-    manager.construct<float>(dice::metall::unique_instance)();
+    manager.construct<float>(dice::copperr::unique_instance)();
     ASSERT_EQ(manager.get_num_unique_objects(), 2);
 
     ASSERT_EQ(manager.get_num_anonymous_objects(), 0);
-    auto *anony_obj1 = manager.construct<int>(dice::metall::anonymous_instance)();
+    auto *anony_obj1 = manager.construct<int>(dice::copperr::anonymous_instance)();
     ASSERT_EQ(manager.get_num_anonymous_objects(), 1);
-    auto *anony_obj2 = manager.construct<float>(dice::metall::anonymous_instance)();
+    auto *anony_obj2 = manager.construct<float>(dice::copperr::anonymous_instance)();
     ASSERT_EQ(manager.get_num_anonymous_objects(), 2);
 
     ASSERT_TRUE(manager.destroy<int>("named_obj1"));
@@ -744,9 +744,9 @@ TEST(ManagerTest, CountObjects) {
     ASSERT_TRUE(manager.destroy<float>("named_obj2"));
     ASSERT_EQ(manager.get_num_named_objects(), 0);
 
-    ASSERT_TRUE(manager.destroy<int>(dice::metall::unique_instance));
+    ASSERT_TRUE(manager.destroy<int>(dice::copperr::unique_instance));
     ASSERT_EQ(manager.get_num_unique_objects(), 1);
-    ASSERT_TRUE(manager.destroy<float>(dice::metall::unique_instance));
+    ASSERT_TRUE(manager.destroy<float>(dice::copperr::unique_instance));
     ASSERT_EQ(manager.get_num_unique_objects(), 0);
 
     ASSERT_TRUE(manager.destroy_ptr(anony_obj1));
@@ -759,22 +759,22 @@ TEST(ManagerTest, CountObjects) {
   ptrdiff_t anony_offset2 = 0;
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     manager.construct<int>("named_obj1")();
-    manager.construct<int>(dice::metall::unique_instance)();
+    manager.construct<int>(dice::copperr::unique_instance)();
     anony_offset1 = reinterpret_cast<char *>(
-                        manager.construct<int>(dice::metall::anonymous_instance)()) -
+                        manager.construct<int>(dice::copperr::anonymous_instance)()) -
                     reinterpret_cast<const char *>(manager.get_address());
     manager.construct<float>("named_obj2")();
-    manager.construct<float>(dice::metall::unique_instance)();
+    manager.construct<float>(dice::copperr::unique_instance)();
     anony_offset2 = reinterpret_cast<char *>(manager.construct<float>(
-                        dice::metall::anonymous_instance)()) -
+                        dice::copperr::anonymous_instance)()) -
                     reinterpret_cast<const char *>(manager.get_address());
   }
 
   {
-    manager_type manager(dice::metall::open_only, dir_path());
+    manager_type manager(dice::copperr::open_only, dir_path());
 
     ASSERT_EQ(manager.get_num_named_objects(), 2);
     ASSERT_TRUE(manager.destroy<int>("named_obj1"));
@@ -783,9 +783,9 @@ TEST(ManagerTest, CountObjects) {
     ASSERT_EQ(manager.get_num_named_objects(), 0);
 
     ASSERT_EQ(manager.get_num_unique_objects(), 2);
-    ASSERT_TRUE(manager.destroy<int>(dice::metall::unique_instance));
+    ASSERT_TRUE(manager.destroy<int>(dice::copperr::unique_instance));
     ASSERT_EQ(manager.get_num_unique_objects(), 1);
-    ASSERT_TRUE(manager.destroy<float>(dice::metall::unique_instance));
+    ASSERT_TRUE(manager.destroy<float>(dice::copperr::unique_instance));
     ASSERT_EQ(manager.get_num_unique_objects(), 0);
 
     ASSERT_EQ(manager.get_num_anonymous_objects(), 2);
@@ -801,7 +801,7 @@ TEST(ManagerTest, CountObjects) {
 TEST(ManagerTest, NamedObjectIterator) {
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     // Everyone is at the end
     ASSERT_EQ(manager.named_begin(), manager.named_end());
@@ -845,7 +845,7 @@ TEST(ManagerTest, NamedObjectIterator) {
 TEST(ManagerTest, UniqueObjectIterator) {
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     // Everyone is at the end
     ASSERT_EQ(manager.named_begin(), manager.named_end());
@@ -853,10 +853,10 @@ TEST(ManagerTest, UniqueObjectIterator) {
     ASSERT_EQ(manager.anonymous_begin(), manager.anonymous_end());
 
     // Begin points the first object
-    manager.construct<int>(dice::metall::unique_instance)();
+    manager.construct<int>(dice::copperr::unique_instance)();
     ASSERT_STREQ(manager.unique_begin()->name().c_str(), typeid(int).name());
 
-    manager.construct<float>(dice::metall::unique_instance)();
+    manager.construct<float>(dice::copperr::unique_instance)();
 
     // The other directories are still at the end
     ASSERT_EQ(manager.named_begin(), manager.named_end());
@@ -876,9 +876,9 @@ TEST(ManagerTest, UniqueObjectIterator) {
     ASSERT_TRUE(found2);
     ASSERT_EQ(count, 2);
 
-    ASSERT_TRUE(manager.destroy<int>(dice::metall::unique_instance));
+    ASSERT_TRUE(manager.destroy<int>(dice::copperr::unique_instance));
     ASSERT_STREQ(manager.unique_begin()->name().c_str(), typeid(float).name());
-    ASSERT_TRUE(manager.destroy<float>(dice::metall::unique_instance));
+    ASSERT_TRUE(manager.destroy<float>(dice::copperr::unique_instance));
 
     // Everyone is at the end
     ASSERT_EQ(manager.named_begin(), manager.named_end());
@@ -890,7 +890,7 @@ TEST(ManagerTest, UniqueObjectIterator) {
 TEST(ManagerTest, AnonymoustObjectIterator) {
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     // Everyone is at the end
     ASSERT_EQ(manager.named_begin(), manager.named_end());
@@ -899,12 +899,12 @@ TEST(ManagerTest, AnonymoustObjectIterator) {
 
     // Begin points the first object
     auto *obj1 = reinterpret_cast<char *>(
-        manager.construct<int>(dice::metall::anonymous_instance)());
+        manager.construct<int>(dice::copperr::anonymous_instance)());
     auto *segment = reinterpret_cast<const char *>(manager.get_address());
     ASSERT_EQ(manager.anonymous_begin()->offset(), obj1 - segment);
 
     auto *obj2 = reinterpret_cast<char *>(
-        manager.construct<float>(dice::metall::anonymous_instance)());
+        manager.construct<float>(dice::copperr::anonymous_instance)());
 
     // The other directories are still at the end
     ASSERT_EQ(manager.named_begin(), manager.named_end());
@@ -938,8 +938,8 @@ TEST(ManagerTest, AnonymoustObjectIterator) {
 TEST(ManagerTest, GetSegment) {
   manager_type::remove(dir_path());
   {
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
-    auto *obj = manager.construct<int>(dice::metall::unique_instance)();
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
+    auto *obj = manager.construct<int>(dice::copperr::unique_instance)();
     ASSERT_EQ(manager.unique_begin()->offset() +
                   static_cast<const char *>(manager.get_address()),
               reinterpret_cast<char *>(obj));
@@ -950,7 +950,7 @@ TEST(ManagerTest, Consistency) {
   manager_type::remove(dir_path());
 
   {
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     // Must be inconsistent before closing
     ASSERT_FALSE(manager_type::consistent(dir_path()));
@@ -961,7 +961,7 @@ TEST(ManagerTest, Consistency) {
 
   {  // To make sure the consistent mark is cleared even after creating a new
      // data store using an old dir path
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     ASSERT_FALSE(manager_type::consistent(dir_path()));
 
@@ -970,13 +970,13 @@ TEST(ManagerTest, Consistency) {
   ASSERT_TRUE(manager_type::consistent(dir_path()));
 
   {
-    manager_type manager(dice::metall::open_only, dir_path());
+    manager_type manager(dice::copperr::open_only, dir_path());
     ASSERT_FALSE(manager_type::consistent(dir_path()));
   }
   ASSERT_TRUE(manager_type::consistent(dir_path()));
 
   {
-    manager_type manager(dice::metall::open_read_only, dir_path());
+    manager_type manager(dice::copperr::open_read_only, dir_path());
     // Still consistent if it is opened with the read-only mode
     ASSERT_TRUE(manager_type::consistent(dir_path()));
   }
@@ -986,7 +986,7 @@ TEST(ManagerTest, Consistency) {
 TEST(ManagerTest, TinyAllocation) {
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     const std::size_t alloc_size = k_min_object_size / 2;
 
@@ -1008,7 +1008,7 @@ TEST(ManagerTest, TinyAllocation) {
 TEST(ManagerTest, SmallAllocation) {
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     const std::size_t alloc_size = k_min_object_size;
 
@@ -1030,7 +1030,7 @@ TEST(ManagerTest, SmallAllocation) {
 TEST(ManagerTest, AllSmallAllocation) {
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
     for (std::size_t s = 1; s < k_chunk_size; ++s)
       manager.deallocate(manager.allocate(s));
   }
@@ -1039,7 +1039,7 @@ TEST(ManagerTest, AllSmallAllocation) {
 TEST(ManagerTest, MaxSmallAllocation) {
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     // Max small allocation size
     const std::size_t alloc_size =
@@ -1070,7 +1070,7 @@ TEST(ManagerTest, MaxSmallAllocation) {
 TEST(ManagerTest, MixedSmallAllocation) {
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path());
+    manager_type manager(dice::copperr::create_only, dir_path());
 
     const std::size_t alloc_size1 = k_min_object_size * 2;
     const std::size_t alloc_size2 = k_min_object_size * 4;
@@ -1110,7 +1110,7 @@ TEST(ManagerTest, MixedSmallAllocation) {
 TEST(ManagerTest, LargeAllocation) {
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path());
+    manager_type manager(dice::copperr::create_only, dir_path());
 
     // Assume that the object cache is not used for large allocation
     char *base_addr = nullptr;
@@ -1145,7 +1145,7 @@ TEST(ManagerTest, LargeAllocation) {
 TEST(ManagerTest, AllMemoryDeallocated) {
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path(), 1UL << 30UL);
+    manager_type manager(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
     ASSERT_TRUE(manager.all_memory_deallocated());
 
@@ -1166,7 +1166,7 @@ TEST(ManagerTest, AllMemoryDeallocated) {
 TEST(ManagerTest, AlignedAllocation) {
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path());
+    manager_type manager(dice::copperr::create_only, dir_path());
 
     for (std::size_t alignment = k_min_object_size; alignment <= k_chunk_size;
          alignment *= 2) {
@@ -1221,7 +1221,7 @@ TEST(ManagerTest, AlignedAllocation) {
 
 TEST(ManagerTest, Flush) {
   manager_type::remove(dir_path());
-  manager_type manager(dice::metall::create_only, dir_path());
+  manager_type manager(dice::copperr::create_only, dir_path());
 
   manager.construct<int>("int")(10);
 
@@ -1234,13 +1234,13 @@ TEST(ManagerTest, AnonymousConstruct) {
   manager_type::remove(dir_path());
   manager_type *manager;
   manager =
-      new manager_type(dice::metall::create_only, dir_path(), 1UL << 30UL);
+      new manager_type(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
-  int *const a = manager->construct<int>(dice::metall::anonymous_instance)();
+  int *const a = manager->construct<int>(dice::copperr::anonymous_instance)();
   ASSERT_NE(a, nullptr);
 
   // They have to be fail (return false values)
-  const auto ret = manager->find<int>(dice::metall::anonymous_instance);
+  const auto ret = manager->find<int>(dice::copperr::anonymous_instance);
   ASSERT_EQ(ret.first, nullptr);
   ASSERT_EQ(ret.second, 0);
 
@@ -1253,23 +1253,23 @@ TEST(ManagerTest, UniqueConstruct) {
   manager_type::remove(dir_path());
   manager_type *manager;
   manager =
-      new manager_type(dice::metall::create_only, dir_path(), 1UL << 30UL);
+      new manager_type(dice::copperr::create_only, dir_path(), 1UL << 30UL);
 
-  int *const a = manager->construct<int>(dice::metall::unique_instance)();
+  int *const a = manager->construct<int>(dice::copperr::unique_instance)();
   ASSERT_NE(a, nullptr);
 
   double *const b =
-      manager->find_or_construct<double>(dice::metall::unique_instance)();
+      manager->find_or_construct<double>(dice::copperr::unique_instance)();
   ASSERT_NE(b, nullptr);
 
-  ASSERT_EQ(manager->find<int>(dice::metall::unique_instance).first, a);
-  ASSERT_EQ(manager->find<int>(dice::metall::unique_instance).second, 1);
+  ASSERT_EQ(manager->find<int>(dice::copperr::unique_instance).first, a);
+  ASSERT_EQ(manager->find<int>(dice::copperr::unique_instance).second, 1);
 
-  ASSERT_EQ(manager->find<double>(dice::metall::unique_instance).first, b);
-  ASSERT_EQ(manager->find<double>(dice::metall::unique_instance).second, 1);
+  ASSERT_EQ(manager->find<double>(dice::copperr::unique_instance).first, b);
+  ASSERT_EQ(manager->find<double>(dice::copperr::unique_instance).second, 1);
 
-  ASSERT_EQ(manager->destroy<int>(dice::metall::unique_instance), true);
-  ASSERT_EQ(manager->destroy<double>(dice::metall::unique_instance), true);
+  ASSERT_EQ(manager->destroy<int>(dice::copperr::unique_instance), true);
+  ASSERT_EQ(manager->destroy<double>(dice::copperr::unique_instance), true);
 
   delete manager;
 }
@@ -1278,19 +1278,19 @@ TEST(ManagerTest, UUID) {
   manager_type::remove(dir_path());
   std::string uuid;
   {
-    manager_type manager(dice::metall::create_only, dir_path());
+    manager_type manager(dice::copperr::create_only, dir_path());
 
     uuid = manager_type::get_uuid(dir_path());
     ASSERT_FALSE(uuid.empty());
   }
 
   {  // Returns the same UUID?
-    manager_type manager(dice::metall::open_only, dir_path());
+    manager_type manager(dice::copperr::open_only, dir_path());
     ASSERT_EQ(manager_type::get_uuid(dir_path()), uuid);
   }
 
   {  // Returns a new UUID?
-    manager_type manager(dice::metall::create_only, dir_path());
+    manager_type manager(dice::copperr::create_only, dir_path());
     ASSERT_NE(manager_type::get_uuid(dir_path()), uuid);
   }
 }
@@ -1298,12 +1298,12 @@ TEST(ManagerTest, UUID) {
 TEST(ManagerTest, Version) {
   manager_type::remove(dir_path());
   {
-    manager_type manager(dice::metall::create_only, dir_path());
+    manager_type manager(dice::copperr::create_only, dir_path());
     ASSERT_EQ(manager_type::get_version(dir_path()), METALL_VERSION);
   }
 
   {
-    manager_type manager(dice::metall::open_only, dir_path());
+    manager_type manager(dice::copperr::open_only, dir_path());
     ASSERT_EQ(manager_type::get_version(dir_path()), METALL_VERSION);
   }
 }
@@ -1312,7 +1312,7 @@ TEST(ManagerTest, Description) {
   // Set and get with non-static method
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only, dir_path());
+    manager_type manager(dice::copperr::create_only, dir_path());
 
     ASSERT_TRUE(manager.set_description("description1"));
     std::string description;
@@ -1331,7 +1331,7 @@ TEST(ManagerTest, Description) {
   // Set with static method
   {
     manager_type::remove(dir_path());
-    manager_type manager(dice::metall::create_only,
+    manager_type manager(dice::copperr::create_only,
                          dir_path());  // Make a new data store
     ASSERT_TRUE(
         manager_type::set_description(dir_path(), "description2"));
@@ -1339,7 +1339,7 @@ TEST(ManagerTest, Description) {
 
   // Get with non-static method
   {
-    manager_type manager(dice::metall::open_only, dir_path());
+    manager_type manager(dice::copperr::open_only, dir_path());
     std::string description;
     ASSERT_TRUE(manager.get_description(&description));
     ASSERT_STREQ(description.c_str(), "description2");
@@ -1348,12 +1348,12 @@ TEST(ManagerTest, Description) {
 
 TEST(ManagerTest, CheckSanity) {
   {
-    manager_type manager(dice::metall::create_only, dir_path());
+    manager_type manager(dice::copperr::create_only, dir_path());
     ASSERT_TRUE(manager.check_sanity());
   }
 
   {
-    manager_type bad_manager(dice::metall::open_only, (dir_path() + "-invalid").c_str());
+    manager_type bad_manager(dice::copperr::open_only, (dir_path() + "-invalid").c_str());
     ASSERT_FALSE(bad_manager.check_sanity());
   }
 }

@@ -6,10 +6,10 @@ from conan.tools.cmake import CMake
 from conan.tools.files import load, rmdir, copy
 
 
-class DiceMetallConan(ConanFile):
+class DiceCopperrConan(ConanFile):
     license = "MIT/Apache"
     author = "DICE Group <info@dice-research.org>"
-    homepage = "https://github.com/dice-group/metall"
+    homepage = "https://github.com/dice-group/copperr"
     url = homepage
     topics = "persistent memory", "allocator"
     settings = "build_type", "compiler", "os", "arch"

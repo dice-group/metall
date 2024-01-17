@@ -7,8 +7,8 @@
 #include <string>
 #include <memory>
 
-#include <dice/metall/metall.hpp>
-#include <dice/metall/detail/time.hpp>
+#include <dice/copperr/copperr.hpp>
+#include <dice/copperr/detail/time.hpp>
 #include "../data_structure/multithread_adjacency_list.hpp"
 #include "bench_driver.hpp"
 
@@ -18,7 +18,7 @@ using key_type = uint64_t;
 using value_type = uint64_t;
 
 using adj_list_t = data_structure::multithread_adjacency_list<
-    key_type, value_type, typename dice::metall::manager::allocator_type<std::byte>>;
+    key_type, value_type, typename dice::copperr::manager::allocator_type<std::byte>>;
 
 int main(int argc, char *argv[]) {
   bench_options option;
@@ -33,14 +33,14 @@ int main(int argc, char *argv[]) {
 
   // Stage in
   if (option.append && !option.staging_location.empty()) {
-    const auto start = dice::metall::mtlldetail::elapsed_time_sec();
-    dice::metall::manager::copy(option.datastore_path_list[0].c_str(),
+    const auto start = dice::copperr::mtlldetail::elapsed_time_sec();
+    dice::copperr::manager::copy(option.datastore_path_list[0].c_str(),
                           option.staging_location.c_str());
-    const auto elapsed_time = dice::metall::mtlldetail::elapsed_time_sec(start);
+    const auto elapsed_time = dice::copperr::mtlldetail::elapsed_time_sec(start);
     std::cout << "\nStage in took (s)\t" << elapsed_time << std::endl;
   }
 
-  std::unique_ptr<metall::manager> manager;
+  std::unique_ptr<copperr::manager> manager;
 
   // Bench main
   {
@@ -48,9 +48,9 @@ int main(int argc, char *argv[]) {
                                      ? option.datastore_path_list[0]
                                      : option.staging_location;
     manager = (option.append)
-                  ? std::make_unique<metall::manager>(dice::metall::open_only,
+                  ? std::make_unique<copperr::manager>(dice::copperr::open_only,
                                                       data_store_path.c_str())
-                  : std::make_unique<metall::manager>(dice::metall::create_only,
+                  : std::make_unique<copperr::manager>(dice::copperr::create_only,
                                                       data_store_path.c_str());
 
     auto adj_list =
@@ -63,26 +63,26 @@ int main(int argc, char *argv[]) {
 
   // Flush data
   {
-    const auto start = dice::metall::mtlldetail::elapsed_time_sec();
+    const auto start = dice::copperr::mtlldetail::elapsed_time_sec();
     manager->flush();
-    const auto elapsed_time = dice::metall::mtlldetail::elapsed_time_sec(start);
+    const auto elapsed_time = dice::copperr::mtlldetail::elapsed_time_sec(start);
     std::cout << "Flushing data took (s)\t" << elapsed_time << std::endl;
   }
 
   // Close Metall
   {
-    const auto start = dice::metall::mtlldetail::elapsed_time_sec();
+    const auto start = dice::copperr::mtlldetail::elapsed_time_sec();
     manager.reset(nullptr);
-    const auto elapsed_time = dice::metall::mtlldetail::elapsed_time_sec(start);
+    const auto elapsed_time = dice::copperr::mtlldetail::elapsed_time_sec(start);
     std::cout << "Closing Metall took (s)\t" << elapsed_time << std::endl;
   }
 
   // Stage out
   if (!option.staging_location.empty()) {
-    const auto start = dice::metall::mtlldetail::elapsed_time_sec();
-    dice::metall::manager::copy(option.staging_location.c_str(),
+    const auto start = dice::copperr::mtlldetail::elapsed_time_sec();
+    dice::copperr::manager::copy(option.staging_location.c_str(),
                           option.datastore_path_list[0].c_str());
-    const auto elapsed_time = dice::metall::mtlldetail::elapsed_time_sec(start);
+    const auto elapsed_time = dice::copperr::mtlldetail::elapsed_time_sec(start);
     std::cout << "Stage out took (s)\t" << elapsed_time << std::endl;
   }
 

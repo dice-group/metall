@@ -1,6 +1,6 @@
 # List of Examples
 
-To build examples see a [page](https://metall.readthedocs.io/en/latest/advanced_build/cmake/) hosted on Read the Docs.
+To build examples see a [page](https://copperr.readthedocs.io/en/latest/advanced_build/cmake/) hosted on Read the Docs.
 
 ### Basic examples
 
@@ -19,7 +19,7 @@ To build examples see a [page](https://metall.readthedocs.io/en/latest/advanced_
 
 ### STL Container with Custom Allocator
 
-In the examples below, we occasionally use STL-compatible containers exist in [metall/container/](../include/metall/container/) for better readability.
+In the examples below, we occasionally use STL-compatible containers exist in [copperr/container/](../include/copperr/container/) for better readability.
 Those containers are just alias of the corresponding containers in Boost.Container and do not have Metall-specific features.
 Therefore, the data structures in the examples below are more like how to use STL containers with custom allocators rather than how to use containers with just Metall.
 
@@ -69,7 +69,7 @@ Therefore, the data structures in the examples below are more like how to use ST
 
 ### Metall's Original Container
 
-* [metall_containers.cpp](metall_containers.cpp)
+* [copperr_containers.cpp](copperr_containers.cpp)
   * List of containers that use Metall at the default allocators.
   
 ### Graph
@@ -87,18 +87,18 @@ Therefore, the data structures in the examples below are more like how to use ST
 
 * [static_mutex.cpp](static_mutex.cpp)
   
-    * How to use our [mutex_lock function](../include/metall/utility/mutex.hpp)
+    * How to use our [mutex_lock function](../include/copperr/utility/mutex.hpp)
 
 * [concurrent_map.cpp](concurrent_map.cpp)
   
-    * How to use our [persistent concurrent_map class](../include/metall/container/concurrent_map.hpp)
+    * How to use our [persistent concurrent_map class](../include/copperr/container/concurrent_map.hpp)
 
 
 ### Fallback Allocator
 
 * [fallback_allocator_adaptor.cpp](fallback_allocator_adaptor.cpp)
 
-    * How to use [fallback_allocator_adaptor](../include/metall/utility/fallback_allocator_adaptor.hpp)
+    * How to use [fallback_allocator_adaptor](../include/copperr/utility/fallback_allocator_adaptor.hpp)
 
 
 ### MPI (experimental implementation)

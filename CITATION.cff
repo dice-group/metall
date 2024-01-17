@@ -24,7 +24,7 @@ authors:
 identifiers:
   - type: url
     value: 'https://doi.org/10.11578/dc.20190410.1'
-repository-code: 'https://github.com/LLNL/metall'
+repository-code: 'https://github.com/LLNL/copperr'
 abstract: >-
   Metall is a persistent memory allocator built on
   top of the memory-mapped file mechanism.

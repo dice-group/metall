@@ -7,7 +7,7 @@
 #include <boost/container/scoped_allocator.hpp>
 #include <boost/container/string.hpp>
 #include <boost/container/map.hpp>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 namespace bc = boost::container;
 
@@ -47,13 +47,13 @@ using map_type =
                           std::less<>, map_allocator_type<base_allocator_type>>;
 
 // Map type instantiated to Metall
-using metall_map_type = map_type<dice::metall::manager::allocator_type<std::byte>>;
+using copperr_map_type = map_type<dice::copperr::manager::allocator_type<std::byte>>;
 
 int main() {
   {
-    dice::metall::manager manager(dice::metall::create_only, "/tmp/datastore");
+    dice::copperr::manager manager(dice::copperr::create_only, "/tmp/datastore");
     auto pmap =
-        manager.construct<metall_map_type>("map")(manager.get_allocator<>());
+        manager.construct<copperr_map_type>("map")(manager.get_allocator<>());
 
     (*pmap)[0];
     pmap->at(0).vec.push_back(0);
@@ -65,8 +65,8 @@ int main() {
   }
 
   {
-    dice::metall::manager manager(dice::metall::open_only, "/tmp/datastore");
-    auto pmap = manager.find<metall_map_type>("map").first;
+    dice::copperr::manager manager(dice::copperr::open_only, "/tmp/datastore");
+    auto pmap = manager.find<copperr_map_type>("map").first;
 
     std::cout << pmap->at(0).vec[0] << std::endl;  // Prints out "0"
     std::cout << pmap->at(0).str << std::endl;  // Prints out "hello, world 0"

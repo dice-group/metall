@@ -179,7 +179,7 @@ STRIP_FROM_PATH        =
 # specify the list of include paths that are normally passed to the compiler
 # using the -I flag.
 
-STRIP_FROM_INC_PATH    = metall
+STRIP_FROM_INC_PATH    = copperr
 
 # If the SHORT_NAMES tag is set to YES, doxygen will generate much shorter (but
 # less readable) file names. This can be useful is your file systems doesn't
@@ -829,12 +829,12 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = ../include/metall \
-                         ../include/metall/c_api \
-                         ../include/metall/container \
-                         ../include/metall/json \
-                         ../include/metall/container/experimental/jgraph \
-                         ../include/metall/utility \
+INPUT                  = ../include/copperr \
+                         ../include/copperr/c_api \
+                         ../include/copperr/container \
+                         ../include/copperr/json \
+                         ../include/copperr/container/experimental/jgraph \
+                         ../include/copperr/utility \
                          ../example/graph_data_structure \
                          ../example/json
 

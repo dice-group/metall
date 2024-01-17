@@ -5,19 +5,19 @@
 
 #include "gtest/gtest.h"
 #include <memory>
-#include <dice/metall/kernel/bin_directory.hpp>
-#include <dice/metall/kernel/bin_number_manager.hpp>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/kernel/bin_directory.hpp>
+#include <dice/copperr/kernel/bin_number_manager.hpp>
+#include <dice/copperr/copperr.hpp>
 #include "../test_utility.hpp"
 
 namespace {
 using bin_no_mngr =
-    dice::metall::kernel::bin_number_manager<dice::metall::manager::chunk_size(),
+    dice::copperr::kernel::bin_number_manager<dice::copperr::manager::chunk_size(),
                                        1ULL << 48>;
 constexpr int num_small_bins =
-    bin_no_mngr::to_bin_no(dice::metall::manager::chunk_size() / 2) + 1;
-using directory_type = dice::metall::kernel::bin_directory<
-    num_small_bins, dice::metall::manager::chunk_number_type, std::allocator<char>>;
+    bin_no_mngr::to_bin_no(dice::copperr::manager::chunk_size() / 2) + 1;
+using directory_type = dice::copperr::kernel::bin_directory<
+    num_small_bins, dice::copperr::manager::chunk_number_type, std::allocator<char>>;
 
 TEST(BinDirectoryTest, Front) {
   std::allocator<char> allocator;

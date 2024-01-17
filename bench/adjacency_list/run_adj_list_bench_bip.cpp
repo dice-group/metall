@@ -10,7 +10,7 @@
 #include <boost/interprocess/managed_mapped_file.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
 
-#include <dice/metall/detail/time.hpp>
+#include <dice/copperr/detail/time.hpp>
 #include "../data_structure/multithread_adjacency_list.hpp"
 #include "bench_driver.hpp"
 
@@ -26,7 +26,7 @@ using adjacency_list_type =
     data_structure::multithread_adjacency_list<key_type, value_type,
                                                allocator_type>;
 
-namespace mdtl = dice::metall::mtlldetail;
+namespace mdtl = dice::copperr::mtlldetail;
 
 int main(int argc, char *argv[]) {
   bench_options option;

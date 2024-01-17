@@ -6,23 +6,23 @@
 #include "gtest/gtest.h"
 #include <bitset>
 #include <random>
-#include <dice/metall/detail/bitset.hpp>
+#include <dice/copperr/detail/bitset.hpp>
 
 namespace {
 
 template <int num_bits>
 using block_type =
-    typename dice::metall::mtlldetail::bitset_detail::block_type<num_bits>::type;
+    typename dice::copperr::mtlldetail::bitset_detail::block_type<num_bits>::type;
 
-using dice::metall::mtlldetail::bitset_detail::empty_block;
-using dice::metall::mtlldetail::bitset_detail::erase;
-using dice::metall::mtlldetail::bitset_detail::fill;
-using dice::metall::mtlldetail::bitset_detail::full_block;
-using dice::metall::mtlldetail::bitset_detail::generate_mask;
-using dice::metall::mtlldetail::bitset_detail::get;
-using dice::metall::mtlldetail::bitset_detail::num_blocks;
-using dice::metall::mtlldetail::bitset_detail::reset;
-using dice::metall::mtlldetail::bitset_detail::set;
+using dice::copperr::mtlldetail::bitset_detail::empty_block;
+using dice::copperr::mtlldetail::bitset_detail::erase;
+using dice::copperr::mtlldetail::bitset_detail::fill;
+using dice::copperr::mtlldetail::bitset_detail::full_block;
+using dice::copperr::mtlldetail::bitset_detail::generate_mask;
+using dice::copperr::mtlldetail::bitset_detail::get;
+using dice::copperr::mtlldetail::bitset_detail::num_blocks;
+using dice::copperr::mtlldetail::bitset_detail::reset;
+using dice::copperr::mtlldetail::bitset_detail::set;
 
 TEST(BitsetTest, BaseType) {
   ASSERT_LE(0, sizeof(block_type<0>) * 8);

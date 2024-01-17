@@ -7,19 +7,19 @@
 // offset pointer
 
 #include <iostream>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
-// dice::metall::offset_ptr is just an alias of offset_ptr in Boost.Interprocess
+// dice::copperr::offset_ptr is just an alias of offset_ptr in Boost.Interprocess
 // https://www.boost.org/doc/libs/release/doc/html/interprocess/offset_ptr.html
 
 struct my_data {
   int len{0};
-  dice::metall::offset_ptr<int> array{nullptr};
+  dice::copperr::offset_ptr<int> array{nullptr};
 };
 
 int main() {
   {
-    dice::metall::manager manager(dice::metall::create_only, "/tmp/datastore");
+    dice::copperr::manager manager(dice::copperr::create_only, "/tmp/datastore");
 
     auto* data = manager.construct<my_data>("data")();
     data->len = 10;
@@ -28,7 +28,7 @@ int main() {
   }
 
   {
-    dice::metall::manager manager(dice::metall::open_only, "/tmp/datastore");
+    dice::copperr::manager manager(dice::copperr::open_only, "/tmp/datastore");
 
     auto* data = manager.find<my_data>("data").first;
     for (int i = 0; i < data->len; ++i)

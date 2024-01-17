@@ -5,13 +5,13 @@
 
 #include "gtest/gtest.h"
 #include <memory>
-#include <dice/metall/kernel/attributed_object_directory.hpp>
+#include <dice/copperr/kernel/attributed_object_directory.hpp>
 #include "../test_utility.hpp"
 
 namespace {
 
 using directory_type =
-    dice::metall::kernel::attributed_object_directory<ssize_t, std::size_t>;
+    dice::copperr::kernel::attributed_object_directory<ssize_t, std::size_t>;
 
 TEST(AttributedObjectDirectoryTest, Insert) {
   directory_type obj;

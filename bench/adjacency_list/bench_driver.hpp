@@ -12,8 +12,8 @@
 #include <string>
 #include <vector>
 #include <boost/algorithm/string.hpp>
-#include <dice/metall/detail/utilities.hpp>
-#include <dice/metall/utility/open_mp.hpp>
+#include <dice/copperr/detail/utilities.hpp>
+#include <dice/copperr/utility/open_mp.hpp>
 #include "edge_generator/rmat_edge_generator.hpp"
 #include "../utility/pair_reader.hpp"
 #include "kernel.hpp"
@@ -277,7 +277,7 @@ inline auto run_bench_rmat_edge(const bench_options::rmat_option &rmat_option,
       assert((int)input_storage.size() == (int)omp::get_num_threads());
       auto &local_list = input_storage.at(omp::get_thread_num());
       local_list.clear();
-      const auto range = dice::metall::mtlldetail::partial_range(
+      const auto range = dice::copperr::mtlldetail::partial_range(
           num_generate, omp::get_thread_num(), omp::get_num_threads());
       auto &itr = generator_itr_list.at(omp::get_thread_num());
       for (std::size_t i = range.first; i < range.second; ++i) {

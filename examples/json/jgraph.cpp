@@ -5,11 +5,11 @@
 
 #include <iostream>
 #include <string>
-#include <dice/metall/metall.hpp>
-#include <dice/metall/container/experimental/jgraph/jgraph.hpp>
+#include <dice/copperr/copperr.hpp>
+#include <dice/copperr/container/experimental/jgraph/jgraph.hpp>
 
-using namespace dice::metall::container::experimental;
-using graph_type = jgraph::jgraph<dice::metall::manager::allocator_type<std::byte>>;
+using namespace dice::copperr::container::experimental;
+using graph_type = jgraph::jgraph<dice::copperr::manager::allocator_type<std::byte>>;
 
 std::vector<std::string> input_json_string_list = {
     R"({"type":"node", "id":"0", "properties":["user0"]})",
@@ -24,12 +24,12 @@ std::vector<std::string> input_json_string_list = {
 int main() {
   {
     std::cout << "-- Create ---" << std::endl;
-    dice::metall::manager manager(dice::metall::create_only, "./jgraph_obj");
+    dice::copperr::manager manager(dice::copperr::create_only, "./jgraph_obj");
 
-    auto *graph = manager.construct<graph_type>(dice::metall::unique_instance)(
+    auto *graph = manager.construct<graph_type>(dice::copperr::unique_instance)(
         manager.get_allocator());
     for (const auto &json_string : input_json_string_list) {
-      auto value = dice::metall::json::parse(json_string, manager.get_allocator());
+      auto value = dice::copperr::json::parse(json_string, manager.get_allocator());
 
       if (value.as_object()["type"].as_string() == "node") {
         const auto &vertex_id = value.as_object()["id"].as_string();
@@ -46,16 +46,16 @@ int main() {
 
   {
     std::cout << "\n--- Open ---" << std::endl;
-    dice::metall::manager manager(dice::metall::open_read_only, "./jgraph_obj");
+    dice::copperr::manager manager(dice::copperr::open_read_only, "./jgraph_obj");
 
     const auto *const graph =
-        manager.find<graph_type>(dice::metall::unique_instance).first;
+        manager.find<graph_type>(dice::copperr::unique_instance).first;
 
     std::cout << "<Vertices>" << std::endl;
-    dice::metall::json::pretty_print(std::cout, graph->find_vertex("0")->value());
-    dice::metall::json::pretty_print(std::cout, graph->find_vertex("1")->value());
-    dice::metall::json::pretty_print(std::cout, graph->find_vertex("2")->value());
-    dice::metall::json::pretty_print(std::cout, graph->find_vertex("3")->value());
+    dice::copperr::json::pretty_print(std::cout, graph->find_vertex("0")->value());
+    dice::copperr::json::pretty_print(std::cout, graph->find_vertex("1")->value());
+    dice::copperr::json::pretty_print(std::cout, graph->find_vertex("2")->value());
+    dice::copperr::json::pretty_print(std::cout, graph->find_vertex("3")->value());
 
     // Access edge values and edge values using the iterators
     std::cout << "\n<Edges>" << std::endl;
@@ -74,7 +74,7 @@ int main() {
           std::cout << "Destination vertex ID = " << eitr->source_id()
                     << std::endl;
         }
-        dice::metall::json::pretty_print(std::cout, eitr->value());
+        dice::copperr::json::pretty_print(std::cout, eitr->value());
       }
       std::cout << std::endl;
     }

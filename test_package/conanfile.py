@@ -15,7 +15,7 @@ class TestPackageConan(ConanFile):
         self.requires(self.tested_reference_str)
 
     def configure(self):
-        self.options["metall"].with_default_logger = True
+        self.options["copperr"].with_default_logger = True
 
     def layout(self):
         cmake_layout(self)

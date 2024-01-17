@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 #include <iostream>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 // This program allocates a user-defined struct/class object and reattaches it
 // using Metall. One can learn how non-primitive data type object is constructed
@@ -24,7 +24,7 @@ struct my_data {
 int main() {
   // Creating data into persistent memory
   {
-    dice::metall::manager manager(dice::metall::create_only, "/tmp/dir");
+    dice::copperr::manager manager(dice::copperr::create_only, "/tmp/dir");
 
     std::cout << "Allocate and construct an object" << std::endl;
     manager.construct<my_data>  // Allocates an 'my_data' object
@@ -39,7 +39,7 @@ int main() {
 
   // Reattaching the data
   {
-    dice::metall::manager manager(dice::metall::open_read_only, "/tmp/dir");
+    dice::copperr::manager manager(dice::copperr::open_read_only, "/tmp/dir");
 
     auto *data = manager.find<my_data>("data").first;
     std::cout << data->n << " " << data->f << std::endl;

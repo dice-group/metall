@@ -1,1 +1,1 @@
-add_metall_executable(verify_logger verify_logger.cpp)
+add_copperr_executable(verify_logger verify_logger.cpp)

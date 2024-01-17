@@ -6,17 +6,17 @@
 #include <iostream>
 #include <random>
 #include <boost/random/mersenne_twister.hpp>
-#include <dice/metall/utility/random.hpp>
-#include <dice/metall/detail/time.hpp>
+#include <dice/copperr/utility/random.hpp>
+#include <dice/copperr/detail/time.hpp>
 
 template <typename rand_engine_type>
 auto run_bench(const uint64_t num_generate) {
   rand_engine_type rand_engine(123);
-  const auto s = dice::metall::mtlldetail::elapsed_time_sec();
+  const auto s = dice::copperr::mtlldetail::elapsed_time_sec();
   for (uint64_t i = 0; i < num_generate; ++i) {
     [[maybe_unused]] volatile const uint64_t x = rand_engine();
   }
-  const auto t = dice::metall::mtlldetail::elapsed_time_sec(s);
+  const auto t = dice::copperr::mtlldetail::elapsed_time_sec(s);
   return t;
 }
 
@@ -29,9 +29,9 @@ int main() {
   std::cout << "boost::mt19937_64\t"
             << run_bench<boost::random::mt19937_64>(num_generate) << std::endl;
   std::cout << "xoshiro512++     \t"
-            << run_bench<metall::utility::rand_512>(num_generate) << std::endl;
+            << run_bench<copperr::utility::rand_512>(num_generate) << std::endl;
   std::cout << "xoshiro1024++    \t"
-            << run_bench<metall::utility::rand_1024>(num_generate) << std::endl;
+            << run_bench<copperr::utility::rand_1024>(num_generate) << std::endl;
 
   return 0;
 }

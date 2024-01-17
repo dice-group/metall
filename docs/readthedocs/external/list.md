@@ -8,7 +8,7 @@ miniVite is a proxy app that implements a single phase of Louvain method in dist
 miniVite has a mode that uses Metall to store a graph in persistent memory to reuse the data and reduce the overall analytics workload.
 
 For building and running miniVite with Metall,
-see the details located [here](https://github.com/ECP-ExaGraph/miniVite/tree/metallds2#minivite--metall-and-umap).
+see the details located [here](https://github.com/ECP-ExaGraph/miniVite/tree/copperrds2#minivite--copperr-and-umap).
 
 ### Ripples
 

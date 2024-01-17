@@ -7,11 +7,11 @@
 
 #include <unordered_set>
 
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 #include "../test_utility.hpp"
 
 namespace {
-using namespace dice::metall;
+using namespace dice::copperr;
 
 auto attr_accessor_named() {
   return manager::access_named_object_attribute(

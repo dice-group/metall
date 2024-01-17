@@ -8,7 +8,7 @@ theme: 'readthedocs'
 extra_css:
   - ./css/custom.css
 
-repo_url: https://github.com/LLNL/metall
+repo_url: https://github.com/dice-group/copperr
 edit_uri: 'tree/develop/docs/readthedocs'
 
 nav:

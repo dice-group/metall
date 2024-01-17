@@ -3,7 +3,7 @@ set(lib_suffix "default-logger")
 set(lib "${PROJECT_NAME}-${lib_suffix}")
 
 add_library(${lib}
-        src/dice/metall/default_logger.cpp
+        src/dice/copperr/default_logger.cpp
         )
 add_library(${PROJECT_NAME}::${lib_suffix} ALIAS ${lib})
 

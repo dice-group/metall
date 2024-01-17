@@ -7,17 +7,17 @@
 
 #include <limits>
 
-#include <dice/metall/kernel/bin_number_manager.hpp>
-#include <dice/metall/kernel/object_size_manager.hpp>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/kernel/bin_number_manager.hpp>
+#include <dice/copperr/kernel/object_size_manager.hpp>
+#include <dice/copperr/copperr.hpp>
 
 namespace {
-using namespace dice::metall::kernel::object_size_manager_detail;
+using namespace dice::copperr::kernel::object_size_manager_detail;
 
-constexpr std::size_t k_chunk_size = dice::metall::manager::chunk_size();
+constexpr std::size_t k_chunk_size = dice::copperr::manager::chunk_size();
 constexpr std::size_t k_max_size = 1ULL << 48ULL;
 using bin_no_mngr =
-    dice::metall::kernel::bin_number_manager<k_chunk_size, k_max_size>;
+    dice::copperr::kernel::bin_number_manager<k_chunk_size, k_max_size>;
 
 TEST(BinManagerTest, BinNoType) {
   ASSERT_GE(std::numeric_limits<bin_no_mngr::bin_no_type>::max(),

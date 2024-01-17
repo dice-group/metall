@@ -17,7 +17,7 @@ In this hands-on, we use the terminal available on the system.
 
 Click the button below (recommend to open in a new tab/window):
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/LLNL/metall-tutorial/HEAD)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/LLNL/copperr-tutorial/HEAD)
 
 Binder runs on Kubernetes, and it sometime takes more than a few minutes to launch.
 
@@ -37,7 +37,7 @@ Here is how to build a tutorial example.
 
 ```bash
 # Metall's git repository is available in the home directory.
-cd $HOME/metall/tutorial/hands_on
+cd $HOME/copperr/tutorial/hands_on
 
 # Build all examples
 make
@@ -103,8 +103,8 @@ wget https://dl.bintray.com/boostorg/release/1.75.0/source/boost_1_75_0.tar.gz
 tar xvf boost_1_75_0.tar.gz
 export BOOST_ROOT=$PWD/boost_1_75_0
 
-git clone https://github.com/LLNL/metall
-cd metall/tutorial/hands_on
+git clone https://github.com/LLNL/copperr
+cd copperr/tutorial/hands_on
 g++ -std=c++17 [tutorial_program.cpp] -lstdc++fs -I../../include -I${BOOST_ROOT}
 # If one gets an error related to pthread, please add '-pthread' at the end of the command above
 

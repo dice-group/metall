@@ -18,13 +18,13 @@
 #include <boost/interprocess/containers/vector.hpp>
 #include <boost/unordered_map.hpp>
 
-#include <dice/metall/metall.hpp>
-#include <dice/metall/utility/open_mp.hpp>
+#include <dice/copperr/copperr.hpp>
+#include <dice/copperr/utility/open_mp.hpp>
 #include "../test_utility.hpp"
 
 namespace {
 
-namespace omp = dice::metall::utility::omp;
+namespace omp = dice::copperr::utility::omp;
 
 // -------------------- //
 // Manage Type
@@ -32,7 +32,7 @@ namespace omp = dice::metall::utility::omp;
 using chunk_no_type = uint32_t;
 static constexpr std::size_t k_chunk_size = 1ULL << 21;
 constexpr std::size_t k_min_object_size = 8;  // TODO: take from the file
-using manager_type = dice::metall::basic_manager<chunk_no_type, k_chunk_size>;
+using manager_type = dice::copperr::basic_manager<chunk_no_type, k_chunk_size>;
 template <typename T>
 using allocator_type = typename manager_type::allocator_type<T>;
 
@@ -99,7 +99,7 @@ template <typename list_type>
 void run_alloc_dealloc_separated_test(const list_type &allocation_size_list) {
   // Allocate manager
   const auto dir(test_utility::make_test_path());
-  manager_type manager(dice::metall::create_only, dir);
+  manager_type manager(dice::copperr::create_only, dir);
 
   // Main loop
   for (int k = 0; k < 2; ++k) {
@@ -133,7 +133,7 @@ void run_alloc_dealloc_mixed_and_write_value_test(
     const list_type &allocation_size_list) {
   // Allocate manager
   const auto dir(test_utility::make_test_path());
-  manager_type manager(dice::metall::create_only, dir);
+  manager_type manager(dice::copperr::create_only, dir);
 
   // Main loop
   std::vector<std::pair<void *, std::size_t>> previous_addr_and_size_array(
@@ -294,7 +294,7 @@ TEST(ManagerMultithreadsTest, ConstructAndFind) {
   constexpr std::size_t num_allocates = 1024;
 
   const auto dir(test_utility::make_test_path());
-  manager_type manager(dice::metall::create_only, dir);
+  manager_type manager(dice::copperr::create_only, dir);
 
   std::vector<std::string> keys;
   for (std::size_t i = 0; i < num_allocates; ++i) {

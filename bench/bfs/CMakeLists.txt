@@ -1,12 +1,12 @@
 include(${CMAKE_SOURCE_DIR}/cmake/setup_omp)
 
-add_metall_executable(run_bfs_bench_metall run_bfs_bench_metall.cpp)
-setup_omp_target(run_bfs_bench_metall)
+add_copperr_executable(run_bfs_bench_copperr run_bfs_bench_copperr.cpp)
+setup_omp_target(run_bfs_bench_copperr)
 
-add_metall_executable(run_bfs_bench_metall_multiple run_bfs_bench_metall_multiple.cpp)
-setup_omp_target(run_bfs_bench_metall_multiple)
+add_copperr_executable(run_bfs_bench_copperr_multiple run_bfs_bench_copperr_multiple.cpp)
+setup_omp_target(run_bfs_bench_copperr_multiple)
 
-add_metall_executable(run_bfs_bench_bip run_bfs_bench_bip.cpp)
+add_copperr_executable(run_bfs_bench_bip run_bfs_bench_bip.cpp)
 setup_omp_target(run_bfs_bench_bip)
 
 configure_file(run_bench.sh run_bench.sh COPYONLY)

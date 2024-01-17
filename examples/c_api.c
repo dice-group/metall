@@ -5,44 +5,44 @@
 
 #include <assert.h>
 #include <stdint.h>
-#include <dice/ffi/metall.h>
+#include <dice/ffi/copperr.h>
 
 int main(void) {
   // Basic allocation
   {
-    metall_manager *manager = metall_create("/tmp/metall1");
+    copperr_manager *manager = copperr_create("/tmp/copperr1");
 
-    uint64_t *x = metall_malloc(manager, sizeof(uint64_t));
+    uint64_t *x = copperr_malloc(manager, sizeof(uint64_t));
     x[0] = 1;
 
-    metall_free(manager, x);
-    metall_close(manager);
+    copperr_free(manager, x);
+    copperr_close(manager);
   }
 
   // Allocate named object
   {
-    metall_manager *manager = metall_create("/tmp/metall1");
+    copperr_manager *manager = copperr_create("/tmp/copperr1");
 
-    uint64_t *array = metall_named_malloc(manager, "array", sizeof(uint64_t) * 10);
+    uint64_t *array = copperr_named_malloc(manager, "array", sizeof(uint64_t) * 10);
 
     array[0] = 0;
     array[1] = 1;
 
-    metall_close(manager);
+    copperr_close(manager);
   }
 
   // Retrieve named object
   {
-    metall_manager *manager = metall_open("/tmp/metall1");
+    copperr_manager *manager = copperr_open("/tmp/copperr1");
 
-    uint64_t *array = metall_find(manager, "array");
+    uint64_t *array = copperr_find(manager, "array");
 
     assert(array[0] == 0);
     assert(array[1] == 1);
 
-    metall_named_free(manager, "array");
-    metall_close(manager);
-    metall_remove("/tmp/metalll1");
+    copperr_named_free(manager, "array");
+    copperr_close(manager);
+    copperr_remove("/tmp/copperrl1");
   }
 
   return 0;

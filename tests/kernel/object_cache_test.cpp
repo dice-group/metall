@@ -10,13 +10,13 @@
 #include <utility>
 #include <random>
 
-#include <dice/metall/metall.hpp>
-#include <dice/metall/kernel/bin_number_manager.hpp>
-#include <dice/metall/kernel/object_cache.hpp>
+#include <dice/copperr/copperr.hpp>
+#include <dice/copperr/kernel/bin_number_manager.hpp>
+#include <dice/copperr/kernel/object_cache.hpp>
 #include "../test_utility.hpp"
 
 using bin_no_manager =
-    dice::metall::kernel::bin_number_manager<1ULL << 21, 1ULL << 40>;
+    dice::copperr::kernel::bin_number_manager<1ULL << 21, 1ULL << 40>;
 
 // Dummy allocator for testing
 // It keeps track of allocated objects
@@ -46,7 +46,7 @@ class dummy_allocator {
 };
 
 using cache_type =
-    dice::metall::kernel::object_cache<std::size_t, std::ptrdiff_t, bin_no_manager,
+    dice::copperr::kernel::object_cache<std::size_t, std::ptrdiff_t, bin_no_manager,
                                        dummy_allocator>;
 namespace {
 

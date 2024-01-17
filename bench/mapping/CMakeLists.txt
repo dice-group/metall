@@ -1,1 +1,1 @@
-add_metall_executable(run_mapping_bench run_mapping_bench.cpp)
+add_copperr_executable(run_mapping_bench run_mapping_bench.cpp)

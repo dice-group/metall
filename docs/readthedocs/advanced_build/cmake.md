@@ -4,8 +4,8 @@ Metall's repository contains example, test, benchmark, and utility programs.
 Here is how to build them using CMake.
 
 ```bash
-git clone https://github.com/LLNL/metall
-cd metall
+git clone https://github.com/LLNL/copperr
+cd copperr
 mkdir build
 cd build
 cmake .. -DBOOST_ROOT=/path/to/boost/root/
@@ -68,12 +68,12 @@ Step 2) Run CMake with BUILD_TEST=ON and SKIP_DOWNLOAD_GTEST=ON on a machine tha
 For example,
 ```bash
 # On a machine with the internet
-cd metall
+cd copperr
 mkdir build
 cd build
 cmake ../ -DBUILD_TEST=ON -DONLY_DOWNLOAD_GTEST=on # Use CMake to just download Google Test
 # On a machine that does not have an internet access
-cd metall/build
+cd copperr/build
 rm CMakeCache.txt
 cmake ../ -DBUILD_TEST=on -DSKIP_DOWNLOAD_GTEST=on # Add other options you want to use
 ```

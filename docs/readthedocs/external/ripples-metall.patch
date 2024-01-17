@@ -57,7 +57,7 @@ index a1c2b2f..3b260e6 100644
  //! input graphs.
  struct GraphInputConfiguration {
    std::string IFileName{""};        //!< The input file name
-+  std::string metall_dir{"/tmp/graph"}; //!< Where is the metall directory?
++  std::string copperr_dir{"/tmp/graph"}; //!< Where is the copperr directory?
    bool weighted{false};             //!< is Graph weighted?
    bool undirected{false};           //!< is Graph undirected?
    bool disable_renumbering{false};  //!< trust the input to be clean.
@@ -65,8 +65,8 @@ index a1c2b2f..3b260e6 100644
                     "The input file with the edge-list.")
          ->group("Input Options")
          ->required();
-+    app.add_flag("--metall-store-dir", metall_dir,
-+                 "Directory to store metall graph data.")
++    app.add_flag("--copperr-store-dir", copperr_dir,
++                 "Directory to store copperr graph data.")
 +        ->group("Input Options");
      app.add_flag("--reload-binary", reload, "Reload a graph from binary input")
          ->group("Input Options");
@@ -84,8 +84,8 @@ index df44175..919b063 100644
 
 -#ifdef ENABLE_METALL
 +#ifdef ENABLE_METALL_RRRSETS
- #include "metall/metall.hpp"
- #include "metall/container/vector.hpp"
+ #include "copperr/copperr.hpp"
+ #include "copperr/container/vector.hpp"
  #endif
 @@ -72,13 +73,13 @@ namespace ripples {
 
@@ -96,11 +96,11 @@ index df44175..919b063 100644
 +using RRRsetAllocator = libmemkind::pmem::allocator<vertex_type>;
 +#elif defined ENABLE_METALL_RRRSETS
  template<typename vertex_type>
- using RRRsetAllocator = dice::metall::manager::allocator_type<vertex_type>;
+ using RRRsetAllocator = dice::copperr::manager::allocator_type<vertex_type>;
 
- dice::metall::manager &metall_manager_instance() {
--  static dice::metall::manager manager(dice::metall::create_only, "/tmp/ripples");
-+  static dice::metall::manager manager(dice::metall::create_only, "/dev/shm/metall_tmp");
+ dice::copperr::manager &copperr_manager_instance() {
+-  static dice::copperr::manager manager(dice::copperr::create_only, "/tmp/ripples");
++  static dice::copperr::manager manager(dice::copperr::create_only, "/dev/shm/copperr_tmp");
    return manager;
  }
 
@@ -110,7 +110,7 @@ index df44175..919b063 100644
  using RRRset =
 -#ifdef  ENABLE_METALL
 +#ifdef  ENABLE_METALL_RRRSETS
-     dice::metall::container::vector<typename GraphTy::vertex_type,
+     dice::copperr::container::vector<typename GraphTy::vertex_type,
                                RRRsetAllocator<typename GraphTy::vertex_type>>;
  #else
 diff --git a/include/ripples/graph.h b/include/ripples/graph.h
@@ -124,7 +124,7 @@ index d34ecbe..2a027bb 100644
 +#if defined ENABLE_METALL
 +#include <boost/container/vector.hpp>
 +#include <boost/container/map.hpp>
-+#include "metall/metall.hpp"
++#include "copperr/copperr.hpp"
 +#endif
 +
  namespace ripples {
@@ -490,7 +490,7 @@ index 8030582..32c5e54 100644
 -  #elif defined ENABLE_METALL
 +  RRRsetAllocator<vertex_type> allocator("/mnt/bb/reeceneff/memkind_tmp", 0);
 +  #elif defined ENABLE_METALL_RRRSETS
-   RRRsetAllocator<vertex_type> allocator =  metall_manager_instance().get_allocator();
+   RRRsetAllocator<vertex_type> allocator =  copperr_manager_instance().get_allocator();
    #else
    RRRsetAllocator<vertex_type> allocator;
 @@ -266,10 +266,10 @@ auto Sampling(const GraphTy &G, const ConfTy &CFG, double l,
@@ -501,7 +501,7 @@ index 8030582..32c5e54 100644
 -  #elif defined ENABLE_METALL
 +  RRRsetAllocator<vertex_type> allocator("/mnt/bb/reeceneff/memkind_tmp", 0);
 +  #elif defined ENABLE_METALL_RRRSETS
-   RRRsetAllocator<vertex_type> allocator =  metall_manager_instance().get_allocator();
+   RRRsetAllocator<vertex_type> allocator =  copperr_manager_instance().get_allocator();
 -#else
 +  #else
    RRRsetAllocator<vertex_type> allocator;
@@ -595,7 +595,7 @@ index 80bbe3a..b64b438 100644
    RRRsetAllocator<vertex_type> allocator("/pmem1", 0);
 -  #elif defined ENABLE_METALL
 +  #elif defined ENABLE_METALL_RRRSETS
-   RRRsetAllocator<vertex_type> allocator =  metall_manager_instance().get_allocator();
+   RRRsetAllocator<vertex_type> allocator =  copperr_manager_instance().get_allocator();
  #else
    RRRsetAllocator<vertex_type> allocator;
 diff --git a/tools/imm.cc b/tools/imm.cc
@@ -616,9 +616,9 @@ index e835c76..870821c 100644
    using dest_type = ripples::WeightedDestination<uint32_t, float>;
 +  #if defined ENABLE_METALL
 +  using GraphFwd =
-+      ripples::Graph<uint32_t, dest_type, ripples::ForwardDirection<uint32_t>, dice::metall::manager::allocator_type<char>>;
++      ripples::Graph<uint32_t, dest_type, ripples::ForwardDirection<uint32_t>, dice::copperr::manager::allocator_type<char>>;
 +  using GraphBwd =
-+      ripples::Graph<uint32_t, dest_type, ripples::BackwardDirection<uint32_t>, dice::metall::manager::allocator_type<char>>;
++      ripples::Graph<uint32_t, dest_type, ripples::BackwardDirection<uint32_t>, dice::copperr::manager::allocator_type<char>>;
 +  #else
    using GraphFwd =
        ripples::Graph<uint32_t, dest_type, ripples::ForwardDirection<uint32_t>>;
@@ -629,10 +629,10 @@ index e835c76..870821c 100644
 +console->info("Loading...");
 +auto loading_start = std::chrono::high_resolution_clock::now();
 +#if defined ENABLE_METALL
-+bool exists = dice::metall::manager::consistent(CFG.metall_dir.c_str());
-+metall::manager manager = (exists ?
-+                         dice::metall::manager(dice::metall::open_only, CFG.metall_dir.c_str())
-+                         : dice::metall::manager(dice::metall::create_only, CFG.metall_dir.c_str()));
++bool exists = dice::copperr::manager::consistent(CFG.copperr_dir.c_str());
++copperr::manager manager = (exists ?
++                         dice::copperr::manager(dice::copperr::open_only, CFG.copperr_dir.c_str())
++                         : dice::copperr::manager(dice::copperr::create_only, CFG.copperr_dir.c_str()));
 +  GraphBwd *Gr;
 +  if(exists){
 +    console->info("Previously existing graph exists! Loading...");
@@ -640,7 +640,7 @@ index e835c76..870821c 100644
 +    // Gr->recalculate_addresses();
 +  }
 +  else{
-+    console->info("Creating new metall directory...");
++    console->info("Creating new copperr directory...");
 +    GraphFwd Gf = ripples::loadGraph<GraphFwd>(CFG, weightGen, manager.get_allocator());
 +    Gr = manager.construct<GraphBwd>("graph")(Gf.get_transpose(manager.get_allocator()));
 +  }
@@ -689,9 +689,9 @@ index 60091f8..0ddb121 100644
    using edge_type = ripples::WeightedDestination<uint32_t, float>;
 +  #if defined ENABLE_METALL
 +  using GraphFwd =
-+      ripples::Graph<uint32_t, edge_type, ripples::ForwardDirection<uint32_t>, dice::metall::manager::allocator_type<char>>;
++      ripples::Graph<uint32_t, edge_type, ripples::ForwardDirection<uint32_t>, dice::copperr::manager::allocator_type<char>>;
 +  using GraphBwd =
-+      ripples::Graph<uint32_t, edge_type, ripples::BackwardDirection<uint32_t>, dice::metall::manager::allocator_type<char>>;
++      ripples::Graph<uint32_t, edge_type, ripples::BackwardDirection<uint32_t>, dice::copperr::manager::allocator_type<char>>;
 +  #else
    using GraphFwd =
        ripples::Graph<uint32_t, edge_type, ripples::ForwardDirection<uint32_t>>;
@@ -702,10 +702,10 @@ index 60091f8..0ddb121 100644
 +  #endif
 +console->info("Loading...");
 +#if defined ENABLE_METALL
-+bool exists = dice::metall::manager::consistent(CFG.metall_dir.c_str());
-+metall::manager manager = (exists ?
-+                         dice::metall::manager(dice::metall::open_only, CFG.metall_dir.c_str())
-+                         : dice::metall::manager(dice::metall::create_only, CFG.metall_dir.c_str()));
++bool exists = dice::copperr::manager::consistent(CFG.copperr_dir.c_str());
++copperr::manager manager = (exists ?
++                         dice::copperr::manager(dice::copperr::open_only, CFG.copperr_dir.c_str())
++                         : dice::copperr::manager(dice::copperr::create_only, CFG.copperr_dir.c_str()));
 +  GraphBwd *Gr;
 +  if(exists){
 +    console->info("Previously existing graph exists! Loading...");
@@ -713,7 +713,7 @@ index 60091f8..0ddb121 100644
 +    // Gr->recalculate_addresses();
 +  }
 +  else{
-+    console->info("Creating new metall directory...");
++    console->info("Creating new copperr directory...");
 +    GraphFwd Gf = ripples::loadGraph<GraphFwd>(CFG, weightGen, manager.get_allocator());
 +    Gr = manager.construct<GraphBwd>("graph")(Gf.get_transpose(manager.get_allocator()));
 +  }
@@ -734,8 +734,8 @@ index 5be422d..862e61b 100644
          cuda_acc_cxx_flags += ['-DENABLE_MEMKIND=1']
 
      if bld.env.ENABLE_METALL:
--        cuda_acc_tools_deps += ['metall', 'boost']
-+        cuda_acc_tools_deps += ['metall', 'boost', 'libstdc++fs']
+-        cuda_acc_tools_deps += ['copperr', 'boost']
++        cuda_acc_tools_deps += ['copperr', 'boost', 'libstdc++fs']
          cuda_acc_cxx_flags += ['-DENABLE_METALL=1']
 
      bld(features='cxx cxxprogram', source='imm.cc', target='imm',

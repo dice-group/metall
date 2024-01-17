@@ -40,12 +40,12 @@ endif ()
 # ---------------------------------------- #
 
 # Not required to do this.
-# Just checking if metall_c exists.
-find_library(LIB_METALL_C NAMES metall_c)
+# Just checking if copperr_c exists.
+find_library(LIB_METALL_C NAMES copperr_c)
 
 if (LIB_METALL_C)
     add_executable(c_example ../src/c_example.c)
 
-    # Link Metall C library (libmetall_c)
-    target_link_libraries(c_example PRIVATE Metall::metall_c)
+    # Link Metall C library (libcopperr_c)
+    target_link_libraries(c_example PRIVATE Metall::copperr_c)
 endif()

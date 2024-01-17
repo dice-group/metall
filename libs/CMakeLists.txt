@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-add_subdirectory(metall)
+add_subdirectory(copperr)
 
 if (BUILD_FFI)
     add_subdirectory(ffi)

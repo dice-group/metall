@@ -8,8 +8,8 @@
 #include <boost/interprocess/managed_mapped_file.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
 #include <boost/container/map.hpp>
-#include <dice/metall/container/concurrent_map.hpp>
-#include <dice/metall/detail/file.hpp>
+#include <dice/copperr/container/concurrent_map.hpp>
+#include <dice/copperr/detail/file.hpp>
 #include "../test_utility.hpp"
 
 namespace bip = boost::interprocess;
@@ -18,7 +18,7 @@ namespace {
 
 TEST(ConcurrentMapTest, SequentialInsert) {
   boost::container::map<char, int> ref_map;
-  dice::metall::container::concurrent_map<char, int> map;
+  dice::copperr::container::concurrent_map<char, int> map;
 
   const auto v1 = std::make_pair('a', 0);
   const auto v1_2 = std::make_pair('a', 0);
@@ -33,7 +33,7 @@ TEST(ConcurrentMapTest, SequentialInsert) {
 }
 
 TEST(ConcurrentMapTest, Count) {
-  dice::metall::container::concurrent_map<char, int> map;
+  dice::copperr::container::concurrent_map<char, int> map;
 
   const auto v1 = std::make_pair('a', 0);
   GTEST_ASSERT_EQ(map.count(v1.first), 0);
@@ -47,7 +47,7 @@ TEST(ConcurrentMapTest, Count) {
 }
 
 TEST(ConcurrentMapTest, Size) {
-  dice::metall::container::concurrent_map<char, int> map;
+  dice::copperr::container::concurrent_map<char, int> map;
 
   GTEST_ASSERT_EQ(map.size(), 0);
 
@@ -63,7 +63,7 @@ TEST(ConcurrentMapTest, Size) {
 
 TEST(ConcurrentMapTest, SequentialEdit) {
   boost::container::map<char, int> ref_map;
-  dice::metall::container::concurrent_map<char, int> map;
+  dice::copperr::container::concurrent_map<char, int> map;
 
   const auto v1 = std::make_pair('a', 0);
   ref_map[v1.first] = v1.second;
@@ -81,7 +81,7 @@ TEST(ConcurrentMapTest, SequentialEdit) {
 
 TEST(ConcurrentMapTest, Find) {
   boost::container::map<char, int> ref_map;
-  dice::metall::container::concurrent_map<char, int> map;
+  dice::copperr::container::concurrent_map<char, int> map;
 
   const auto v1 = std::make_pair('a', 0);
   GTEST_ASSERT_EQ(map.find(v1.first), map.cend());
@@ -102,7 +102,7 @@ TEST(ConcurrentMapTest, Find) {
 
 TEST(ConcurrentMapTest, Iterator) {
   boost::container::map<char, int> ref_map;
-  dice::metall::container::concurrent_map<char, int> map;
+  dice::copperr::container::concurrent_map<char, int> map;
 
   const auto v1 = std::make_pair('a', 0);
   ref_map.insert(v1);
@@ -127,13 +127,13 @@ TEST(ConcurrentMapTest, Persistence) {
       bip::allocator<std::pair<const char, int>,
                      bip::managed_mapped_file::segment_manager>;
   using map_type =
-      dice::metall::container::concurrent_map<char, int, std::less<char>,
+      dice::copperr::container::concurrent_map<char, int, std::less<char>,
           std::hash<char>, allocator_type, 2>;
 
   const std::string file_path(test_utility::make_test_path());
 
   test_utility::create_test_dir();
-  dice::metall::mtlldetail::remove_file(file_path);
+  dice::copperr::mtlldetail::remove_file(file_path);
 
   std::vector<std::pair<char, int>> inputs(10);
   for (size_t i = 0; i < inputs.size(); ++i) {

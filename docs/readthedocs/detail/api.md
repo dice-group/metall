@@ -17,10 +17,10 @@ Here, we list Metall's main APIs.
 
 ```C++
 // The main header file
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 // The main class of Metall
-class dice::metall::manager;
+class dice::copperr::manager;
 
 // ---------- Constructors ---------- //
 // Opens an existing data store.
@@ -94,40 +94,40 @@ bool manager.snapshot(const char *destination_dir_path)
 // ---------- Utilities (Metall original) ---------- //
 // Check if a datastore exists and is consistent
 // (i.e., it was closed properly in the previous run).
-static bool dice::metall::manager::consistent(const char *dir_path)
+static bool dice::copperr::manager::consistent(const char *dir_path)
 
 // Copies datastore
-static bool dice::metall::manager::copy(const char *source_dir_path, const char *destination_dir_path)
+static bool dice::copperr::manager::copy(const char *source_dir_path, const char *destination_dir_path)
 
 // Removes datastore synchronously
-static bool dice::metall::manager::remove(const char *dir_path)
+static bool dice::copperr::manager::remove(const char *dir_path)
 
 // Gets the version number of the Metall that created the current datastore.
 version_type manager.get_version()
 
 // Gets the version of the Metall that created a datastore
-static version_type dice::metall::get_version(const char_type *dir_path)
+static version_type dice::copperr::get_version(const char_type *dir_path)
 
 // ---------- Data store description ---------- //
 // Sets a description
 bool set_description(const std::string &description)
-static bool dice::metall::set_description(const char *dir_path, const std::string &description)
+static bool dice::copperr::set_description(const char *dir_path, const std::string &description)
 
 // Gets a description
 bool get_description(std::string *description)
-static bool dice::metall::get_description(const char *dir_path, std::string *description)
+static bool dice::copperr::get_description(const char *dir_path, std::string *description)
 ```
 
-Example programs are located in [example](https://github.com/LLNL/metall/tree/master/example).
+Example programs are located in [example](https://github.com/LLNL/copperr/tree/master/example).
 
 ## FUll API document
 
-The full API document is available [here](https://software.llnl.gov/metall/api/).
+The full API document is available [here](https://software.llnl.gov/copperr/api/).
 
 To generate the full API document locally using Doxygen:
 
 ```bash
-cd metall
+cd copperr
 mkdir build_doc
 cd build_doc
 doxygen ../docs/Doxyfile.in

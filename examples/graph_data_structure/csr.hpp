@@ -7,7 +7,7 @@
 #define METALL_EXAMPLE_GRAPH_DATA_STRUCTURE_CSR_HPP
 
 #include <memory>
-#include <dice/metall/metall.hpp>
+#include <dice/copperr/copperr.hpp>
 
 /// \brief Simple CSR graph data structure that can take a custom C++ allocator
 /// and be stored in persistent memory \tparam index_t Index type \tparam vid_t
@@ -57,14 +57,14 @@ class csr {
 
   /// \brief Returns a raw pointer to the indices array
   index_t *indices() {
-    return dice::metall::to_raw_pointer(m_indices);
+    return dice::copperr::to_raw_pointer(m_indices);
     // return std::pointer_traits<char_pointer_t>::to_address(m_indices); //
     // From C++20
   }
 
   /// \brief Returns a raw pointer to the edges array
   vid_t *edges() {
-    return dice::metall::to_raw_pointer(m_edges);
+    return dice::copperr::to_raw_pointer(m_edges);
     // return std::pointer_traits<char_pointer_t>::to_address(m_edges); // From
     // C++20
   }

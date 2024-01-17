@@ -1,1 +1,1 @@
-add_metall_test_executable(bitset_test bitset_test.cpp)
+add_copperr_test_executable(bitset_test bitset_test.cpp)
