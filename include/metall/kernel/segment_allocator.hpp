@@ -37,6 +37,9 @@
 #include <metall/kernel/object_cache.hpp>
 #endif
 
+#include <unordered_set>
+inline std::unordered_set<std::ptrdiff_t> g_allocated_offsets;
+
 namespace metall {
 namespace kernel {
 
@@ -155,6 +158,8 @@ class segment_allocator {
                             : priv_allocate_large_object(bin_no);
     assert(offset >= 0 || offset == k_null_offset);
 
+    g_allocated_offsets.insert(offset);
+
     return offset;
   }
 
@@ -206,6 +211,15 @@ class segment_allocator {
   void deallocate(const difference_type offset) {
     if (offset == k_null_offset) return;
     assert(offset >= 0);
+
+    if (g_allocated_offsets.count(offset) == 0) {
+      // error log
+      logger::out(logger::level::error, __FILE__, __LINE__,
+                  "Deallocating an offset that was not allocated");
+      return;
+    } else {
+      g_allocated_offsets.erase(offset);
+    }
 
     const chunk_no_type chunk_no = offset / k_chunk_size;
     const bin_no_type bin_no = m_chunk_directory.bin_no(chunk_no);
