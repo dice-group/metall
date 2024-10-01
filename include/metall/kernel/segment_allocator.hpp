@@ -212,17 +212,20 @@ class segment_allocator {
     if (offset == k_null_offset) return;
     assert(offset >= 0);
 
+    const chunk_no_type chunk_no = offset / k_chunk_size;
+    const bin_no_type bin_no = m_chunk_directory.bin_no(chunk_no);
+
     if (g_allocated_offsets.count(offset) == 0) {
       // error log
       logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Deallocating an offset that was not allocated");
+                  "Deallocating an offset that was not allocated chunk_no: " +
+                      std::to_string(chunk_no) +
+                      ", bin_no: " + std::to_string(bin_no) +
+                      ", offset: " + std::to_string(offset));
       return;
     } else {
       g_allocated_offsets.erase(offset);
     }
-
-    const chunk_no_type chunk_no = offset / k_chunk_size;
-    const bin_no_type bin_no = m_chunk_directory.bin_no(chunk_no);
 
     if (priv_small_object_bin(bin_no)) {
       priv_deallocate_small_object(offset, bin_no);
