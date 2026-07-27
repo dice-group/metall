@@ -1360,6 +1360,20 @@ class basic_manager {
     return nullptr;
   }
 
+  /// \brief Returns the segment storage of this manager, for backend specific
+  /// telemetry. What it offers depends on the backend; the default one has no
+  /// counters, the privateer one reports its write-out and write-back work.
+  /// \copydoc doc_thread_safe
+  ///
+  /// \return A pointer to the segment storage, or nullptr when the manager is
+  /// not sane.
+  const segment_storage *get_segment_storage() const noexcept {
+    if (!check_sanity()) {
+      return nullptr;
+    }
+    return &m_kernel->get_segment_storage();
+  }
+
   /// \brief Returns the size (i.e., the maximum total allocation size) of the
   /// application data segment. This is a theoretical value. The actual total
   /// allocation size Metall can handle will be less than that.

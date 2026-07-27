@@ -460,6 +460,11 @@ manager_kernel<st, sst, cn, cs>::get_segment_size() const {
 }
 
 template <typename st, typename sst, typename cn, std::size_t cs>
+const sst &manager_kernel<st, sst, cn, cs>::get_segment_storage() const {
+  return m_segment_storage;
+}
+
+template <typename st, typename sst, typename cn, std::size_t cs>
 bool manager_kernel<st, sst, cn, cs>::read_only() const {
   return m_segment_storage.read_only();
 }

@@ -361,6 +361,10 @@ class manager_kernel {
   /// \return Returns the size of the application data segment.
   size_type get_segment_size() const;
 
+  /// \brief Get the segment storage, for backend specific telemetry.
+  /// \return Returns a reference to the segment storage.
+  const segment_storage &get_segment_storage() const;
+
   /// \brief Returns if this kernel was opened as read-only
   /// \return whether this kernel is read-only
   bool read_only() const;
