@@ -22,6 +22,77 @@ jobs:
           cd $GITHUB_WORKSPACE
           bash ./scripts/CI/run_ci_build_and_test.sh
 
+  # The Privateer segment storage. It needs a newer toolchain than the other
+  # jobs (the engine headers are C++23) and it takes its dependencies from
+  # conan, so it configures and tests directly instead of going through
+  # scripts/CI/run_ci_build_and_test.sh.
+  privateer:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 40
+    env:
+      CC: gcc-15
+      CXX: g++-15
+      # The datastores of this backend hold whole blocks per dirty block, so
+      # they are larger than the default backend's sparse files.
+      METALL_TEST_DIR: ${{ github.workspace }}/metall-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install conan
+        run: pipx install conan
+
+      - name: Detect conan profile
+        run: conan profile detect --force
+
+      - name: Cache conan packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.conan2/p
+          key: ubuntu-26.04-gcc-15-conan2-privateer-${{ github.run_id }}
+          restore-keys: ubuntu-26.04-gcc-15-conan2-privateer-
+
+      # The public tier is readable without credentials. Only the recipe is
+      # published, so the engine is built here once and then cached.
+      - name: Install Privateer
+        run: |
+          conan remote add dice-group https://conan.tentris.io/artifactory/api/conan/tentris
+          conan install --requires=privateer/0.2.0@dice-group/rewrite \
+            --build=missing -s build_type=Debug \
+            -g CMakeDeps -g CMakeToolchain -of conan-out --format=json > conan-graph.json
+          # Metall takes Boost as an include directory; this is the one the
+          # engine package already brings, so the build has a single Boost.
+          boost_pkg=$(jq -r '.graph.nodes[] | select((.ref // "") | startswith("boost/")) | .package_folder' conan-graph.json)
+          echo "BOOST_INCLUDE_ROOT=${boost_pkg}/include" >> "$GITHUB_ENV"
+
+      - name: Configure
+        run: |
+          cmake -G Ninja -B build \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_TOOLCHAIN_FILE="${PWD}/conan-out/conan_toolchain.cmake" \
+            -DUSE_PRIVATEER=ON \
+            -DBUILD_TEST=ON \
+            -DBOOST_INCLUDE_ROOT="${BOOST_INCLUDE_ROOT}"
+
+      - name: Build
+        run: cmake --build build -j$(nproc)
+
+      - name: Test
+        run: |
+          mkdir -p "${METALL_TEST_DIR}"
+          ctest --test-dir build -j$(nproc) --output-on-failure --timeout 1000
+
+      # A test that hangs or dies from a signal leaves its story in the ctest
+      # log, not in the failure summary.
+      - name: Upload the ctest log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ctest-log-privateer
+          path: |
+            build/Testing/Temporary/LastTest.log
+            build/Testing/Temporary/CTestCostData.txt
+          if-no-files-found: ignore
+
   bst1-80-0:
     runs-on: ubuntu-latest
     env:
