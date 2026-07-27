@@ -155,6 +155,8 @@ inline std::string filesystem_name(const std::filesystem::path &path) {
       return "xfs";
     case 0x9123683e:
       return "btrfs";
+    case 0x2fc12fc1:
+      return "zfs";
     case 0x6a656a63:
       return "virtiofs";
     case 0x65735546:

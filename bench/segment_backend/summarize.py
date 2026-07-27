@@ -112,21 +112,30 @@ def summarize(arms):
         deleted = [entry for entry in series if entry.get("deleted_oldest")]
         if not taken:
             continue
-        mean_seconds = sum(entry["snapshot_seconds"] for entry in taken) / len(taken)
-        mean_cost = sum(entry["filesystem_cost_bytes"] for entry in taken) / len(taken)
+        # A run from before a metric existed simply has no value for it.
+        def mean(entries, key):
+            values = [entry[key] for entry in entries if key in entry]
+            return sum(values) / len(values) if values else None
+
+        def bytes_or_dash(value):
+            return f"{value / MIB:.1f}MiB" if value is not None else "-"
+
+        def seconds_or_dash(value):
+            return f"{value:.3f}s" if value is not None else "-"
+
         rows.append([
             arm["_file"], arm_name(arm), arm.get("filesystem", "?"),
-            "clone" if arm.get("file_clone") else "copy",
+            "clone" if arm.get("file_clone") else
+            ("copy" if "file_clone" in arm else "?"),
             len(taken),
-            f"{mean_seconds:.3f}s",
-            f"{mean_cost / MIB:.1f}MiB",
-            f"{sum(entry['delete_seconds'] for entry in deleted) / len(deleted):.3f}s"
-            if deleted else "-",
-            f"{sum(entry['delete_freed_bytes'] for entry in deleted) / len(deleted) / MIB:.1f}MiB"
-            if deleted else "-",
+            seconds_or_dash(mean(taken, "snapshot_seconds")),
+            bytes_or_dash(mean(taken, "filesystem_cost_bytes")),
+            bytes_or_dash(mean(taken, "unique_allocated_bytes")),
+            seconds_or_dash(mean(deleted, "delete_seconds")),
+            bytes_or_dash(mean(deleted, "delete_freed_bytes")),
         ])
     table(["file", "arm", "fs", "clone", "snapshots", "per snapshot", "fs cost",
-           "delete", "freed"], rows)
+           "unique total", "delete", "freed"], rows)
 
 
 def main():
