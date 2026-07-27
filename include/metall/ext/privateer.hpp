@@ -46,6 +46,7 @@
 #include <utility>
 
 #include <privateer/error.hpp>
+#include <privateer/fault_handler.hpp>
 #include <privateer/region.hpp>
 #include <privateer/vm.hpp>
 
@@ -357,6 +358,22 @@ class privateer_segment_storage {
   /// segment. All zero when no segment is open.
   privateer::region_statistics statistics() const {
     return is_open() ? m_region->statistics() : privateer::region_statistics{};
+  }
+
+  /// \brief Gives the calling thread an mlocked alternate signal stack, so a
+  /// write fault is never handled on a stack page the kernel can reclaim.
+  /// The thread that opens the segment is armed by the open. Other
+  /// application threads that write to the segment arm themselves once, at
+  /// their start.
+  /// \return Return true if success; otherwise, false.
+  static bool arm_calling_thread() {
+    auto armed = privateer::arm_thread_fault_stack();
+    if (!armed) {
+      priv_log_error("Failed to arm the thread for the write barrier",
+                     armed.error());
+      return false;
+    }
+    return true;
   }
 
  private:

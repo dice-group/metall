@@ -53,6 +53,12 @@ TEST(PrivateerSegmentStorageTest, PageSize) {
   ASSERT_GT(storage.page_size(), 0);
 }
 
+TEST(PrivateerSegmentStorageTest, ArmCallingThread) {
+  // Idempotent per thread, and callable before any segment exists.
+  ASSERT_TRUE(segment_storage_type::arm_calling_thread());
+  ASSERT_TRUE(segment_storage_type::arm_calling_thread());
+}
+
 TEST(PrivateerSegmentStorageTest, Create) {
   prepare_test_dir();
   const std::size_t capacity = block_size() * 4;
