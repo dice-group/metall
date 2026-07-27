@@ -24,14 +24,15 @@
 //
 // Divergences from the default backend:
 // - The capacity is fixed when the datastore is created. A larger capacity
-//   request at open cannot be honoured, and is reported and ignored.
+//   request at open cannot be honoured; it is ignored and logged at verbose
+//   level.
 // - free_region() reclaims whole blocks. A range that covers no whole block
 //   frees nothing; the allocator reuses the space either way.
 // - A failed extend() leaves the segment as it was, so the storage stays
 //   usable instead of turning broken.
-// - sync() is the only path that makes data durable. The destructor mirrors
-//   the default backend and syncs, but metall's close() is what drives the
-//   sequence and reports failures.
+// - Data reaches the datastore only through sync(), and only sync(true)
+//   makes it durable. The destructor syncs like the default backend does,
+//   but metall's close() is what drives the sequence and reports failures.
 //
 // Datastore-wide settings (block size, hash algorithm, background
 // write-back, memory budgets) have no place in metall's manager API. An

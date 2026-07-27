@@ -309,9 +309,8 @@ function(common_setup_for_metall_executable name)
     # --------------------
 
     # ----- Privateer----- #
-    # The imported target carries its own dependencies and raises the target
-    # to the C++ standard the engine headers need.
     if (USE_PRIVATEER)
+        # The imported target carries its own dependencies.
         target_link_libraries(${name} PRIVATE privateer::privateer)
         target_compile_definitions(${name} PRIVATE METALL_USE_PRIVATEER)
     endif ()
