@@ -24,8 +24,12 @@
 #include <utility>
 #include <vector>
 
+#include <fcntl.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #ifdef __linux__
+#include <linux/fs.h>
+#include <sys/ioctl.h>
 #include <sys/statfs.h>
 #endif
 
@@ -164,6 +168,69 @@ inline std::string filesystem_name(const std::filesystem::path &path) {
 #else
   (void)path;
   return "unknown";
+#endif
+}
+
+/// \brief Whether the file system behind a directory can clone file extents.
+/// metall's snapshot asks for a clone first and copies only when that fails,
+/// so a snapshot on a copy-on-write file system shares blocks the way the
+/// block store shares them through hard links. Without this the retention
+/// numbers of the two backends are not comparable.
+inline bool supports_file_clone(const std::filesystem::path &directory) {
+#if defined(__linux__) && defined(FICLONE)
+  const std::filesystem::path source = directory / ".clone_probe_src";
+  const std::filesystem::path destination = directory / ".clone_probe_dst";
+  bool cloned = false;
+  const int src = ::open(source.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0600);
+  if (src >= 0) {
+    std::vector<char> block(4096, 'c');
+    if (::write(src, block.data(), block.size()) ==
+        static_cast<::ssize_t>(block.size())) {
+      const int dst = ::open(destination.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0600);
+      if (dst >= 0) {
+        cloned = ::ioctl(dst, FICLONE, src) != -1;
+        ::close(dst);
+      }
+    }
+    ::close(src);
+  }
+  std::error_code ec;
+  std::filesystem::remove(source, ec);
+  std::filesystem::remove(destination, ec);
+  return cloned;
+#else
+  (void)directory;
+  return false;
+#endif
+}
+
+/// \brief Free bytes of the file system behind a path. The change across a
+/// snapshot is what that snapshot really cost, whether the backend shared its
+/// blocks through a clone, through a hard link, or not at all. Block sharing
+/// makes per-file accounting overstate the cost, because a shared extent is
+/// counted in every file that maps it.
+inline std::uint64_t filesystem_free_bytes(const std::filesystem::path &path) {
+#ifdef __linux__
+  struct ::statfs info{};
+  if (::statfs(path.c_str(), &info) != 0) return 0;
+  return static_cast<std::uint64_t>(info.f_bavail) *
+         static_cast<std::uint64_t>(info.f_bsize);
+#else
+  (void)path;
+  return 0;
+#endif
+}
+
+/// \brief Flushes the file system holding a directory, so a free space reading
+/// afterwards is not short by what is still in flight.
+inline void flush_filesystem(const std::filesystem::path &directory) {
+#ifdef __linux__
+  const int fd = ::open(directory.c_str(), O_RDONLY);
+  if (fd < 0) return;
+  ::syncfs(fd);
+  ::close(fd);
+#else
+  (void)directory;
 #endif
 }
 

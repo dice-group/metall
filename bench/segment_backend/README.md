@@ -59,6 +59,9 @@ Rules for numbers that mean something:
 - `--quick` is the smoke run. It finishes in seconds and its numbers are too
   small to compare.
 
+`summarize.py results/` turns the JSON of one or more runs into the comparison
+tables: setup, load and read, the mixed phase, and the retention series.
+
 ## Phases
 
 | Phase | What it measures |
@@ -80,9 +83,20 @@ the reopen is the comparable one.
   bytes the workload dirtied. Only a block-granular backend reports it. The
   dirty side counts the stores the benchmark makes itself, not the allocator's
   own metadata writes, so the ratio is an upper bound.
+- `file_clone` says whether the file system can clone extents. metall's
+  snapshot asks for a clone first (`ioctl(FICLONE)`) and copies only when that
+  fails, so on btrfs or on xfs with reflink the default backend shares blocks
+  just like the block store's hard links, and on ext4 or on a zfs without block
+  cloning it copies the datastore. The retention numbers mean different things
+  in the two cases, which is why the flag is in the output.
+- `filesystem_cost_bytes` is the free space the file system lost across the
+  snapshot, and `delete_freed_bytes` what deleting one gave back. This is the
+  metric to compare across backends and file systems: per-file accounting
+  counts a shared extent in every file that maps it, so it overstates the cost
+  of any backend that shares blocks.
 - `unique_allocated_bytes` in the retention phase counts every file once, even
-  when several snapshots share it through a hard link. That is what makes a
-  block store snapshot series comparable to a series of copies.
+  when several snapshots share it through a hard link. It sees hard links but
+  not shared extents, so read it together with `filesystem_cost_bytes`.
 - `rss_peak_bytes` is the high water mark of the whole process, so it is a
   phase number only for the phase that reaches the peak first.
 - `engine_counters` are the privateer counters behind

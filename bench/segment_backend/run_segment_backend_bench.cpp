@@ -287,6 +287,10 @@ void run_arm(const options &opt, json_writer &json) {
   json.key_value("backend", traits::name);
   json.key_value("block_size", block_size);
   json.key_value("filesystem", filesystem_name(opt.root));
+  // On a file system that clones extents, metall's snapshot shares blocks
+  // instead of copying them, so the retention phase compares sharing against
+  // sharing. On one that does not, it compares sharing against a copy.
+  json.key_value("file_clone", supports_file_clone(opt.root));
 
   // ---- load ----
   std::optional<Manager> manager;
@@ -537,9 +541,13 @@ void run_arm(const options &opt, json_writer &json) {
                       std::to_string(index));
       std::filesystem::remove_all(snapshot);
 
+      flush_filesystem(opt.root);
+      const std::uint64_t free_before = filesystem_free_bytes(opt.root);
       auto snapshot_start = clock_type::now();
       const bool taken = manager->snapshot(snapshot.c_str());
       const double snapshot_seconds = seconds_since(snapshot_start);
+      flush_filesystem(opt.root);
+      const std::uint64_t free_after = filesystem_free_bytes(opt.root);
       series.push_back(snapshot);
 
       disk_usage total;
@@ -548,11 +556,15 @@ void run_arm(const options &opt, json_writer &json) {
 
       double delete_seconds = 0.0;
       bool deleted = false;
+      std::uint64_t freed_by_delete = 0;
       if (series.size() > opt.retain) {
         const std::filesystem::path oldest = series.front();
         const auto delete_start = clock_type::now();
         deleted = Manager::remove(oldest.c_str());
         delete_seconds = seconds_since(delete_start);
+        flush_filesystem(opt.root);
+        const std::uint64_t free_now = filesystem_free_bytes(opt.root);
+        freed_by_delete = free_now > free_after ? free_now - free_after : 0;
         series.erase(series.begin());
       }
 
@@ -560,11 +572,17 @@ void run_arm(const options &opt, json_writer &json) {
       json.key_value("index", static_cast<std::uint64_t>(index));
       json.key_value("taken", taken);
       json.key_value("snapshot_seconds", snapshot_seconds);
+      // What the snapshot really cost the file system. Per-file accounting
+      // cannot see extent sharing, so on a cloning file system it overstates
+      // the cost; this does not.
+      json.key_value("filesystem_cost_bytes",
+                     free_before > free_after ? free_before - free_after : 0);
       json.key_value("unique_allocated_bytes", total.allocated_bytes());
       json.key_value("unique_apparent_bytes", total.apparent_bytes());
       json.key_value("unique_files", total.files());
       json.key_value("deleted_oldest", deleted);
       json.key_value("delete_seconds", delete_seconds);
+      json.key_value("delete_freed_bytes", freed_by_delete);
       json.end_object();
     }
     json.end_array();
