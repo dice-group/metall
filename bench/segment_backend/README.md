@@ -97,8 +97,41 @@ the reopen is the comparable one.
 - `unique_allocated_bytes` in the retention phase counts every file once, even
   when several snapshots share it through a hard link. It sees hard links but
   not shared extents, so read it together with `filesystem_cost_bytes`.
-- `rss_peak_bytes` is the high water mark of the whole process, so it is a
-  phase number only for the phase that reaches the peak first.
+- `rss_peak_bytes` is the high water mark of the resident set. The load and the
+  mixed phase each reset it first, so each reports its own peak, and
+  `rss_peak_is_phase_local` says whether the reset worked (it needs
+  `/proc/self/clear_refs`, so Linux). `rss_bytes` is the resident size at the
+  end of the phase.
+- `rss_sampled_max_bytes` and `rss_sampled_mean_bytes` come from a sampler that
+  reads the resident size every `--rss-sample-ms` during the mixed phase. The
+  mean is what shows a resident budget holding a ceiling; a peak alone cannot
+  tell a ceiling that holds from one that is never reached.
+- `reader_p50_ns`, `reader_p99_ns` and `reader_max_ns` are the latency of the
+  mixed phase's readers, one chase in 64 timed. That sample keeps the clock
+  reads off the throughput number and still leaves tens of thousands of points.
+  This is where the cost of a resident budget shows: a swept page faults back
+  in under a reader.
 - `engine_counters` are the privateer counters behind
   `privateer::region::statistics()`: how many blocks were hashed, skipped as
-  value-identical, deduplicated, and written.
+  value-identical, deduplicated, and written, plus the write-back counters
+  `slots_cleaned`, `slots_redirtied` and `writer_stalls`.
+
+## The write-back and governor arms
+
+`--cleaner off|non_durable|eager_durable` picks the write-back mode, and the
+mode alone says little without its rate: the engine sweeps 8 slots every second
+by default, which is 16 MiB/s at a 2 MiB block and far below what a bulk load
+dirties. `--cleaner-interval-ms` and `--cleaner-batch-slots` set that rate.
+
+Two budgets drive the governor, and they are independent:
+
+- The dirty budget, `--dirty-soft`, `--dirty-low` and `--dirty-hard`. Crossing
+  the soft mark wakes the cleaner, which drains to the low mark; at the hard
+  mark a write fault waits. Read it through `writer_stalls` and the ratio of
+  `slots_redirtied` to `slots_cleaned`: a ratio near one means the budget cannot
+  hold the write working set. With `--dirty-soft 0` the cleaner runs on its
+  timer instead of on the watermark.
+- The resident budget, `--resident-soft`, `--resident-low` and
+  `--sweep-interval-ms`, Linux only. A sweep pushes clean and empty slots out
+  with `MADV_PAGEOUT`. Read it through the sampled resident mean and the reader
+  latency percentiles.

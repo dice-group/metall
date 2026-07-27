@@ -12,6 +12,7 @@
 // workload wrote, and a small JSON writer.
 
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
@@ -21,6 +22,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -94,9 +96,75 @@ inline std::uint64_t proc_status_bytes(const char *const key) {
 /// \brief Resident set size now.
 inline std::uint64_t rss_bytes() { return proc_status_bytes("VmRSS"); }
 
-/// \brief The high water mark of the resident set size. It covers the whole
-/// process life, so it is only a phase number for the first phase that runs.
+/// \brief The high water mark of the resident set size. It covers the process
+/// life since the last rss_peak_reset(), so a phase that resets it first gets
+/// its own peak.
 inline std::uint64_t rss_peak_bytes() { return proc_status_bytes("VmHWM"); }
+
+/// \brief Sets the high water mark back to the resident size now, so the next
+/// phase measures its own peak instead of the largest peak so far. Linux only;
+/// false where /proc/self/clear_refs is absent, and then rss_peak_bytes() keeps
+/// covering the whole process life.
+inline bool rss_peak_reset() {
+  std::ofstream clear_refs("/proc/self/clear_refs");
+  if (!clear_refs) return false;
+  clear_refs << "5\n";
+  return clear_refs.good();
+}
+
+/// \brief Samples the resident set size on a thread while a phase runs. A peak
+/// alone cannot tell a resident ceiling that holds from one that is never
+/// reached, because both leave the same high water mark behind: the mean over
+/// the phase is what separates them.
+class rss_sampler {
+ public:
+  /// \brief Starts sampling every \p interval. A zero interval samples
+  /// nothing, and the series stays empty.
+  explicit rss_sampler(const std::chrono::milliseconds interval)
+      : m_interval(interval) {
+    if (m_interval.count() <= 0) return;
+    m_thread = std::thread([this] {
+      while (m_run.load(std::memory_order_acquire)) {
+        const std::uint64_t rss = rss_bytes();
+        m_sum += static_cast<double>(rss);
+        ++m_count;
+        if (rss > m_max) m_max = rss;
+        std::this_thread::sleep_for(m_interval);
+      }
+    });
+  }
+
+  ~rss_sampler() { stop(); }
+
+  rss_sampler(const rss_sampler &) = delete;
+  rss_sampler &operator=(const rss_sampler &) = delete;
+
+  /// \brief Joins the sampling thread. Idempotent, and every getter below is
+  /// only valid after it.
+  void stop() {
+    if (!m_thread.joinable()) return;
+    m_run.store(false, std::memory_order_release);
+    m_thread.join();
+  }
+
+  [[nodiscard]] std::uint64_t samples() const { return m_count; }
+
+  [[nodiscard]] std::uint64_t max_bytes() const { return m_max; }
+
+  [[nodiscard]] std::uint64_t mean_bytes() const {
+    if (m_count == 0) return 0;
+    return static_cast<std::uint64_t>(m_sum / static_cast<double>(m_count));
+  }
+
+ private:
+  std::chrono::milliseconds m_interval;
+  std::atomic<bool> m_run{true};
+  std::thread m_thread{};
+  // Written by the sampling thread only, read after the join.
+  std::uint64_t m_max{0};
+  std::uint64_t m_count{0};
+  double m_sum{0.0};
+};
 
 /// \brief Bytes and files under a set of paths. Hard-linked files are counted
 /// once, which is what makes a snapshot series of a block store comparable to
