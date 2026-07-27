@@ -11,4 +11,4 @@ cmake-build-*/
 .idea
 *~
 ~*
-.vscode/
+.vscode/CMakeUserPresets.json
