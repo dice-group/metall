@@ -65,6 +65,19 @@
 #endif
 
 // --------------------
+// Macros for the Privateer segment storage
+// --------------------
+
+#ifdef DOXYGEN_SKIP
+/// \brief The block size the Privateer segment storage gives to the datastores
+/// it creates. It is the unit of write-back, so it decides how much a
+/// checkpoint writes for a given amount of changed data. A datastore keeps the
+/// block size it was created with; this value has no effect when an existing
+/// datastore is opened. Without this macro the engine default is used.
+#define METALL_PRIVATEER_BLOCK_SIZE
+#endif
+
+// --------------------
 // Macros for the segment allocator
 // --------------------
 

@@ -117,7 +117,8 @@ set(BOOST_INCLUDE_ROOT "" CACHE STRING "Path to Boost include directory. Specifi
 
 # ---------- Experimental options ---------- #
 set(UMAP_ROOT "" CACHE PATH "UMap installed root directory")
-set(PRIVATEER_ROOT "" CACHE PATH "Privateer installed root directory")
+option(USE_PRIVATEER "Store the segment in a Privateer datastore instead of in metall's own block files" OFF)
+set(PRIVATEER_ROOT "" CACHE PATH "Privateer installed root directory, searched by find_package")
 
 option(ONLY_DOWNLOAD_GTEST "Only downloading Google Test" OFF)
 option(SKIP_DOWNLOAD_GTEST "Skip downloading Google Test" OFF)
@@ -199,9 +200,18 @@ if (UMAP_ROOT)
 endif ()
 
 # ---------- Privateer ---------- #
-if (PRIVATEER_ROOT)
-    message(STATUS "Privateer Root is ${PRIVATEER_ROOT}")
-    find_library(LIBPRIVATEER NAMES privateer PATHS ${PRIVATEER_ROOT}/lib)
+if (USE_PRIVATEER)
+    # The package brings its own dependencies. PRIVATEER_ROOT is used as a
+    # search prefix; a package manager can point CMAKE_PREFIX_PATH here
+    # instead.
+    if (PRIVATEER_ROOT)
+        message(STATUS "Privateer Root is ${PRIVATEER_ROOT}")
+    endif ()
+    find_package(privateer CONFIG REQUIRED)
+    message(STATUS "Found Privateer ${privateer_VERSION}")
+    # The engine headers need a newer standard than the rest of Metall. Every
+    # target is built with it, so all of them agree.
+    set(CMAKE_CXX_STANDARD 23)
 endif ()
 
 # ---------- Boost ---------- #
@@ -299,33 +309,11 @@ function(common_setup_for_metall_executable name)
     # --------------------
 
     # ----- Privateer----- #
-    if (PRIVATEER_ROOT)
-        target_include_directories(${name} PRIVATE ${PRIVATEER_ROOT}/include)
-        if (LIBPRIVATEER)
-            # 1) Privateer Dependencies
-            FIND_PACKAGE(OpenSSL)
-            if (OpenSSL_FOUND)
-                target_link_libraries(${name} PRIVATE OpenSSL::SSL)
-                target_link_libraries(${name} PRIVATE OpenSSL::Crypto)
-            endif ()
-            target_link_libraries(${name} PRIVATE rt)
-            FIND_PACKAGE(OpenMP REQUIRED)
-            if (OpenMP_CXX_FOUND)
-                target_link_libraries(${name} PRIVATE OpenMP::OpenMP_CXX)
-            else ()
-                message(FATAL_ERROR "OpenMP is required to build Metall with Privateer")
-            endif ()
-            if (ZSTD_ROOT)
-                find_library(LIBZSTD NAMES zstd PATHS ${ZSTD_ROOT}/lib)
-                target_include_directories(${name} PRIVATE ${ZSTD_ROOT}/lib)
-                target_link_libraries(${name} PRIVATE ${LIBZSTD})
-                target_compile_definitions(${name} PRIVATE USE_COMPRESSION)
-            endif ()
-
-            # 2) Link Privateer
-            target_link_libraries(${name} PRIVATE ${LIBPRIVATEER})
-            target_compile_definitions(${name} PRIVATE METALL_USE_PRIVATEER)
-        endif ()
+    # The imported target carries its own dependencies and raises the target
+    # to the C++ standard the engine headers need.
+    if (USE_PRIVATEER)
+        target_link_libraries(${name} PRIVATE privateer::privateer)
+        target_compile_definitions(${name} PRIVATE METALL_USE_PRIVATEER)
     endif ()
     # --------------------
 endfunction()
