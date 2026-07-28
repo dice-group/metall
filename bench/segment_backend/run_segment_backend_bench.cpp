@@ -24,6 +24,7 @@
 // nothing.
 
 #include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -65,9 +66,21 @@ struct options {
   std::uint32_t retain = 4;
   std::uint64_t block_size = 0;  // 0 keeps the engine default
   std::string cleaner = "off";
+  // Cadence and batch size of the background sweep; 0 keeps the engine
+  // default. They set the write-back rate, so a mode alone says little: the
+  // engine default of 8 slots every second is 16 MiB/s at a 2 MiB block, far
+  // below what a bulk load dirties.
+  std::uint64_t cleaner_interval_ms = 0;
+  std::uint64_t cleaner_batch_slots = 0;
   std::uint64_t dirty_soft = 0;
   std::uint64_t dirty_low = 0;
   std::uint64_t dirty_hard = 0;
+  std::uint64_t resident_soft = 0;
+  std::uint64_t resident_low = 0;
+  std::uint64_t sweep_interval_ms = 0;  // 0 keeps the engine default
+  // Cadence of the resident-size sampler over the mixed phase; 0 samples
+  // nothing.
+  std::uint64_t rss_sample_ms = 20;
   std::string json_path{};
 };
 
@@ -110,9 +123,23 @@ struct backend_traits<metall::manager_privateer> {
     auto &engine = metall::privateer_segment_storage::options();
     if (opt.block_size != 0) engine.block_size = opt.block_size;
     engine.cleaner.mode = cleaner_mode_of(opt.cleaner);
+    if (opt.cleaner_interval_ms != 0) {
+      engine.cleaner.interval =
+          std::chrono::milliseconds{opt.cleaner_interval_ms};
+    }
+    if (opt.cleaner_batch_slots != 0) {
+      engine.cleaner.batch_slots =
+          static_cast<std::size_t>(opt.cleaner_batch_slots);
+    }
     engine.governor.dirty_soft = opt.dirty_soft;
     engine.governor.dirty_low = opt.dirty_low;
     engine.governor.dirty_hard = opt.dirty_hard;
+    engine.governor.resident_soft = opt.resident_soft;
+    engine.governor.resident_low = opt.resident_low;
+    if (opt.sweep_interval_ms != 0) {
+      engine.governor.sweep_interval =
+          std::chrono::milliseconds{opt.sweep_interval_ms};
+    }
   }
 
   static void arm_thread() {
@@ -302,6 +329,12 @@ void run_arm(const options &opt, json_writer &json) {
   }
   page_map load_pages(manager->get_address(), opt.capacity, page);
 
+  // Each phase measures its own resident peak. Without the reset the peak of
+  // the largest phase, which is the load, would be reported for every phase
+  // after it, and a resident ceiling that holds during the mixed phase would
+  // be invisible.
+  const bool phase_local_peak = rss_peak_reset();
+
   auto start = clock_type::now();
   const build_result built =
       node_graph<Manager>::build(*manager, opt.graph, load_pages);
@@ -326,6 +359,8 @@ void run_arm(const options &opt, json_writer &json) {
   json.key_value("pages_out_of_range", load_pages.out_of_range());
   json.key_value("blocks_touched", load_pages.blocks(block_size));
   json.key_value("rss_peak_bytes", rss_peak_bytes());
+  json.key_value("rss_bytes", rss_bytes());
+  json.key_value("rss_peak_is_phase_local", phase_local_peak);
   json.key_value("sane", load_sane);
   write_store_size(json, "store", measure_store(datastore));
   write_statistics(json, read_statistics(*manager));
@@ -363,9 +398,22 @@ void run_arm(const options &opt, json_writer &json) {
 
   // ---- mixed: readers, a path-copying writer, a collector, checkpoints ----
   if (opt.updates > 0) {
+    // A phase of its own for the resident peak, and a sampler for the resident
+    // size over it, because a governor that trims holds a ceiling rather than
+    // lowering a peak that was already reached.
+    rss_peak_reset();
+    rss_sampler mixed_rss(std::chrono::milliseconds{
+        static_cast<long>(opt.rss_sample_ms)});
+
     std::atomic<bool> readers_run{true};
     std::atomic<std::uint64_t> reader_ops{0};
     std::atomic<std::uint64_t> reader_bad{0};
+    // One chase in reader_latency_stride is timed. Timing every chase would
+    // cost two clock reads on an operation of a few hundred nanoseconds and
+    // would move the throughput this phase reports; a sample this dense still
+    // leaves tens of thousands of points for the percentiles.
+    constexpr std::uint64_t reader_latency_stride = 64;
+    std::vector<std::vector<double>> reader_samples(opt.readers);
     std::vector<std::thread> readers;
     readers.reserve(opt.readers);
     for (std::uint32_t index = 0; index < opt.readers; ++index) {
@@ -374,8 +422,17 @@ void run_arm(const options &opt, json_writer &json) {
         std::uint64_t bad = 0;
         std::uint64_t ops = 0;
         std::uint64_t sink = 0;
+        std::vector<double> &samples = reader_samples[index];
         while (readers_run.load(std::memory_order_acquire)) {
-          sink += reopened.chase(rng, bad);
+          if (ops % reader_latency_stride == 0) {
+            const auto op_start = clock_type::now();
+            sink += reopened.chase(rng, bad);
+            samples.push_back(std::chrono::duration<double, std::nano>(
+                                  clock_type::now() - op_start)
+                                  .count());
+          } else {
+            sink += reopened.chase(rng, bad);
+          }
           ++ops;
         }
         reader_ops.fetch_add(ops, std::memory_order_relaxed);
@@ -456,6 +513,12 @@ void run_arm(const options &opt, json_writer &json) {
     collector.join();
     readers_run.store(false, std::memory_order_release);
     for (auto &reader : readers) reader.join();
+    mixed_rss.stop();
+
+    latency_series reader_latencies;
+    for (const std::vector<double> &samples : reader_samples) {
+      for (const double sample : samples) reader_latencies.add(sample);
+    }
 
     latency_series checkpoint_latencies(checkpoints.size());
     std::uint64_t written_total = 0;
@@ -487,6 +550,13 @@ void run_arm(const options &opt, json_writer &json) {
                        : 0.0);
     json.key_value("reader_bad_nodes",
                    reader_bad.load(std::memory_order_relaxed));
+    // Reader latency while the writer commits and the governor trims. This is
+    // what a resident budget costs a reader: a swept page faults back in.
+    json.key_value("reader_latency_samples",
+                   static_cast<std::uint64_t>(reader_latencies.count()));
+    json.key_value("reader_p50_ns", reader_latencies.quantile(0.50));
+    json.key_value("reader_p99_ns", reader_latencies.quantile(0.99));
+    json.key_value("reader_max_ns", reader_latencies.quantile(1.0));
     json.key_value("checkpoints", static_cast<std::uint64_t>(checkpoints.size()));
     json.key_value("checkpoint_p50_seconds", checkpoint_latencies.quantile(0.5));
     json.key_value("checkpoint_p99_seconds",
@@ -511,6 +581,10 @@ void run_arm(const options &opt, json_writer &json) {
       }
     }
     json.key_value("rss_peak_bytes", rss_peak_bytes());
+    json.key_value("rss_bytes", rss_bytes());
+    json.key_value("rss_samples", mixed_rss.samples());
+    json.key_value("rss_sampled_max_bytes", mixed_rss.max_bytes());
+    json.key_value("rss_sampled_mean_bytes", mixed_rss.mean_bytes());
     write_store_size(json, "store", measure_store(datastore));
     write_statistics(json, read_statistics(*manager));
     json.begin_array("checkpoint_samples");
@@ -637,7 +711,12 @@ void print_usage() {
          "  --retain <n>              snapshots kept before the oldest goes\n"
          "  --block-size <bytes>      privateer arm, 0 keeps the default\n"
          "  --cleaner off|non_durable|eager_durable\n"
+         "  --cleaner-interval-ms <n>  sweep cadence, 0 the default\n"
+         "  --cleaner-batch-slots <n>  slots per batch, 0 the default\n"
          "  --dirty-soft/--dirty-low/--dirty-hard <bytes>\n"
+         "  --resident-soft/--resident-low <bytes>  resident budget, Linux\n"
+         "  --sweep-interval-ms <n>   resident sweep cadence, 0 the default\n"
+         "  --rss-sample-ms <n>       resident sampling in the mixed phase\n"
          "  --seed <n>                workload seed\n"
          "  --json <file>             write the results there, - for stdout\n"
          "  --quick                   small sizes, for a smoke run\n";
@@ -688,12 +767,24 @@ int main(int argc, char **argv) {
       opt.block_size = parse_size(value());
     } else if (flag == "--cleaner") {
       opt.cleaner = value();
+    } else if (flag == "--cleaner-interval-ms") {
+      opt.cleaner_interval_ms = parse_size(value());
+    } else if (flag == "--cleaner-batch-slots") {
+      opt.cleaner_batch_slots = parse_size(value());
     } else if (flag == "--dirty-soft") {
       opt.dirty_soft = parse_size(value());
     } else if (flag == "--dirty-low") {
       opt.dirty_low = parse_size(value());
     } else if (flag == "--dirty-hard") {
       opt.dirty_hard = parse_size(value());
+    } else if (flag == "--resident-soft") {
+      opt.resident_soft = parse_size(value());
+    } else if (flag == "--resident-low") {
+      opt.resident_low = parse_size(value());
+    } else if (flag == "--sweep-interval-ms") {
+      opt.sweep_interval_ms = parse_size(value());
+    } else if (flag == "--rss-sample-ms") {
+      opt.rss_sample_ms = parse_size(value());
     } else if (flag == "--json") {
       opt.json_path = value();
     } else if (flag == "--quick") {
@@ -748,6 +839,14 @@ int main(int argc, char **argv) {
   json.key_value("snapshots", static_cast<std::uint64_t>(opt.snapshots));
   json.key_value("retain", static_cast<std::uint64_t>(opt.retain));
   json.key_value("cleaner", opt.cleaner);
+  json.key_value("cleaner_interval_ms", opt.cleaner_interval_ms);
+  json.key_value("cleaner_batch_slots", opt.cleaner_batch_slots);
+  json.key_value("dirty_soft", opt.dirty_soft);
+  json.key_value("dirty_low", opt.dirty_low);
+  json.key_value("dirty_hard", opt.dirty_hard);
+  json.key_value("resident_soft", opt.resident_soft);
+  json.key_value("resident_low", opt.resident_low);
+  json.key_value("sweep_interval_ms", opt.sweep_interval_ms);
   json.key_value("hardware_threads",
                  static_cast<std::uint64_t>(std::thread::hardware_concurrency()));
   // Two arms in one process are a smoke run, not a comparison: the first arm
