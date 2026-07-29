@@ -34,7 +34,8 @@ inline value<allocator_type> parse(std::string_view input_json_string,
                                    const allocator_type &allocator)
 #endif
 {
-  bj::error_code ec;
+  // Boost 1.87 removed boost::json::error_code, an alias of this type.
+  boost::system::error_code ec;
   auto bj_value = bj::parse(input_json_string.data(), ec);
   if (ec) {
     std::cerr << "Failed to parse: " << ec.message() << std::endl;

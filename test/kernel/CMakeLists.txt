@@ -33,4 +33,8 @@ add_metall_test_executable(multimanager_test multimanager_test.cpp)
 
 add_metall_test_executable(segment_storage_test segment_storage_test.cpp)
 
+if (USE_PRIVATEER)
+    add_metall_test_executable(privateer_segment_storage_test privateer_segment_storage_test.cpp)
+endif ()
+
 add_metall_test_executable(object_attribute_accessor_test object_attribute_accessor_test.cpp)
