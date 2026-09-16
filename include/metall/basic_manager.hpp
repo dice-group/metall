@@ -173,6 +173,27 @@ class basic_manager {
     }
   }
 
+  /// \brief Opens an existing data store.
+  /// \param base_path Path to a data store.
+  /// \param capacity Total allocation size. Metall uses this value as a hint.
+  /// The actual limit could be smaller or larger than this value, depending on
+  /// the internal implementation. The gap between the hint and the actual limit
+  /// will be reasonable (e.g., less than a few chunk sizes).
+  /// The value has the same meaning as the capacity given at creation and
+  /// determines the size of the virtual address space reserved for the
+  /// segment.
+  basic_manager(open_only_t, const path_type &base_path,
+                const size_type capacity) noexcept {
+    try {
+      m_kernel = std::make_unique<manager_kernel_type>();
+      m_kernel->open(base_path, capacity);
+    } catch (...) {
+      m_kernel.reset(nullptr);
+      logger::out(logger::level::error, __FILE__, __LINE__,
+                  "An exception has been thrown");
+    }
+  }
+
   /// \brief Opens an existing data store with the read only mode.
   /// Write accesses will cause segmentation fault.
   /// \param base_path Path to a data store.
