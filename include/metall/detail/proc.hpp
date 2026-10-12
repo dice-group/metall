@@ -50,13 +50,14 @@ inline unsigned int get_num_cpus() {
 }
 
 /// \brief Returns the number of the logical CPU cores the calling thread may
-/// run on. On Linux, this is the CPU count of the affinity mask of the calling
-/// thread. Elsewhere, it is std::thread::hardware_concurrency().
+/// run on. On Linux with `_GNU_SOURCE`, this is the CPU count of the affinity
+/// mask of the calling thread. Elsewhere, or if `sched_getaffinity` fails, it
+/// is `std::thread::hardware_concurrency()`.
 /// \return The number of CPUs. At least 1.
 inline unsigned int get_num_available_cpus() {
 #if defined(__linux__) && defined(_GNU_SOURCE)
-  // cpu_set_t holds 1024 CPUs. On a system with more CPUs the call fails and
-  // the function falls back to std::thread::hardware_concurrency().
+  // `cpu_set_t` holds 1024 CPUs. On a system with more CPUs the call fails and
+  // the function falls back to `std::thread::hardware_concurrency()`.
   cpu_set_t cpu_set;
   CPU_ZERO(&cpu_set);
   if (::sched_getaffinity(0, sizeof(cpu_set), &cpu_set) == 0) {

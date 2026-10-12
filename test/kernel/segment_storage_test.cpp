@@ -9,7 +9,7 @@
 #include <string>
 #include <thread>
 
-#ifdef __linux__
+#if defined(__linux__) && defined(_GNU_SOURCE)
 #include <sched.h>
 #endif
 
@@ -185,8 +185,8 @@ TEST(MultifileSegmentStorageTest, Sync) {
   }
 }
 
-#ifdef __linux__
-// The sync starts at most as many threads as CPUs the process may run on.
+#if defined(__linux__) && defined(_GNU_SOURCE)
+// The sync starts at most as many threads as CPUs the calling thread may run on.
 // The test runs in its own thread with a one-CPU affinity mask and reads the
 // thread count from the verbose log of the sync.
 TEST(MultifileSegmentStorageTest, SyncThreadsCappedByAffinity) {

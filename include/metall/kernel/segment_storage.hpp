@@ -788,7 +788,8 @@ class segment_storage {
       }
     };
 
-    // At most one thread per CPU the process may run on and per block.
+    // At most one thread per block and per CPU the calling thread may run on.
+    // The started threads inherit the affinity mask of the calling thread.
     const auto num_threads =
         std::min(m_block_fd_list.size(),
                  (std::size_t)mdtl::get_num_available_cpus());
