@@ -999,9 +999,14 @@ class basic_manager {
   /// The destruction of the manager closes the datastore with a synchronous
   /// flush of the whole segment. This function closes it without that flush.
   /// It still writes the management data and marks the datastore as properly
-  /// closed. Call it only after flush(true), with no write to the allocated
-  /// memory since then. After the call, the manager is closed and
-  /// check_sanity() returns false.
+  /// closed. Call it only after `flush(true)`, with no write to the allocated
+  /// memory since then.
+  /// `flush()` reports no failure, so this function creates the mark also
+  /// after a failed flush.
+  /// After the call, the manager is closed and `check_sanity()` returns false.
+  /// With `METALL_USE_ANONYMOUS_NEW_MAP`, call `flush(true)` twice after the
+  /// last allocation. The first flush writes a new block to its file but does
+  /// not sync the file.
   /// \return Returns true if the datastore was closed and marked as properly
   /// closed; otherwise, returns false.
   bool close_without_flush() noexcept {

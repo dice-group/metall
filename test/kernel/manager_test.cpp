@@ -1519,6 +1519,49 @@ TEST(ManagerTest, Description) {
   }
 }
 
+TEST(ManagerTest, CloseWithoutFlush) {
+  manager_type::remove(dir_path());
+
+  // The destruction closes the datastore with a sync of the segment, also
+  // right after a flush.
+  {
+    const auto num_syncs = count_segment_syncs([]() {
+      manager_type manager(metall::create_only, dir_path(), 1UL << 30UL);
+      ASSERT_NE(manager.construct<int>("int")(10), nullptr);
+      manager.flush(true);
+    });
+    ASSERT_EQ(num_syncs, 2U);
+  }
+  ASSERT_TRUE(manager_type::consistent(dir_path()));
+
+  // `close_without_flush()` leaves out the sync of the segment.
+  {
+    const auto num_syncs = count_segment_syncs([]() {
+      manager_type manager(metall::open_only, dir_path());
+      auto *const value = manager.find<int>("int").first;
+      ASSERT_NE(value, nullptr);
+      *value = 20;
+      ASSERT_NE(manager.construct<int>("int2")(30), nullptr);
+      manager.flush(true);
+      ASSERT_TRUE(manager.close_without_flush());
+      ASSERT_FALSE(manager.check_sanity());
+      ASSERT_FALSE(manager.close_without_flush());
+    });
+    ASSERT_EQ(num_syncs, 1U);
+  }
+  ASSERT_TRUE(manager_type::consistent(dir_path()));
+
+  {
+    manager_type manager(metall::open_read_only, dir_path());
+    auto *const value = manager.find<int>("int").first;
+    ASSERT_NE(value, nullptr);
+    ASSERT_EQ(*value, 20);
+    auto *const value2 = manager.find<int>("int2").first;
+    ASSERT_NE(value2, nullptr);
+    ASSERT_EQ(*value2, 30);
+  }
+}
+
 TEST(ManagerTest, CheckSanity) {
   // This test should be run at the end of this execution unless reset the
   // values below:
@@ -1538,45 +1581,6 @@ TEST(ManagerTest, CheckSanity) {
     ASSERT_FALSE(bad_manager->check_sanity());
     ASSERT_TRUE(bad_manager->read_only());
     delete bad_manager;
-  }
-}
-
-TEST(ManagerTest, CloseWithoutFlush) {
-  manager_type::remove(dir_path());
-
-  // The destruction closes the datastore with a sync of the segment, also
-  // right after a flush.
-  {
-    const auto num_syncs = count_segment_syncs([]() {
-      manager_type manager(metall::create_only, dir_path(), 1UL << 30UL);
-      ASSERT_NE(manager.construct<int>("int")(10), nullptr);
-      manager.flush(true);
-    });
-    ASSERT_EQ(num_syncs, 2U);
-  }
-  ASSERT_TRUE(manager_type::consistent(dir_path()));
-
-  // close_without_flush() leaves out the sync of the segment.
-  {
-    const auto num_syncs = count_segment_syncs([]() {
-      manager_type manager(metall::open_only, dir_path());
-      auto *const value = manager.find<int>("int").first;
-      ASSERT_NE(value, nullptr);
-      *value = 20;
-      manager.flush(true);
-      ASSERT_TRUE(manager.close_without_flush());
-      ASSERT_FALSE(manager.check_sanity());
-      ASSERT_FALSE(manager.close_without_flush());
-    });
-    ASSERT_EQ(num_syncs, 1U);
-  }
-  ASSERT_TRUE(manager_type::consistent(dir_path()));
-
-  {
-    manager_type manager(metall::open_read_only, dir_path());
-    auto *const value = manager.find<int>("int").first;
-    ASSERT_NE(value, nullptr);
-    ASSERT_EQ(*value, 20);
   }
 }
 }  // namespace

@@ -212,8 +212,8 @@ class manager_kernel {
 
   /// \brief Closes the datastore without the sync of the segment.
   /// Serializes the management data and creates the properly-closed mark only
-  /// if that succeeded. The segment is not synced. The caller must have
-  /// flushed the segment with flush(true) after its last write to it.
+  /// if that succeeded. The caller must have synced the segment with
+  /// `flush(true)` after its last write to it.
   /// Expect to be called by a single thread
   /// \return Returns true if the management data was persisted; otherwise,
   /// returns false. On false, no properly-closed mark is created.

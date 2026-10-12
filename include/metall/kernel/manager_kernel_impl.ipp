@@ -959,7 +959,6 @@ bool manager_kernel<st, sst, cn, cs>::priv_create(
   return true;
 }
 
-// ---------- For serializing/deserializing ---------- //
 template <typename st, typename sst, typename cn, std::size_t cs>
 bool manager_kernel<st, sst, cn, cs>::priv_close(const bool sync_segment) {
   if (!m_segment_storage.is_open()) {
@@ -996,6 +995,7 @@ bool manager_kernel<st, sst, cn, cs>::priv_close(const bool sync_segment) {
   return success;
 }
 
+// ---------- For serializing/deserializing ---------- //
 template <typename st, typename sst, typename cn, std::size_t cs>
 bool manager_kernel<st, sst, cn, cs>::priv_serialize_management_data() {
   priv_check_sanity();
