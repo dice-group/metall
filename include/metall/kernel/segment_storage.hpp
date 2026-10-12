@@ -17,6 +17,7 @@
 #include "metall/detail/file.hpp"
 #include "metall/detail/file_clone.hpp"
 #include "metall/detail/mmap.hpp"
+#include "metall/detail/proc.hpp"
 #include "metall/detail/utilities.hpp"
 #include "metall/logger.hpp"
 #include "metall/kernel/storage.hpp"
@@ -787,21 +788,27 @@ class segment_storage {
       }
     };
 
+    // At most one thread per CPU the process may run on and per block.
     const auto num_threads =
-        (int)std::min(m_block_fd_list.size(),
-                      (std::size_t)std::thread::hardware_concurrency());
+        std::min(m_block_fd_list.size(),
+                 (std::size_t)mdtl::get_num_available_cpus());
     {
       std::stringstream ss;
       ss << "Sync files with " << num_threads << " threads";
       logger::out(logger::level::verbose, __FILE__, __LINE__, ss.str().c_str());
     }
-    std::vector<std::unique_ptr<std::thread>> threads(num_threads);
-    for (auto &th : threads) {
-      th = std::make_unique<std::thread>(diff_sync);
-    }
+    if (num_threads <= 1) {
+      // The calling thread syncs all blocks. No thread is started.
+      diff_sync();
+    } else {
+      std::vector<std::unique_ptr<std::thread>> threads(num_threads);
+      for (auto &th : threads) {
+        th = std::make_unique<std::thread>(diff_sync);
+      }
 
-    for (auto &th : threads) {
-      th->join();
+      for (auto &th : threads) {
+        th->join();
+      }
     }
 
     return num_successes == m_block_fd_list.size();
