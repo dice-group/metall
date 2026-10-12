@@ -6,11 +6,8 @@
 #include "gtest/gtest.h"
 
 #include <filesystem>
-#include <sstream>
-#include <string>
 #include <unordered_set>
 #include <cstdint>
-
 #include <unistd.h>
 
 #include <metall/metall.hpp>
@@ -34,28 +31,6 @@ constexpr std::size_t k_min_object_size = object_size_mngr::at(0);
 const fs::path &dir_path() {
   const static fs::path path(test_utility::make_test_path());
   return path;
-}
-
-// Runs `func` with the logger at the verbose level and returns the number of
-// syncs of the application data segment that the logger reports.
-template <typename func_type>
-std::size_t count_segment_syncs(func_type func) {
-  std::stringstream captured;
-  auto *const cerr_buf = std::cerr.rdbuf(captured.rdbuf());
-  const auto log_level = metall::logger::log_level();
-  metall::logger::set_log_level(metall::logger::level_filter::verbose);
-  func();
-  metall::logger::set_log_level(log_level);
-  std::cerr.rdbuf(cerr_buf);
-
-  const std::string log = captured.str();
-  const std::string line = "msync() for the application data segment";
-  std::size_t count = 0;
-  for (auto pos = log.find(line); pos != std::string::npos;
-       pos = log.find(line, pos + line.size())) {
-    ++count;
-  }
-  return count;
 }
 
 TEST(ManagerTest, CreateAndOpenModes) {
@@ -1520,98 +1495,6 @@ TEST(ManagerTest, Description) {
     ASSERT_TRUE(manager.get_description(&description));
     ASSERT_STREQ(description.c_str(), "description2");
   }
-}
-
-TEST(ManagerTest, Close) {
-  manager_type::remove(dir_path());
-
-  // `close()` closes the datastore with a sync of the segment.
-  {
-    const auto num_syncs = count_segment_syncs([]() {
-      manager_type manager(metall::create_only, dir_path(), 1UL << 30UL);
-      ASSERT_NE(manager.construct<int>("int")(10), nullptr);
-      ASSERT_TRUE(manager.close());
-      ASSERT_FALSE(manager.check_sanity());
-      ASSERT_FALSE(manager.close());
-    });
-    ASSERT_EQ(num_syncs, 1U);
-  }
-  ASSERT_TRUE(manager_type::consistent(dir_path()));
-
-  {
-    manager_type manager(metall::open_read_only, dir_path());
-    auto *const value = manager.find<int>("int").first;
-    ASSERT_NE(value, nullptr);
-    ASSERT_EQ(*value, 10);
-  }
-}
-
-TEST(ManagerTest, CloseSkipFlush) {
-  manager_type::remove(dir_path());
-
-  // The destruction closes the datastore with a sync of the segment, also
-  // right after a flush.
-  {
-    const auto num_syncs = count_segment_syncs([]() {
-      manager_type manager(metall::create_only, dir_path(), 1UL << 30UL);
-      ASSERT_NE(manager.construct<int>("int")(10), nullptr);
-      manager.flush(true);
-    });
-    ASSERT_EQ(num_syncs, 2U);
-  }
-  ASSERT_TRUE(manager_type::consistent(dir_path()));
-
-  // `close(metall::skip_flush)` leaves out the sync of the segment.
-  {
-    const auto num_syncs = count_segment_syncs([]() {
-      manager_type manager(metall::open_only, dir_path());
-      auto *const value = manager.find<int>("int").first;
-      ASSERT_NE(value, nullptr);
-      *value = 20;
-      ASSERT_NE(manager.construct<int>("int2")(30), nullptr);
-      manager.flush(true);
-      ASSERT_TRUE(manager.close(metall::skip_flush));
-      ASSERT_FALSE(manager.check_sanity());
-      ASSERT_FALSE(manager.close(metall::skip_flush));
-    });
-    ASSERT_EQ(num_syncs, 1U);
-  }
-  ASSERT_TRUE(manager_type::consistent(dir_path()));
-
-  {
-    manager_type manager(metall::open_read_only, dir_path());
-    auto *const value = manager.find<int>("int").first;
-    ASSERT_NE(value, nullptr);
-    ASSERT_EQ(*value, 20);
-    auto *const value2 = manager.find<int>("int2").first;
-    ASSERT_NE(value2, nullptr);
-    ASSERT_EQ(*value2, 30);
-  }
-}
-
-TEST(ManagerTest, CloseSkipFlushAfterFailedExtension) {
-  if (::geteuid() == 0) {
-    GTEST_SKIP() << "Runs as root, permissions do not restrict writes";
-  }
-  manager_type::remove(dir_path());
-
-  // The extension of the segment cannot create the file of a new block. It
-  // releases the segment, but the manager stays sane.
-  const auto segment_dir = dir_path() / "mds" / "segment";
-  {
-    manager_type manager(metall::create_only, dir_path(), 1UL << 30UL);
-    ASSERT_TRUE(manager.check_sanity());
-
-    fs::permissions(segment_dir,
-                    fs::perms::owner_read | fs::perms::owner_exec);
-    void *const addr = manager.allocate(2 * METALL_SEGMENT_BLOCK_SIZE);
-    fs::permissions(segment_dir, fs::perms::owner_all);
-    ASSERT_EQ(addr, nullptr);
-    ASSERT_TRUE(manager.check_sanity());
-
-    ASSERT_FALSE(manager.close(metall::skip_flush));
-  }
-  ASSERT_FALSE(manager_type::consistent(dir_path()));
 }
 
 // Checks whether the kernel can write to `addr`, without changing the value.

@@ -1037,66 +1037,6 @@ class basic_manager {
     return true;
   }
 
-  // ---------- Close ---------- //
-  /// \brief Closes the datastore with a synchronous flush of the application
-  /// data segment.
-  /// \copydoc doc_single_thread
-  ///
-  /// \details
-  /// The destruction of the manager closes the datastore in the same way, but
-  /// it does not report the result. This function writes the management data,
-  /// flushes the segment and marks the datastore as properly closed. After the
-  /// call, the manager is closed and `check_sanity()` returns false.
-  /// \return Returns true if the datastore was closed and marked as properly
-  /// closed; otherwise, returns false.
-  bool close() noexcept {
-    if (!check_sanity()) {
-      return false;
-    }
-    bool ret = false;
-    try {
-      ret = m_kernel->close();
-    } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
-    }
-    m_kernel.reset(nullptr);
-    return ret;
-  }
-
-  /// \brief Closes the datastore without the flush of the application data
-  /// segment.
-  /// \copydoc doc_single_thread
-  ///
-  /// \details
-  /// `close()` and the destruction of the manager close the datastore with a
-  /// synchronous flush of the whole segment. This function closes it without
-  /// that flush. It still writes the management data and marks the datastore
-  /// as properly closed. After the call, the manager is closed and
-  /// `check_sanity()` returns false.
-  ///
-  /// Call it only after `flush(true)`, with no write to the allocated memory
-  /// since then. With `METALL_USE_ANONYMOUS_NEW_MAP`, call `flush(true)` twice
-  /// after the last allocation. The first flush writes a new block to its file
-  /// but does not sync the file. `flush()` reports no failure, so this
-  /// function can create the mark also after a failed flush.
-  /// \return Returns true if the datastore was closed and marked as properly
-  /// closed; otherwise, returns false.
-  bool close(skip_flush_t) noexcept {
-    if (!check_sanity()) {
-      return false;
-    }
-    bool ret = false;
-    try {
-      ret = m_kernel->close_without_flush();
-    } catch (...) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "An exception has been thrown");
-    }
-    m_kernel.reset(nullptr);
-    return ret;
-  }
-
   // -------- Snapshot, copy, data store management -------- //
   /// \brief Takes a snapshot of the current data. The snapshot has a new UUID.
   /// \copydoc doc_single_thread

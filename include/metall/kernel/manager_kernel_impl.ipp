@@ -57,12 +57,36 @@ bool manager_kernel<st, sst, cn, cs>::open(
 
 template <typename st, typename sst, typename cn, std::size_t cs>
 bool manager_kernel<st, sst, cn, cs>::close() {
-  return priv_close(true);
-}
+  if (!m_segment_storage.is_open()) {
+    return true;
+  }
 
-template <typename st, typename sst, typename cn, std::size_t cs>
-bool manager_kernel<st, sst, cn, cs>::close_without_flush() {
-  return priv_close(false);
+  priv_check_sanity();
+  const bool read_only = m_segment_storage.read_only();
+
+  bool success = true;
+  if (!read_only) {
+    success &= priv_serialize_management_data();
+    success &= m_segment_storage.sync(true);
+  }
+
+  m_good = false;
+  success &= m_segment_storage.release();
+
+  if (!read_only) {
+    if (success) {
+      success &= m_properly_closed_mark.mark_properly_closed();
+    } else {
+      // Some data may not have reached disk. Without the mark the next open
+      // reports the datastore as inconsistent instead of silently using it.
+      logger::out(logger::level::error, __FILE__, __LINE__,
+                  "Failed to persist the datastore on close; "
+                  "the properly-closed mark is not created");
+    }
+  }
+  m_properly_closed_mark.release();
+
+  return success;
 }
 
 template <typename st, typename sst, typename cn, std::size_t cs>
@@ -968,44 +992,6 @@ bool manager_kernel<st, sst, cn, cs>::priv_create(
   }
 
   return true;
-}
-
-template <typename st, typename sst, typename cn, std::size_t cs>
-bool manager_kernel<st, sst, cn, cs>::priv_close(const bool sync_segment) {
-  if (!m_segment_storage.is_open()) {
-    // A failed extension of the segment or a failed sync of an anonymous
-    // block releases the segment and marks it as broken.
-    return m_segment_storage.check_sanity();
-  }
-
-  priv_check_sanity();
-  const bool read_only = m_segment_storage.read_only();
-
-  bool success = true;
-  if (!read_only) {
-    success &= priv_serialize_management_data();
-    if (sync_segment) {
-      success &= m_segment_storage.sync(true);
-    }
-  }
-
-  m_good = false;
-  success &= m_segment_storage.release();
-
-  if (!read_only) {
-    if (success) {
-      success &= m_properly_closed_mark.mark_properly_closed();
-    } else {
-      // Some data may not have reached disk. Without the mark the next open
-      // reports the datastore as inconsistent instead of silently using it.
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Failed to persist the datastore on close; "
-                  "the properly-closed mark is not created");
-    }
-  }
-  m_properly_closed_mark.release();
-
-  return success;
 }
 
 // ---------- For serializing/deserializing ---------- //
