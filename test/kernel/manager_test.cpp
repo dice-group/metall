@@ -1495,6 +1495,27 @@ TEST(ManagerTest, Description) {
   }
 }
 
+TEST(ManagerTest, WriteProtectionDuringSync) {
+  manager_type::remove(dir_path());
+  manager_type manager(metall::create_only, dir_path());
+
+  ASSERT_TRUE(manager.write_protection_during_sync());
+
+  int *const value = manager.construct<int>("int")(10);
+  ASSERT_NE(value, nullptr);
+
+  manager.set_write_protection_during_sync(false);
+  ASSERT_FALSE(manager.write_protection_during_sync());
+  manager.flush(true);
+  ASSERT_EQ(*value, 10);
+  *value = 20;
+
+  manager.set_write_protection_during_sync(true);
+  ASSERT_TRUE(manager.write_protection_during_sync());
+  manager.flush(true);
+  ASSERT_EQ(*value, 20);
+}
+
 TEST(ManagerTest, CheckSanity) {
   // This test should be run at the end of this execution unless reset the
   // values below:
