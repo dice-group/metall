@@ -229,8 +229,8 @@ class segment_storage {
 
   /// \brief Checks whether a sync sets the segment to read only during the
   /// msync.
-  /// \return Returns true if a sync changes the protection of the segment;
-  /// otherwise, returns false.
+  /// \return Returns true if a sync changes the protection of the segment,
+  /// false if not.
   bool write_protection_during_sync() const {
     return m_write_protection_during_sync;
   }

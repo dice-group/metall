@@ -990,8 +990,9 @@ class basic_manager {
     }
   }
 
-  /// \brief Sets whether a flush sets the whole segment to read only during
-  /// the msync and back to read write after it.
+  /// \brief Sets whether a sync of the segment (a flush, a snapshot or the
+  /// close of the manager) sets the whole segment to read only during the
+  /// msync and back to read write after it.
   /// \copydoc doc_single_thread
   ///
   /// \details
@@ -1001,9 +1002,10 @@ class basic_manager {
   /// device. With `METALL_USE_ANONYMOUS_NEW_MAP`, a write to a block after the
   /// copy of the block to its file and before the new file mapping of the
   /// block is lost. Each protection change walks the page tables of the whole
-  /// segment. The default is on.
+  /// segment. The default is on. The setting belongs to this manager object
+  /// and is not stored in the datastore.
   ///
-  /// \param on If true, a flush changes the protection of the segment.
+  /// \param on If true, a sync of the segment changes its protection.
   void set_write_protection_during_sync(const bool on) noexcept {
     if (!check_sanity()) {
       return;
@@ -1016,12 +1018,12 @@ class basic_manager {
     }
   }
 
-  /// \brief Checks whether a flush sets the segment to read only during the
-  /// msync.
+  /// \brief Checks whether a sync of the segment sets the segment to read only
+  /// during the msync.
   /// \copydoc doc_thread_safe
   ///
-  /// \return Returns true if a flush changes the protection of the segment;
-  /// otherwise, returns false. Returns true if the manager is not sane.
+  /// \return Returns true if a sync of the segment changes its protection,
+  /// false if not. Returns true if the manager is not sane.
   bool write_protection_during_sync() const noexcept {
     if (!check_sanity()) {
       return true;
