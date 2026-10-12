@@ -72,6 +72,17 @@ void manager_kernel<st, sst, cn, cs>::flush(const bool synchronous) {
 }
 
 template <typename st, typename sst, typename cn, std::size_t cs>
+void manager_kernel<st, sst, cn, cs>::set_write_protection_during_sync(
+    const bool on) {
+  m_segment_storage.set_write_protection_during_sync(on);
+}
+
+template <typename st, typename sst, typename cn, std::size_t cs>
+bool manager_kernel<st, sst, cn, cs>::write_protection_during_sync() const {
+  return m_segment_storage.write_protection_during_sync();
+}
+
+template <typename st, typename sst, typename cn, std::size_t cs>
 void *manager_kernel<st, sst, cn, cs>::allocate(
     const manager_kernel<st, sst, cn, cs>::size_type nbytes) {
   priv_check_sanity();
