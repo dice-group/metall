@@ -1519,6 +1519,11 @@ TEST(ManagerTest, WriteProtectionDuringSync) {
 
   int *const value = manager.construct<int>("int")(10);
   ASSERT_NE(value, nullptr);
+  // A first sync makes the block of `value` file backed in every
+  // configuration. With `METALL_USE_ANONYMOUS_NEW_MAP`, the first sync of a
+  // block writes its file and maps the file over the anonymous map, which
+  // also sets the pages of the block to read write.
+  manager.flush(true);
 
   // The test sets the page of `value` to read only before each flush. A sync
   // with the protection sets it to read write. A sync without it does not
