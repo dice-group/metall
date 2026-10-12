@@ -62,6 +62,15 @@
 /// \brief If defined, the default segment storage does not free file space even
 /// thought the corresponding segment becomes free.
 #define METALL_DISABLE_FREE_FILE_SPACE
+
+/// \brief If defined, the default segment storage sets the whole segment to
+/// read only during a sync and back to read write after it.
+/// \details
+/// A write by the application during the sync then stops the program with a
+/// segmentation fault. Without this macro, such a write is not detected and
+/// its data may or may not be in the files when the sync returns. Each
+/// protection change walks the page tables of the whole segment.
+#define METALL_USE_WRITE_PROTECTION_DURING_SYNC
 #endif
 
 // --------------------

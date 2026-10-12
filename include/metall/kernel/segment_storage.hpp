@@ -733,12 +733,14 @@ class segment_storage {
 
     if (m_read_only) return true;
 
+#ifdef METALL_USE_WRITE_PROTECTION_DURING_SYNC
     // Protect the region to detect unexpected write by application during msync
     if (!mdtl::mprotect_read_only(m_segment, m_current_segment_size)) {
       logger::out(logger::level::error, __FILE__, __LINE__,
                   "Failed to protect the segment with the read only mode");
       return false;
     }
+#endif
 
     logger::out(logger::level::verbose, __FILE__, __LINE__,
                 "msync() for the application data segment");
@@ -747,11 +749,13 @@ class segment_storage {
                   "Failed to msync the segment");
       return false;
     }
+#ifdef METALL_USE_WRITE_PROTECTION_DURING_SYNC
     if (!mdtl::mprotect_read_write(m_segment, m_current_segment_size)) {
       logger::out(logger::level::error, __FILE__, __LINE__,
                   "Failed to set the segment to readable and writable");
       return false;
     }
+#endif
 
     return true;
   }

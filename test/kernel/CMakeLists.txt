@@ -33,4 +33,7 @@ add_metall_test_executable(multimanager_test multimanager_test.cpp)
 
 add_metall_test_executable(segment_storage_test segment_storage_test.cpp)
 
+add_metall_test_executable(segment_storage_test_write_protection segment_storage_test.cpp)
+target_compile_definitions(segment_storage_test_write_protection PRIVATE "METALL_USE_WRITE_PROTECTION_DURING_SYNC")
+
 add_metall_test_executable(object_attribute_accessor_test object_attribute_accessor_test.cpp)
