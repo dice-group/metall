@@ -215,6 +215,17 @@ class manager_kernel {
   /// otherwise, performs asynchronous operation.
   void flush(bool synchronous);
 
+  /// \brief Sets whether a flush sets the whole segment to read only during
+  /// the msync and back to read write after it.
+  /// \param on If true, a flush changes the protection of the segment.
+  void set_write_protection_during_sync(bool on);
+
+  /// \brief Checks whether a flush sets the segment to read only during the
+  /// msync.
+  /// \return Returns true if a flush changes the protection of the segment;
+  /// otherwise, returns false.
+  bool write_protection_during_sync() const;
+
   /// \brief Allocates memory space
   /// \param nbytes
   /// \return
