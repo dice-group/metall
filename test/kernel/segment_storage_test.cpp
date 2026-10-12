@@ -5,6 +5,14 @@
 
 #include "gtest/gtest.h"
 
+#include <sstream>
+#include <string>
+#include <thread>
+
+#if defined(__linux__) && defined(_GNU_SOURCE)
+#include <sched.h>
+#endif
+
 #include <metall/kernel/segment_storage.hpp>
 #include "../test_utility.hpp"
 
@@ -176,4 +184,87 @@ TEST(MultifileSegmentStorageTest, Sync) {
     }
   }
 }
+
+#if defined(__linux__) && defined(_GNU_SOURCE)
+// The sync starts at most as many threads as CPUs the calling thread may run on.
+// The test runs in its own thread with a one-CPU affinity mask and reads the
+// thread count from the verbose log of the sync.
+TEST(MultifileSegmentStorageTest, SyncThreadsCappedByAffinity) {
+  constexpr std::size_t block_size = METALL_SEGMENT_BLOCK_SIZE;
+  constexpr std::size_t num_blocks = 4;
+  prepare_test_dir();
+
+  std::string log;
+  std::thread worker([&log]() {
+    cpu_set_t cpu_set;
+    CPU_ZERO(&cpu_set);
+    const int cpu_no = ::sched_getcpu();
+    CPU_SET(cpu_no < 0 ? 0 : cpu_no, &cpu_set);
+    ASSERT_EQ(::sched_setaffinity(0, sizeof(cpu_set), &cpu_set), 0);
+
+    segment_storage_type data_storage;
+    ASSERT_TRUE(
+        data_storage.create(test_file_prefix(), block_size * num_blocks));
+    ASSERT_TRUE(data_storage.extend(block_size * num_blocks));
+    auto buf = static_cast<char *>(data_storage.get_segment());
+    for (std::size_t i = 0; i < num_blocks; ++i) {
+      buf[i * block_size] = '1';
+    }
+
+    std::stringstream captured;
+    auto *const cerr_buf = std::cerr.rdbuf(captured.rdbuf());
+    const auto log_level = metall::logger::log_level();
+    metall::logger::set_log_level(metall::logger::level_filter::verbose);
+    const bool synced = data_storage.sync(true);
+    metall::logger::set_log_level(log_level);
+    std::cerr.rdbuf(cerr_buf);
+    log = captured.str();
+
+    ASSERT_TRUE(synced);
+    for (std::size_t i = 0; i < num_blocks; ++i) {
+      ASSERT_EQ(buf[i * block_size], '1');
+    }
+  });
+  worker.join();
+
+  ASSERT_NE(log.find("Sync files with 1 threads"), std::string::npos) << log;
+}
+#endif
+
+#if METALL_MAX_SYNC_THREADS == 2
+// The sync starts at most `METALL_MAX_SYNC_THREADS` threads. The test target
+// sets the limit to 2 and reads the thread count from the verbose log of the
+// sync.
+TEST(MultifileSegmentStorageTest, SyncThreadsCappedByLimit) {
+  constexpr std::size_t block_size = METALL_SEGMENT_BLOCK_SIZE;
+  constexpr std::size_t num_blocks = 4;
+  if (metall::mtlldetail::get_num_available_cpus() < num_blocks) {
+    GTEST_SKIP() << "Needs at least " << num_blocks << " available CPUs";
+  }
+  prepare_test_dir();
+
+  segment_storage_type data_storage;
+  ASSERT_TRUE(data_storage.create(test_file_prefix(), block_size * num_blocks));
+  ASSERT_TRUE(data_storage.extend(block_size * num_blocks));
+  auto buf = static_cast<char *>(data_storage.get_segment());
+  for (std::size_t i = 0; i < num_blocks; ++i) {
+    buf[i * block_size] = '1';
+  }
+
+  std::stringstream captured;
+  auto *const cerr_buf = std::cerr.rdbuf(captured.rdbuf());
+  const auto log_level = metall::logger::log_level();
+  metall::logger::set_log_level(metall::logger::level_filter::verbose);
+  const bool synced = data_storage.sync(true);
+  metall::logger::set_log_level(log_level);
+  std::cerr.rdbuf(cerr_buf);
+  const std::string log = captured.str();
+
+  ASSERT_TRUE(synced);
+  for (std::size_t i = 0; i < num_blocks; ++i) {
+    ASSERT_EQ(buf[i * block_size], '1');
+  }
+  ASSERT_NE(log.find("Sync files with 2 threads"), std::string::npos) << log;
+}
+#endif
 }  // namespace
