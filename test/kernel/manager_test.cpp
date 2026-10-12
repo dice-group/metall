@@ -10,6 +10,8 @@
 #include <string>
 #include <unordered_set>
 
+#include <unistd.h>
+
 #include <metall/metall.hpp>
 #include <metall/kernel/object_size_manager.hpp>
 #include "../test_utility.hpp"
@@ -1560,6 +1562,31 @@ TEST(ManagerTest, CloseWithoutFlush) {
     ASSERT_NE(value2, nullptr);
     ASSERT_EQ(*value2, 30);
   }
+}
+
+TEST(ManagerTest, CloseWithoutFlushAfterFailedExtension) {
+  if (::geteuid() == 0) {
+    GTEST_SKIP() << "Runs as root, permissions do not restrict writes";
+  }
+  manager_type::remove(dir_path());
+
+  // The extension of the segment cannot create the file of a new block. It
+  // releases the segment, but the manager stays sane.
+  const auto segment_dir = dir_path() / "mds" / "segment";
+  {
+    manager_type manager(metall::create_only, dir_path(), 1UL << 30UL);
+    ASSERT_TRUE(manager.check_sanity());
+
+    fs::permissions(segment_dir,
+                    fs::perms::owner_read | fs::perms::owner_exec);
+    void *const addr = manager.allocate(2 * METALL_SEGMENT_BLOCK_SIZE);
+    fs::permissions(segment_dir, fs::perms::owner_all);
+    ASSERT_EQ(addr, nullptr);
+    ASSERT_TRUE(manager.check_sanity());
+
+    ASSERT_FALSE(manager.close_without_flush());
+  }
+  ASSERT_FALSE(manager_type::consistent(dir_path()));
 }
 
 TEST(ManagerTest, CheckSanity) {
