@@ -962,7 +962,8 @@ bool manager_kernel<st, sst, cn, cs>::priv_create(
 template <typename st, typename sst, typename cn, std::size_t cs>
 bool manager_kernel<st, sst, cn, cs>::priv_close(const bool sync_segment) {
   if (!m_segment_storage.is_open()) {
-    return true;
+    // A failed sync can release the segment and mark it as broken.
+    return m_segment_storage.check_sanity();
   }
 
   priv_check_sanity();
