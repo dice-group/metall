@@ -1521,7 +1521,31 @@ TEST(ManagerTest, Description) {
   }
 }
 
-TEST(ManagerTest, CloseWithoutFlush) {
+TEST(ManagerTest, Close) {
+  manager_type::remove(dir_path());
+
+  // `close()` closes the datastore with a sync of the segment.
+  {
+    const auto num_syncs = count_segment_syncs([]() {
+      manager_type manager(metall::create_only, dir_path(), 1UL << 30UL);
+      ASSERT_NE(manager.construct<int>("int")(10), nullptr);
+      ASSERT_TRUE(manager.close());
+      ASSERT_FALSE(manager.check_sanity());
+      ASSERT_FALSE(manager.close());
+    });
+    ASSERT_EQ(num_syncs, 1U);
+  }
+  ASSERT_TRUE(manager_type::consistent(dir_path()));
+
+  {
+    manager_type manager(metall::open_read_only, dir_path());
+    auto *const value = manager.find<int>("int").first;
+    ASSERT_NE(value, nullptr);
+    ASSERT_EQ(*value, 10);
+  }
+}
+
+TEST(ManagerTest, CloseSkipFlush) {
   manager_type::remove(dir_path());
 
   // The destruction closes the datastore with a sync of the segment, also
@@ -1536,7 +1560,7 @@ TEST(ManagerTest, CloseWithoutFlush) {
   }
   ASSERT_TRUE(manager_type::consistent(dir_path()));
 
-  // `close_without_flush()` leaves out the sync of the segment.
+  // `close(metall::skip_flush)` leaves out the sync of the segment.
   {
     const auto num_syncs = count_segment_syncs([]() {
       manager_type manager(metall::open_only, dir_path());
@@ -1545,9 +1569,9 @@ TEST(ManagerTest, CloseWithoutFlush) {
       *value = 20;
       ASSERT_NE(manager.construct<int>("int2")(30), nullptr);
       manager.flush(true);
-      ASSERT_TRUE(manager.close_without_flush());
+      ASSERT_TRUE(manager.close(metall::skip_flush));
       ASSERT_FALSE(manager.check_sanity());
-      ASSERT_FALSE(manager.close_without_flush());
+      ASSERT_FALSE(manager.close(metall::skip_flush));
     });
     ASSERT_EQ(num_syncs, 1U);
   }
@@ -1564,7 +1588,7 @@ TEST(ManagerTest, CloseWithoutFlush) {
   }
 }
 
-TEST(ManagerTest, CloseWithoutFlushAfterFailedExtension) {
+TEST(ManagerTest, CloseSkipFlushAfterFailedExtension) {
   if (::geteuid() == 0) {
     GTEST_SKIP() << "Runs as root, permissions do not restrict writes";
   }
@@ -1584,7 +1608,7 @@ TEST(ManagerTest, CloseWithoutFlushAfterFailedExtension) {
     ASSERT_EQ(addr, nullptr);
     ASSERT_TRUE(manager.check_sanity());
 
-    ASSERT_FALSE(manager.close_without_flush());
+    ASSERT_FALSE(manager.close(metall::skip_flush));
   }
   ASSERT_FALSE(manager_type::consistent(dir_path()));
 }
