@@ -58,6 +58,12 @@
 #define METALL_SEGMENT_BLOCK_SIZE (1ULL << 28ULL)
 #endif
 
+/// \def METALL_MAX_SYNC_THREADS
+/// The maximum number of threads the default segment storage uses to sync.
+#ifndef METALL_MAX_SYNC_THREADS
+#define METALL_MAX_SYNC_THREADS 16
+#endif
+
 #ifdef DOXYGEN_SKIP
 /// \brief If defined, the default segment storage does not free file space even
 /// thought the corresponding segment becomes free.

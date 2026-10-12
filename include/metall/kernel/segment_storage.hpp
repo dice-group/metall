@@ -788,11 +788,12 @@ class segment_storage {
       }
     };
 
-    // At most one thread per block and per CPU the calling thread may run on.
+    // At most one thread per block, at most one thread per CPU the calling
+    // thread may run on, and at most `METALL_MAX_SYNC_THREADS` threads.
     // The started threads inherit the affinity mask of the calling thread.
-    const auto num_threads =
-        std::min(m_block_fd_list.size(),
-                 (std::size_t)mdtl::get_num_available_cpus());
+    const auto num_threads = std::min<std::size_t>(
+        {m_block_fd_list.size(), mdtl::get_num_available_cpus(),
+         METALL_MAX_SYNC_THREADS});
     {
       std::stringstream ss;
       ss << "Sync files with " << num_threads << " threads";
