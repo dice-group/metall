@@ -33,4 +33,7 @@ add_metall_test_executable(multimanager_test multimanager_test.cpp)
 
 add_metall_test_executable(segment_storage_test segment_storage_test.cpp)
 
+add_metall_test_executable(segment_storage_test_sync_thread_limit segment_storage_test.cpp)
+target_compile_definitions(segment_storage_test_sync_thread_limit PRIVATE "METALL_MAX_SYNC_THREADS=2")
+
 add_metall_test_executable(object_attribute_accessor_test object_attribute_accessor_test.cpp)
