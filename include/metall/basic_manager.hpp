@@ -990,6 +990,35 @@ class basic_manager {
     }
   }
 
+  // ---------- Close ---------- //
+  /// \brief Closes the datastore without the flush of the application data
+  /// segment.
+  /// \copydoc doc_single_thread
+  ///
+  /// \details
+  /// The destruction of the manager closes the datastore with a synchronous
+  /// flush of the whole segment. This function closes it without that flush.
+  /// It still writes the management data and marks the datastore as properly
+  /// closed. Call it only after flush(true), with no write to the allocated
+  /// memory since then. After the call, the manager is closed and
+  /// check_sanity() returns false.
+  /// \return Returns true if the datastore was closed and marked as properly
+  /// closed; otherwise, returns false.
+  bool close_without_flush() noexcept {
+    if (!check_sanity()) {
+      return false;
+    }
+    bool ret = false;
+    try {
+      ret = m_kernel->close_without_flush();
+    } catch (...) {
+      logger::out(logger::level::error, __FILE__, __LINE__,
+                  "An exception has been thrown");
+    }
+    m_kernel.reset(nullptr);
+    return ret;
+  }
+
   // -------- Snapshot, copy, data store management -------- //
   /// \brief Takes a snapshot of the current data. The snapshot has a new UUID.
   /// \copydoc doc_single_thread
