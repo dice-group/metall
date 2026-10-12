@@ -83,6 +83,7 @@ class segment_storage {
         m_top_path(other.m_top_path),
         m_read_only(other.m_read_only),
         m_free_file_space(other.m_free_file_space),
+        m_write_protection_during_sync(other.m_write_protection_during_sync),
         m_block_fd_list(std::move(other.m_block_fd_list))
 #ifdef METALL_USE_ANONYMOUS_NEW_MAP
         ,
@@ -104,6 +105,7 @@ class segment_storage {
     m_top_path = std::move(other.m_top_path);
     m_read_only = other.m_read_only;
     m_free_file_space = other.m_free_file_space;
+    m_write_protection_during_sync = other.m_write_protection_during_sync;
     m_block_fd_list = std::move(other.m_block_fd_list);
 #ifdef METALL_USE_ANONYMOUS_NEW_MAP
     m_anonymous_map_flag_list = std::move(other.m_anonymous_map_flag_list);
@@ -217,6 +219,21 @@ class segment_storage {
   /// \return Returns true if the segment is read only; otherwise, returns
   /// false.
   bool read_only() const { return m_read_only; }
+
+  /// \brief Sets whether a sync sets the whole segment to read only during
+  /// the msync and back to read write after it.
+  /// \param on If true, a sync changes the protection of the segment.
+  void set_write_protection_during_sync(const bool on) {
+    m_write_protection_during_sync = on;
+  }
+
+  /// \brief Checks whether a sync sets the segment to read only during the
+  /// msync.
+  /// \return Returns true if a sync changes the protection of the segment,
+  /// false if not.
+  bool write_protection_during_sync() const {
+    return m_write_protection_during_sync;
+  }
 
   /// \brief Checks if there is a segment already open.
   /// \return Returns true if there is a segment already open.
@@ -734,7 +751,8 @@ class segment_storage {
     if (m_read_only) return true;
 
     // Protect the region to detect unexpected write by application during msync
-    if (!mdtl::mprotect_read_only(m_segment, m_current_segment_size)) {
+    if (m_write_protection_during_sync &&
+        !mdtl::mprotect_read_only(m_segment, m_current_segment_size)) {
       logger::out(logger::level::error, __FILE__, __LINE__,
                   "Failed to protect the segment with the read only mode");
       return false;
@@ -747,7 +765,8 @@ class segment_storage {
                   "Failed to msync the segment");
       return false;
     }
-    if (!mdtl::mprotect_read_write(m_segment, m_current_segment_size)) {
+    if (m_write_protection_during_sync &&
+        !mdtl::mprotect_read_write(m_segment, m_current_segment_size)) {
       logger::out(logger::level::error, __FILE__, __LINE__,
                   "Failed to set the segment to readable and writable");
       return false;
@@ -970,6 +989,7 @@ class segment_storage {
   path_type m_top_path;
   bool m_read_only{false};
   bool m_free_file_space{true};
+  bool m_write_protection_during_sync{true};
   std::vector<int> m_block_fd_list;
   bool m_broken{false};
 #ifdef METALL_USE_ANONYMOUS_NEW_MAP

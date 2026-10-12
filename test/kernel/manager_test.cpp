@@ -7,6 +7,8 @@
 
 #include <filesystem>
 #include <unordered_set>
+#include <cstdint>
+#include <unistd.h>
 
 #include <metall/metall.hpp>
 #include <metall/kernel/object_size_manager.hpp>
@@ -1493,6 +1495,58 @@ TEST(ManagerTest, Description) {
     ASSERT_TRUE(manager.get_description(&description));
     ASSERT_STREQ(description.c_str(), "description2");
   }
+}
+
+// Checks whether the kernel can write to `addr`, without changing the value.
+// A read(2) into a read only page fails with EFAULT and raises no signal.
+bool kernel_can_write(int *const addr) {
+  int fds[2];
+  if (::pipe(fds) != 0) return false;
+  const int copy = *addr;
+  const auto n = static_cast<ssize_t>(sizeof(copy));
+  bool ok = (::write(fds[1], &copy, sizeof(copy)) == n);
+  ok = ok && (::read(fds[0], addr, sizeof(copy)) == n);
+  ::close(fds[0]);
+  ::close(fds[1]);
+  return ok;
+}
+
+TEST(ManagerTest, WriteProtectionDuringSync) {
+  manager_type::remove(dir_path());
+  manager_type manager(metall::create_only, dir_path());
+
+  ASSERT_TRUE(manager.write_protection_during_sync());
+
+  int *const value = manager.construct<int>("int")(10);
+  ASSERT_NE(value, nullptr);
+  // A first sync makes the block of `value` file backed in every
+  // configuration. With `METALL_USE_ANONYMOUS_NEW_MAP`, the first sync of a
+  // block writes its file and maps the file over the anonymous map, which
+  // also sets the pages of the block to read write.
+  manager.flush(true);
+
+  // The test sets the page of `value` to read only before each flush. A sync
+  // with the protection sets it to read write. A sync without it does not
+  // change it.
+  const std::size_t page_size = metall::mtlldetail::get_page_size();
+  void *const page = reinterpret_cast<void *>(
+      reinterpret_cast<std::uintptr_t>(value) / page_size * page_size);
+
+  manager.set_write_protection_during_sync(false);
+  ASSERT_FALSE(manager.write_protection_during_sync());
+  ASSERT_TRUE(metall::mtlldetail::mprotect_read_only(page, page_size));
+  manager.flush(true);
+  ASSERT_FALSE(kernel_can_write(value));
+  ASSERT_TRUE(metall::mtlldetail::mprotect_read_write(page, page_size));
+  ASSERT_EQ(*value, 10);
+  *value = 20;
+
+  manager.set_write_protection_during_sync(true);
+  ASSERT_TRUE(manager.write_protection_during_sync());
+  ASSERT_TRUE(metall::mtlldetail::mprotect_read_only(page, page_size));
+  manager.flush(true);
+  ASSERT_TRUE(kernel_can_write(value));
+  ASSERT_EQ(*value, 20);
 }
 
 TEST(ManagerTest, CheckSanity) {
