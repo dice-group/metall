@@ -990,6 +990,113 @@ class basic_manager {
     }
   }
 
+  /// \brief Sets whether a sync of the segment (a flush, a snapshot or the
+  /// close of the manager) sets the whole segment to read only during the
+  /// msync and back to read write after it.
+  /// \copydoc doc_single_thread
+  ///
+  /// \details
+  /// With the protection, a write by the application during the sync stops
+  /// the program with a segmentation fault. Without it, such a write is not
+  /// detected, and this sync may or may not write its data to the storage
+  /// device. With `METALL_USE_ANONYMOUS_NEW_MAP`, a write to a block after the
+  /// copy of the block to its file and before the new file mapping of the
+  /// block is lost. Each protection change walks the page tables of the whole
+  /// segment. The default is on. The setting belongs to this manager object
+  /// and is not stored in the datastore.
+  ///
+  /// \param on If true, a sync of the segment changes its protection.
+  void set_write_protection_during_sync(const bool on) noexcept {
+    if (!check_sanity()) {
+      return;
+    }
+    try {
+      m_kernel->set_write_protection_during_sync(on);
+    } catch (...) {
+      logger::out(logger::level::error, __FILE__, __LINE__,
+                  "An exception has been thrown");
+    }
+  }
+
+  /// \brief Checks whether a sync of the segment sets the segment to read only
+  /// during the msync.
+  /// \copydoc doc_thread_safe
+  ///
+  /// \return Returns true if a sync of the segment changes its protection,
+  /// false if not. Returns true if the manager is not sane.
+  bool write_protection_during_sync() const noexcept {
+    if (!check_sanity()) {
+      return true;
+    }
+    try {
+      return m_kernel->write_protection_during_sync();
+    } catch (...) {
+      logger::out(logger::level::error, __FILE__, __LINE__,
+                  "An exception has been thrown");
+    }
+    return true;
+  }
+
+  // ---------- Close ---------- //
+  /// \brief Closes the datastore with a synchronous flush of the application
+  /// data segment.
+  /// \copydoc doc_single_thread
+  ///
+  /// \details
+  /// The destruction of the manager closes the datastore in the same way, but
+  /// it does not report the result. This function writes the management data,
+  /// flushes the segment and marks the datastore as properly closed. After the
+  /// call, the manager is closed and `check_sanity()` returns false.
+  /// \return Returns true if the datastore was closed and marked as properly
+  /// closed; otherwise, returns false.
+  bool close() noexcept {
+    if (!check_sanity()) {
+      return false;
+    }
+    bool ret = false;
+    try {
+      ret = m_kernel->close();
+    } catch (...) {
+      logger::out(logger::level::error, __FILE__, __LINE__,
+                  "An exception has been thrown");
+    }
+    m_kernel.reset(nullptr);
+    return ret;
+  }
+
+  /// \brief Closes the datastore without the flush of the application data
+  /// segment.
+  /// \copydoc doc_single_thread
+  ///
+  /// \details
+  /// `close()` and the destruction of the manager close the datastore with a
+  /// synchronous flush of the whole segment. This function closes it without
+  /// that flush. It still writes the management data and marks the datastore
+  /// as properly closed. After the call, the manager is closed and
+  /// `check_sanity()` returns false.
+  ///
+  /// Call it only after `flush(true)`, with no write to the allocated memory
+  /// since then. With `METALL_USE_ANONYMOUS_NEW_MAP`, call `flush(true)` twice
+  /// after the last allocation. The first flush writes a new block to its file
+  /// but does not sync the file. `flush()` reports no failure, so this
+  /// function can create the mark also after a failed flush.
+  /// \return Returns true if the datastore was closed and marked as properly
+  /// closed; otherwise, returns false.
+  bool close(skip_flush_t) noexcept {
+    if (!check_sanity()) {
+      return false;
+    }
+    bool ret = false;
+    try {
+      ret = m_kernel->close_without_flush();
+    } catch (...) {
+      logger::out(logger::level::error, __FILE__, __LINE__,
+                  "An exception has been thrown");
+    }
+    m_kernel.reset(nullptr);
+    return ret;
+  }
+
   // -------- Snapshot, copy, data store management -------- //
   /// \brief Takes a snapshot of the current data. The snapshot has a new UUID.
   /// \copydoc doc_single_thread

@@ -6,7 +6,12 @@
 #include "gtest/gtest.h"
 
 #include <filesystem>
+#include <sstream>
+#include <string>
 #include <unordered_set>
+#include <cstdint>
+
+#include <unistd.h>
 
 #include <metall/metall.hpp>
 #include <metall/kernel/object_size_manager.hpp>
@@ -29,6 +34,28 @@ constexpr std::size_t k_min_object_size = object_size_mngr::at(0);
 const fs::path &dir_path() {
   const static fs::path path(test_utility::make_test_path());
   return path;
+}
+
+// Runs `func` with the logger at the verbose level and returns the number of
+// syncs of the application data segment that the logger reports.
+template <typename func_type>
+std::size_t count_segment_syncs(func_type func) {
+  std::stringstream captured;
+  auto *const cerr_buf = std::cerr.rdbuf(captured.rdbuf());
+  const auto log_level = metall::logger::log_level();
+  metall::logger::set_log_level(metall::logger::level_filter::verbose);
+  func();
+  metall::logger::set_log_level(log_level);
+  std::cerr.rdbuf(cerr_buf);
+
+  const std::string log = captured.str();
+  const std::string line = "msync() for the application data segment";
+  std::size_t count = 0;
+  for (auto pos = log.find(line); pos != std::string::npos;
+       pos = log.find(line, pos + line.size())) {
+    ++count;
+  }
+  return count;
 }
 
 TEST(ManagerTest, CreateAndOpenModes) {
@@ -1493,6 +1520,150 @@ TEST(ManagerTest, Description) {
     ASSERT_TRUE(manager.get_description(&description));
     ASSERT_STREQ(description.c_str(), "description2");
   }
+}
+
+TEST(ManagerTest, Close) {
+  manager_type::remove(dir_path());
+
+  // `close()` closes the datastore with a sync of the segment.
+  {
+    const auto num_syncs = count_segment_syncs([]() {
+      manager_type manager(metall::create_only, dir_path(), 1UL << 30UL);
+      ASSERT_NE(manager.construct<int>("int")(10), nullptr);
+      ASSERT_TRUE(manager.close());
+      ASSERT_FALSE(manager.check_sanity());
+      ASSERT_FALSE(manager.close());
+    });
+    ASSERT_EQ(num_syncs, 1U);
+  }
+  ASSERT_TRUE(manager_type::consistent(dir_path()));
+
+  {
+    manager_type manager(metall::open_read_only, dir_path());
+    auto *const value = manager.find<int>("int").first;
+    ASSERT_NE(value, nullptr);
+    ASSERT_EQ(*value, 10);
+  }
+}
+
+TEST(ManagerTest, CloseSkipFlush) {
+  manager_type::remove(dir_path());
+
+  // The destruction closes the datastore with a sync of the segment, also
+  // right after a flush.
+  {
+    const auto num_syncs = count_segment_syncs([]() {
+      manager_type manager(metall::create_only, dir_path(), 1UL << 30UL);
+      ASSERT_NE(manager.construct<int>("int")(10), nullptr);
+      manager.flush(true);
+    });
+    ASSERT_EQ(num_syncs, 2U);
+  }
+  ASSERT_TRUE(manager_type::consistent(dir_path()));
+
+  // `close(metall::skip_flush)` leaves out the sync of the segment.
+  {
+    const auto num_syncs = count_segment_syncs([]() {
+      manager_type manager(metall::open_only, dir_path());
+      auto *const value = manager.find<int>("int").first;
+      ASSERT_NE(value, nullptr);
+      *value = 20;
+      ASSERT_NE(manager.construct<int>("int2")(30), nullptr);
+      manager.flush(true);
+      ASSERT_TRUE(manager.close(metall::skip_flush));
+      ASSERT_FALSE(manager.check_sanity());
+      ASSERT_FALSE(manager.close(metall::skip_flush));
+    });
+    ASSERT_EQ(num_syncs, 1U);
+  }
+  ASSERT_TRUE(manager_type::consistent(dir_path()));
+
+  {
+    manager_type manager(metall::open_read_only, dir_path());
+    auto *const value = manager.find<int>("int").first;
+    ASSERT_NE(value, nullptr);
+    ASSERT_EQ(*value, 20);
+    auto *const value2 = manager.find<int>("int2").first;
+    ASSERT_NE(value2, nullptr);
+    ASSERT_EQ(*value2, 30);
+  }
+}
+
+TEST(ManagerTest, CloseSkipFlushAfterFailedExtension) {
+  if (::geteuid() == 0) {
+    GTEST_SKIP() << "Runs as root, permissions do not restrict writes";
+  }
+  manager_type::remove(dir_path());
+
+  // The extension of the segment cannot create the file of a new block. It
+  // releases the segment, but the manager stays sane.
+  const auto segment_dir = dir_path() / "mds" / "segment";
+  {
+    manager_type manager(metall::create_only, dir_path(), 1UL << 30UL);
+    ASSERT_TRUE(manager.check_sanity());
+
+    fs::permissions(segment_dir,
+                    fs::perms::owner_read | fs::perms::owner_exec);
+    void *const addr = manager.allocate(2 * METALL_SEGMENT_BLOCK_SIZE);
+    fs::permissions(segment_dir, fs::perms::owner_all);
+    ASSERT_EQ(addr, nullptr);
+    ASSERT_TRUE(manager.check_sanity());
+
+    ASSERT_FALSE(manager.close(metall::skip_flush));
+  }
+  ASSERT_FALSE(manager_type::consistent(dir_path()));
+}
+
+// Checks whether the kernel can write to `addr`, without changing the value.
+// A read(2) into a read only page fails with EFAULT and raises no signal.
+bool kernel_can_write(int *const addr) {
+  int fds[2];
+  if (::pipe(fds) != 0) return false;
+  const int copy = *addr;
+  const auto n = static_cast<ssize_t>(sizeof(copy));
+  bool ok = (::write(fds[1], &copy, sizeof(copy)) == n);
+  ok = ok && (::read(fds[0], addr, sizeof(copy)) == n);
+  ::close(fds[0]);
+  ::close(fds[1]);
+  return ok;
+}
+
+TEST(ManagerTest, WriteProtectionDuringSync) {
+  manager_type::remove(dir_path());
+  manager_type manager(metall::create_only, dir_path());
+
+  ASSERT_TRUE(manager.write_protection_during_sync());
+
+  int *const value = manager.construct<int>("int")(10);
+  ASSERT_NE(value, nullptr);
+  // A first sync makes the block of `value` file backed in every
+  // configuration. With `METALL_USE_ANONYMOUS_NEW_MAP`, the first sync of a
+  // block writes its file and maps the file over the anonymous map, which
+  // also sets the pages of the block to read write.
+  manager.flush(true);
+
+  // The test sets the page of `value` to read only before each flush. A sync
+  // with the protection sets it to read write. A sync without it does not
+  // change it.
+  const std::size_t page_size = metall::mtlldetail::get_page_size();
+  void *const page = reinterpret_cast<void *>(
+      reinterpret_cast<std::uintptr_t>(value) / page_size * page_size);
+
+  manager.set_write_protection_during_sync(false);
+  ASSERT_FALSE(manager.write_protection_during_sync());
+  ASSERT_TRUE(metall::mtlldetail::mprotect_read_only(page, page_size));
+  manager.flush(true);
+  ASSERT_FALSE(kernel_can_write(value));
+  ASSERT_TRUE(metall::mtlldetail::mprotect_read_write(page, page_size));
+  ASSERT_EQ(*value, 10);
+  *value = 20;
+
+  manager.set_write_protection_during_sync(true);
+  ASSERT_TRUE(manager.write_protection_during_sync());
+  ASSERT_TRUE(metall::mtlldetail::mprotect_read_only(page, page_size));
+  manager.flush(true);
+  ASSERT_TRUE(kernel_can_write(value));
+  ASSERT_EQ(*value, 20);
 }
 
 TEST(ManagerTest, CheckSanity) {

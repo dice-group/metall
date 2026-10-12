@@ -30,6 +30,14 @@ struct open_read_only_t {};
 /// \brief Tag to open an already created segment as read only.
 [[maybe_unused]] static const open_read_only_t open_read_only{};
 
+/// \brief Tag type to close a datastore without the flush of the segment.
+struct skip_flush_t {
+  explicit skip_flush_t() = default;
+};
+
+/// \brief Tag to close a datastore without the flush of the segment.
+inline constexpr skip_flush_t skip_flush{};
+
 /// \brief Tag to construct anonymous instances.
 [[maybe_unused]] static const mtlldetail::anonymous_instance_t
     *anonymous_instance = nullptr;

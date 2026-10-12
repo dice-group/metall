@@ -210,10 +210,31 @@ class manager_kernel {
   /// reported as inconsistent by consistent().
   bool close();
 
+  /// \brief Closes the datastore without the sync of the segment.
+  /// Serializes the management data and creates the properly-closed mark only
+  /// if that succeeded. The caller must have synced the segment with
+  /// `flush(true)` after its last write to it.
+  /// Expect to be called by a single thread
+  /// \return Returns true if the management data was persisted; otherwise,
+  /// returns false. On false, no properly-closed mark is created.
+  bool close_without_flush();
+
   /// \brief Flush data to persistent memory
   /// \param synchronous If true, performs synchronous operation;
   /// otherwise, performs asynchronous operation.
   void flush(bool synchronous);
+
+  /// \brief Sets whether a sync of the segment (in `flush()`, `snapshot()` and
+  /// `close()`) sets the whole segment to read only during the msync and back
+  /// to read write after it.
+  /// \param on If true, a sync of the segment changes its protection.
+  void set_write_protection_during_sync(bool on);
+
+  /// \brief Checks whether a sync of the segment sets the segment to read only
+  /// during the msync.
+  /// \return Returns true if a sync of the segment changes its protection,
+  /// false if not.
+  bool write_protection_during_sync() const;
 
   /// \brief Allocates memory space
   /// \param nbytes
@@ -543,6 +564,8 @@ class manager_kernel {
   bool priv_open(const path_type &base_path, bool read_only,
                  size_type vm_reserve_size_request = 0);
   bool priv_create(const path_type &base_path, size_type vm_reserve_size);
+
+  bool priv_close(bool sync_segment);
 
   // ---------- For serializing/deserializing  ---------- //
   bool priv_serialize_management_data();
