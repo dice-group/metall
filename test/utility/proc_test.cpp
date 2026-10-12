@@ -16,8 +16,8 @@ TEST(ProcTest, NumAvailableCpus) {
 }
 
 #if defined(__linux__) && defined(_GNU_SOURCE)
-// Each case runs in its own thread, so that the affinity mask of the main
-// thread stays as it is.
+// The one-CPU and the two-CPU case run in their own threads, so that the
+// affinity mask of the main thread stays as it is.
 TEST(ProcTest, NumAvailableCpusFollowsAffinity) {
   cpu_set_t original_set;
   CPU_ZERO(&original_set);
