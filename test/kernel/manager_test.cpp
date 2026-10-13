@@ -1549,6 +1549,28 @@ TEST(ManagerTest, WriteProtectionDuringSync) {
   ASSERT_EQ(*value, 20);
 }
 
+TEST(ManagerTest, Close) {
+  manager_type::remove(dir_path());
+
+  // `close()` returns the result of the close, and the manager is closed
+  // after the call.
+  {
+    manager_type manager(metall::create_only, dir_path(), 1UL << 30UL);
+    ASSERT_NE(manager.construct<int>("int")(10), nullptr);
+    ASSERT_TRUE(manager.close());
+    ASSERT_FALSE(manager.check_sanity());
+    ASSERT_FALSE(manager.close());
+  }
+  ASSERT_TRUE(manager_type::consistent(dir_path()));
+
+  {
+    manager_type manager(metall::open_read_only, dir_path());
+    auto *const value = manager.find<int>("int").first;
+    ASSERT_NE(value, nullptr);
+    ASSERT_EQ(*value, 10);
+  }
+}
+
 TEST(ManagerTest, CheckSanity) {
   // This test should be run at the end of this execution unless reset the
   // values below:
