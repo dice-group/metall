@@ -1571,6 +1571,33 @@ TEST(ManagerTest, Close) {
   }
 }
 
+TEST(ManagerTest, CloseAfterFailedExtension) {
+  if (::geteuid() == 0) {
+    GTEST_SKIP() << "Runs as root, permissions do not restrict writes";
+  }
+  manager_type::remove(dir_path());
+
+  // The extension of the segment cannot create the file of a new block. It
+  // releases the segment, but the manager stays sane. `close()` then writes
+  // no properly-closed mark and returns false.
+  const auto segment_dir = dir_path() / "mds" / "segment";
+  {
+    manager_type manager(metall::create_only, dir_path(), 1UL << 30UL);
+    ASSERT_TRUE(manager.check_sanity());
+
+    fs::permissions(segment_dir,
+                    fs::perms::owner_read | fs::perms::owner_exec);
+    void *const addr = manager.allocate(2 * METALL_SEGMENT_BLOCK_SIZE);
+    fs::permissions(segment_dir, fs::perms::owner_all);
+    ASSERT_EQ(addr, nullptr);
+    ASSERT_TRUE(manager.check_sanity());
+
+    ASSERT_FALSE(manager.close());
+    ASSERT_FALSE(manager.check_sanity());
+  }
+  ASSERT_FALSE(manager_type::consistent(dir_path()));
+}
+
 TEST(ManagerTest, CheckSanity) {
   // This test should be run at the end of this execution unless reset the
   // values below:
