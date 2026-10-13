@@ -58,7 +58,9 @@ bool manager_kernel<st, sst, cn, cs>::open(
 template <typename st, typename sst, typename cn, std::size_t cs>
 bool manager_kernel<st, sst, cn, cs>::close() {
   if (!m_segment_storage.is_open()) {
-    return true;
+    // A failure released the segment already. The datastore is closed, but
+    // the mark is only there when a close wrote it before.
+    return priv_properly_closed(m_base_path);
   }
 
   priv_check_sanity();

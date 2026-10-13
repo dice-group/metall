@@ -1051,11 +1051,10 @@ class basic_manager {
   ///
   /// A failed extension of the segment, or a failed sync of an anonymous block
   /// with `METALL_USE_ANONYMOUS_NEW_MAP`, releases the segment before the
-  /// close. In that case this function returns true and does not create the
-  /// mark, so the next open refuses the datastore.
+  /// close. In that case this function creates no mark and returns false, and
+  /// the next open refuses the datastore.
   /// \return Returns true if the datastore was closed and marked as properly
-  /// closed; otherwise, returns false. Also returns true after a failure that
-  /// released the segment (see above).
+  /// closed; otherwise, returns false.
   bool close() noexcept {
     if (!check_sanity()) {
       return false;
