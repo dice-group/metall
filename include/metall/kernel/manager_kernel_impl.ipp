@@ -73,8 +73,7 @@ bool manager_kernel<st, sst, cn, cs>::close() {
     if (!m_base_path.empty()) {
       std::error_code ec;
       marked = std::filesystem::exists(
-          storage::get_path(m_base_path, k_properly_closed_mark_file_name),
-          ec);
+          storage::get_path(m_base_path, k_properly_closed_mark_file_name), ec);
       if (ec) {
         logger::out(logger::level::error, __FILE__, __LINE__,
                     "Failed to read the state of the properly-closed mark");

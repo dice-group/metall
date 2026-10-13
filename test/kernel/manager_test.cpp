@@ -1646,8 +1646,7 @@ TEST(ManagerTest, CloseKeepsErrno) {
     manager_type manager(metall::create_only, dir_path(), 1UL << 30UL);
     ASSERT_TRUE(manager.check_sanity());
 
-    fs::permissions(segment_dir,
-                    fs::perms::owner_read | fs::perms::owner_exec);
+    fs::permissions(segment_dir, fs::perms::owner_read | fs::perms::owner_exec);
     void *const addr = manager.allocate(2 * METALL_SEGMENT_BLOCK_SIZE);
     fs::permissions(segment_dir, fs::perms::owner_all);
     ASSERT_EQ(addr, nullptr);
