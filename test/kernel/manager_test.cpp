@@ -5,6 +5,7 @@
 
 #include "gtest/gtest.h"
 
+#include <cerrno>
 #include <filesystem>
 #include <unordered_set>
 #include <cstdint>
@@ -1626,6 +1627,37 @@ TEST(ManagerTest, CloseWithUnreadableMark) {
     fs::permissions(mds_dir, fs::perms::owner_all);
     ASSERT_FALSE(closed);
     ASSERT_FALSE(manager.check_sanity());
+  }
+  ASSERT_FALSE(manager_type::consistent(dir_path()));
+}
+
+TEST(ManagerTest, CloseKeepsErrno) {
+  if (::geteuid() == 0) {
+    GTEST_SKIP() << "Runs as root, permissions do not restrict writes";
+  }
+  manager_type::remove(dir_path());
+
+  // A failed extension releases the segment. `close()` then checks the
+  // properly-closed mark, which is missing, and returns false. No call of
+  // the close fails on this path, so the close leaves `errno` as the caller
+  // set it. It must not leave the ENOENT of the check of the missing mark.
+  const auto segment_dir = dir_path() / "mds" / "segment";
+  {
+    manager_type manager(metall::create_only, dir_path(), 1UL << 30UL);
+    ASSERT_TRUE(manager.check_sanity());
+
+    fs::permissions(segment_dir,
+                    fs::perms::owner_read | fs::perms::owner_exec);
+    void *const addr = manager.allocate(2 * METALL_SEGMENT_BLOCK_SIZE);
+    fs::permissions(segment_dir, fs::perms::owner_all);
+    ASSERT_EQ(addr, nullptr);
+    ASSERT_TRUE(manager.check_sanity());
+
+    errno = EOVERFLOW;
+    const bool closed = manager.close();
+    const int errno_after_close = errno;
+    ASSERT_FALSE(closed);
+    ASSERT_EQ(errno_after_close, EOVERFLOW);
   }
   ASSERT_FALSE(manager_type::consistent(dir_path()));
 }
