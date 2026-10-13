@@ -1598,6 +1598,40 @@ TEST(ManagerTest, CloseAfterFailedExtension) {
   ASSERT_FALSE(manager_type::consistent(dir_path()));
 }
 
+TEST(ManagerTest, CloseWithUnreadableMark) {
+  if (::geteuid() == 0) {
+    GTEST_SKIP() << "Runs as root, permissions do not restrict access";
+  }
+  const auto mds_dir = dir_path() / "mds";
+  std::error_code ec;
+  fs::permissions(mds_dir, fs::perms::owner_all, ec);
+  manager_type::remove(dir_path());
+
+  // A failed extension releases the segment. Then the directory of the
+  // properly-closed mark cannot be searched, so the state of the mark cannot
+  // be read. `close()` and the destruction of the manager do not throw, and
+  // `close()` returns false.
+  const auto segment_dir = mds_dir / "segment";
+  {
+    manager_type manager(metall::create_only, dir_path(), 1UL << 30UL);
+    ASSERT_TRUE(manager.check_sanity());
+
+    fs::permissions(segment_dir,
+                    fs::perms::owner_read | fs::perms::owner_exec);
+    void *const addr = manager.allocate(2 * METALL_SEGMENT_BLOCK_SIZE);
+    fs::permissions(segment_dir, fs::perms::owner_all);
+    ASSERT_EQ(addr, nullptr);
+    ASSERT_TRUE(manager.check_sanity());
+
+    fs::permissions(mds_dir, fs::perms::owner_read | fs::perms::owner_write);
+    const bool closed = manager.close();
+    fs::permissions(mds_dir, fs::perms::owner_all);
+    ASSERT_FALSE(closed);
+    ASSERT_FALSE(manager.check_sanity());
+  }
+  ASSERT_FALSE(manager_type::consistent(dir_path()));
+}
+
 TEST(ManagerTest, CheckSanity) {
   // This test should be run at the end of this execution unless reset the
   // values below:
