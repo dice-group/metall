@@ -205,6 +205,10 @@ class manager_kernel {
   /// Serializes the management data, syncs the segment, and creates the
   /// properly-closed mark only if everything succeeded.
   /// Expect to be called by a single thread
+  /// If the segment is not open, because a close or a failure released it
+  /// before, it writes nothing and returns whether the datastore carries the
+  /// properly-closed mark. It returns false if the state of the mark cannot
+  /// be read.
   /// \return Returns true if all data was persisted; otherwise, returns
   /// false. On false, no properly-closed mark is created and the datastore is
   /// reported as inconsistent by consistent().

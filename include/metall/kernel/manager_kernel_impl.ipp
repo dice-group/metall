@@ -58,9 +58,23 @@ bool manager_kernel<st, sst, cn, cs>::open(
 template <typename st, typename sst, typename cn, std::size_t cs>
 bool manager_kernel<st, sst, cn, cs>::close() {
   if (!m_segment_storage.is_open()) {
-    // A failure released the segment already. The datastore is closed, but
-    // the mark is only there when a close wrote it before.
-    return priv_properly_closed(m_base_path);
+    // The segment is not open: a close or a failure released it, or the
+    // create or the open failed. The result says whether the datastore
+    // carries the properly-closed mark. The destructor also runs this
+    // branch, so the check does not throw. If the state of the mark cannot
+    // be read, the result is false.
+    if (m_base_path.empty()) {
+      return false;
+    }
+    std::error_code ec;
+    const bool marked = std::filesystem::exists(
+        storage::get_path(m_base_path, k_properly_closed_mark_file_name), ec);
+    if (ec) {
+      logger::out(logger::level::error, __FILE__, __LINE__,
+                  "Failed to read the state of the properly-closed mark");
+      return false;
+    }
+    return marked;
   }
 
   priv_check_sanity();
