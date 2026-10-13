@@ -6,6 +6,8 @@
 #ifndef METALL_DETAIL_KERNEL_MANAGER_KERNEL_IMPL_IPP
 #define METALL_DETAIL_KERNEL_MANAGER_KERNEL_IMPL_IPP
 
+#include <cerrno>
+
 #include <metall/kernel/manager_kernel_fwd.hpp>
 
 namespace metall::kernel {
@@ -58,7 +60,28 @@ bool manager_kernel<st, sst, cn, cs>::open(
 template <typename st, typename sst, typename cn, std::size_t cs>
 bool manager_kernel<st, sst, cn, cs>::close() {
   if (!m_segment_storage.is_open()) {
-    return true;
+    // The segment is not open: a close or a failure released it, or the
+    // create or the open failed. The result says whether the datastore
+    // carries the properly-closed mark. The destructor also runs this
+    // branch, so the check does not throw. If the state of the mark cannot
+    // be read, the result is false.
+    // The check stats a file, so it saves and restores `errno`: a caller that
+    // reads `errno` after a failed close must see the `errno` of the failure,
+    // not of this check.
+    const int saved_errno = errno;
+    bool marked = false;
+    if (!m_base_path.empty()) {
+      std::error_code ec;
+      marked = std::filesystem::exists(
+          storage::get_path(m_base_path, k_properly_closed_mark_file_name), ec);
+      if (ec) {
+        logger::out(logger::level::error, __FILE__, __LINE__,
+                    "Failed to read the state of the properly-closed mark");
+        marked = false;
+      }
+    }
+    errno = saved_errno;
+    return marked;
   }
 
   priv_check_sanity();

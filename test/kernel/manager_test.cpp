@@ -5,6 +5,7 @@
 
 #include "gtest/gtest.h"
 
+#include <cerrno>
 #include <filesystem>
 #include <unordered_set>
 #include <cstdint>
@@ -1547,6 +1548,117 @@ TEST(ManagerTest, WriteProtectionDuringSync) {
   manager.flush(true);
   ASSERT_TRUE(kernel_can_write(value));
   ASSERT_EQ(*value, 20);
+}
+
+TEST(ManagerTest, Close) {
+  manager_type::remove(dir_path());
+
+  // `close()` returns the result of the close, and the manager is closed
+  // after the call.
+  {
+    manager_type manager(metall::create_only, dir_path(), 1UL << 30UL);
+    ASSERT_NE(manager.construct<int>("int")(10), nullptr);
+    ASSERT_TRUE(manager.close());
+    ASSERT_FALSE(manager.check_sanity());
+    ASSERT_FALSE(manager.close());
+  }
+  ASSERT_TRUE(manager_type::consistent(dir_path()));
+
+  {
+    manager_type manager(metall::open_read_only, dir_path());
+    auto *const value = manager.find<int>("int").first;
+    ASSERT_NE(value, nullptr);
+    ASSERT_EQ(*value, 10);
+  }
+}
+
+TEST(ManagerTest, CloseAfterFailedExtension) {
+  if (::geteuid() == 0) {
+    GTEST_SKIP() << "Runs as root, permissions do not restrict writes";
+  }
+  manager_type::remove(dir_path());
+
+  // The extension of the segment cannot create the file of a new block. It
+  // releases the segment, but the manager stays sane. `close()` then writes
+  // no properly-closed mark and returns false.
+  const auto segment_dir = dir_path() / "mds" / "segment";
+  {
+    manager_type manager(metall::create_only, dir_path(), 1UL << 30UL);
+    ASSERT_TRUE(manager.check_sanity());
+
+    fs::permissions(segment_dir,
+                    fs::perms::owner_read | fs::perms::owner_exec);
+    void *const addr = manager.allocate(2 * METALL_SEGMENT_BLOCK_SIZE);
+    fs::permissions(segment_dir, fs::perms::owner_all);
+    ASSERT_EQ(addr, nullptr);
+    ASSERT_TRUE(manager.check_sanity());
+
+    ASSERT_FALSE(manager.close());
+    ASSERT_FALSE(manager.check_sanity());
+  }
+  ASSERT_FALSE(manager_type::consistent(dir_path()));
+}
+
+TEST(ManagerTest, CloseWithUnreadableMark) {
+  if (::geteuid() == 0) {
+    GTEST_SKIP() << "Runs as root, permissions do not restrict access";
+  }
+  const auto mds_dir = dir_path() / "mds";
+  manager_type::remove(dir_path());
+
+  // A failed extension releases the segment. Then the directory of the
+  // properly-closed mark cannot be searched, so the state of the mark cannot
+  // be read. `close()` and the destruction of the manager do not throw, and
+  // `close()` returns false.
+  const auto segment_dir = mds_dir / "segment";
+  {
+    manager_type manager(metall::create_only, dir_path(), 1UL << 30UL);
+    ASSERT_TRUE(manager.check_sanity());
+
+    fs::permissions(segment_dir,
+                    fs::perms::owner_read | fs::perms::owner_exec);
+    void *const addr = manager.allocate(2 * METALL_SEGMENT_BLOCK_SIZE);
+    fs::permissions(segment_dir, fs::perms::owner_all);
+    ASSERT_EQ(addr, nullptr);
+    ASSERT_TRUE(manager.check_sanity());
+
+    fs::permissions(mds_dir, fs::perms::owner_read | fs::perms::owner_write);
+    const bool closed = manager.close();
+    fs::permissions(mds_dir, fs::perms::owner_all);
+    ASSERT_FALSE(closed);
+    ASSERT_FALSE(manager.check_sanity());
+  }
+  ASSERT_FALSE(manager_type::consistent(dir_path()));
+}
+
+TEST(ManagerTest, CloseKeepsErrno) {
+  if (::geteuid() == 0) {
+    GTEST_SKIP() << "Runs as root, permissions do not restrict writes";
+  }
+  manager_type::remove(dir_path());
+
+  // A failed extension releases the segment. `close()` then checks the
+  // properly-closed mark, which is missing, and returns false. No call of
+  // the close fails on this path, so the close leaves `errno` as the caller
+  // set it. It must not leave the ENOENT of the check of the missing mark.
+  const auto segment_dir = dir_path() / "mds" / "segment";
+  {
+    manager_type manager(metall::create_only, dir_path(), 1UL << 30UL);
+    ASSERT_TRUE(manager.check_sanity());
+
+    fs::permissions(segment_dir, fs::perms::owner_read | fs::perms::owner_exec);
+    void *const addr = manager.allocate(2 * METALL_SEGMENT_BLOCK_SIZE);
+    fs::permissions(segment_dir, fs::perms::owner_all);
+    ASSERT_EQ(addr, nullptr);
+    ASSERT_TRUE(manager.check_sanity());
+
+    errno = EOVERFLOW;
+    const bool closed = manager.close();
+    const int errno_after_close = errno;
+    ASSERT_FALSE(closed);
+    ASSERT_EQ(errno_after_close, EOVERFLOW);
+  }
+  ASSERT_FALSE(manager_type::consistent(dir_path()));
 }
 
 TEST(ManagerTest, CheckSanity) {

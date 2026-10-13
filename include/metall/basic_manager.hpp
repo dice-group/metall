@@ -1037,6 +1037,40 @@ class basic_manager {
     return true;
   }
 
+  // ---------- Close ---------- //
+  /// \brief Closes the datastore with a synchronous flush of the application
+  /// data segment.
+  /// \copydoc doc_single_thread
+  ///
+  /// \details
+  /// The destruction of the manager closes the datastore in the same way, but
+  /// it does not report the result. A caller that needs the result calls this
+  /// function. It writes the management data, flushes the segment and marks
+  /// the datastore as properly closed. After the call, the manager is closed
+  /// and `check_sanity()` returns false.
+  ///
+  /// A failed extension of the segment, or a failed sync of an anonymous block
+  /// with `METALL_USE_ANONYMOUS_NEW_MAP`, releases the segment before the
+  /// close. In that case this function creates no mark and returns false, and
+  /// the next open refuses the datastore. A close that cannot read the state
+  /// of the mark returns false too.
+  /// \return Returns true if the datastore was closed and marked as properly
+  /// closed; otherwise, returns false.
+  bool close() noexcept {
+    if (!check_sanity()) {
+      return false;
+    }
+    bool ret = false;
+    try {
+      ret = m_kernel->close();
+    } catch (...) {
+      logger::out(logger::level::error, __FILE__, __LINE__,
+                  "An exception has been thrown");
+    }
+    m_kernel.reset(nullptr);
+    return ret;
+  }
+
   // -------- Snapshot, copy, data store management -------- //
   /// \brief Takes a snapshot of the current data. The snapshot has a new UUID.
   /// \copydoc doc_single_thread
