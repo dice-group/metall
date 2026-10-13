@@ -1603,8 +1603,6 @@ TEST(ManagerTest, CloseWithUnreadableMark) {
     GTEST_SKIP() << "Runs as root, permissions do not restrict access";
   }
   const auto mds_dir = dir_path() / "mds";
-  std::error_code ec;
-  fs::permissions(mds_dir, fs::perms::owner_all, ec);
   manager_type::remove(dir_path());
 
   // A failed extension releases the segment. Then the directory of the
