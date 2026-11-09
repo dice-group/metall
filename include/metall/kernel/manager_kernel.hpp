@@ -29,7 +29,6 @@
 #include <metall/object_attribute_accessor.hpp>
 #include <metall/detail/utilities.hpp>
 #include <metall/detail/file.hpp>
-#include <metall/detail/file_clone.hpp>
 #include <metall/detail/char_ptr_holder.hpp>
 #include <metall/detail/uuid.hpp>
 #include <metall/detail/ptree.hpp>

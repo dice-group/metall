@@ -7,7 +7,6 @@
 #include <string>
 
 #include <metall/detail/file.hpp>
-#include <metall/detail/file_clone.hpp>
 #include <metall/detail/mmap.hpp>
 
 namespace mdtl = metall::mtlldetail;
@@ -85,7 +84,22 @@ int main([[maybe_unused]] int argc, char *argv[]) {
   init_file(source_file_path, file_size);
 
   std::cout << "\nClone the file" << std::endl;
-  if (!mdtl::clone_file(source_file_path, destination_file_path)) {
+  // Clone directly, copy_file would fall back to a normal copy
+  bool cloned = false;
+#if defined(__APPLE__)
+  cloned =
+      mdtl::fcpdtl::clone_file_macos(source_file_path, destination_file_path);
+#elif defined(__linux__)
+  int src;
+  int dst;
+  if (mdtl::fcpdtl::prepare_file_copy(source_file_path, destination_file_path,
+                                      &src, &dst) >= 0) {
+    cloned = mdtl::fcpdtl::clone_file_linux(src, dst, 0);
+    mdtl::os_close(src);
+    mdtl::os_close(dst);
+  }
+#endif
+  if (!cloned) {
     std::cerr << "Failed to clone file: " << source_file_path << " to "
               << destination_file_path << std::endl;
     std::abort();
