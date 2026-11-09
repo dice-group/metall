@@ -1,4 +1,5 @@
 add_metall_test_executable(bitset_test bitset_test.cpp)
 
+add_metall_test_executable(file_copy_test file_copy_test.cpp)
 add_metall_test_executable(file_durability_test file_durability_test.cpp)
 add_metall_test_executable(mmap_test mmap_test.cpp)
