@@ -10,7 +10,6 @@
 #include <initializer_list>
 
 #include <metall/detail/file.hpp>
-#include <metall/detail/file_clone.hpp>
 
 namespace metall::kernel {
 

@@ -15,9 +15,18 @@
 #include <libgen.h>
 
 #ifdef __linux__
+#include <sys/ioctl.h>
 #include <linux/falloc.h>  // For FALLOC_FL_PUNCH_HOLE and FALLOC_FL_KEEP_SIZE
+#include <linux/fs.h>      // For FICLONE
 #endif
 
+#ifdef __APPLE__
+#include <copyfile.h>
+#include <sys/attr.h>
+#include <sys/clonefile.h>
+#endif
+
+#include <cstdint>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
@@ -30,6 +39,7 @@
 #include <cstring>
 #include <functional>
 #include <filesystem>
+#include <initializer_list>
 
 #include <metall/logger.hpp>
 
@@ -548,8 +558,6 @@ inline bool copy_file_sparse_manually(const fs::path &source_path,
   return true;
 }
 
-#ifdef __linux__
-
 /**
  * \brief Prepares a file copy from source_path to destination_path
  *      by opening/creating the relevant files and setting appropriate
@@ -567,9 +575,9 @@ inline bool copy_file_sparse_manually(const fs::path &source_path,
  * \warning if the function fails the user must not use the obtained src and dst
  * file descriptors in any way (they don't need to be closed)
  */
-inline off_t prepare_file_copy_linux(
-    const std::filesystem::path &source_path,
-    const std::filesystem::path &destination_path, int *src, int *dst) {
+inline off_t prepare_file_copy(const std::filesystem::path &source_path,
+                               const std::filesystem::path &destination_path,
+                               int *src, int *dst) {
   *src = ::open(source_path.c_str(), O_RDONLY);
   if (*src == -1) {
     std::stringstream ss;
@@ -600,6 +608,8 @@ inline off_t prepare_file_copy_linux(
   return st.st_size;
 }
 
+#ifdef __linux__
+
 /**
  * \brief Performs an accelerated, in-kernel copy from src to dst
  * \param src source file descriptor
@@ -611,92 +621,36 @@ inline off_t prepare_file_copy_linux(
  *    - https://www.man7.org/linux/man-pages/man2/copy_file_range.2.html
  */
 inline bool copy_file_dense_linux(const int src, const int dst,
-                                  const off_t src_size) {
-  if (::copy_file_range(src, nullptr, dst, nullptr, src_size, 0) < 0) {
-    logger::perror(logger::level::error, __FILE__, __LINE__, "copy_file_range");
-    return false;
-  }
+                                  const size_t src_size) {
+  // copy_file_range can copy fewer bytes than requested
+  size_t remaining = src_size;
+  while (remaining > 0) {
+    const ssize_t bytes_read =
+        ::copy_file_range(src, nullptr, dst, nullptr, remaining, 0);
+    if (bytes_read < 0) {
+      logger::perror(logger::level::error, __FILE__, __LINE__,
+                     "copy_file_range");
+      return false;
+    }
 
-  return true;
-}
-
-/**
- * \brief performs a dense copy from source_path to destionation_path
- * \param source_path path to source file
- * \param destination_path path to destination file
- * \return if the operation was successful
- */
-inline bool copy_file_dense_linux(
-    const std::filesystem::path &source_path,
-    const std::filesystem::path &destination_path) {
-  int src;
-  int dst;
-  const off_t src_size =
-      prepare_file_copy_linux(source_path, destination_path, &src, &dst);
-  if (src_size >= 0) {
-    if (copy_file_dense_linux(src, dst, src_size)) {
-      os_fsync(dst);
-      os_close(src);
-      os_close(dst);
+    if (bytes_read == 0) {
+      // EOF, source was shorter than src_size
       return true;
     }
-  }
 
-  os_close(src);
-  os_close(dst);
-  logger::out(logger::level::warning, __FILE__, __LINE__,
-              "Unable to use accelerated dense copy, falling back to "
-              "unaccelerated dense copy");
-
-  return copy_file_dense(source_path, destination_path);
-}
-
-/**
- * Creates a hole of size size at the current cursor of fd.
- * Moves cursor of fd behind the created hole.
- *
- * \param fd file descriptor
- * \param size size of to-be-created hole
- * \return if creation was successful
- * \note the cursor position will still be advanced even if hole punching fails
- *
- * Relevant man pages:
- *      https://www.man7.org/linux/man-pages/man2/lseek.2.html
- *      https://man7.org/linux/man-pages/man2/fallocate.2.html
- */
-inline bool create_hole_linux(const int fd, const off_t size) {
-  if (size == 0) {
-    return true;
-  }
-
-  // Seek size bytes past the current position
-  const off_t hole_end = ::lseek(fd, size, SEEK_CUR);
-  if (hole_end < 0) {
-    logger::perror(logger::level::error, __FILE__, __LINE__, "lseek");
-    return false;
-  }
-
-  // punch a hole from old cursor to new cursor
-  if (::fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
-                  hole_end - size, size) < 0) {
-    logger::perror(logger::level::error, __FILE__, __LINE__,
-                   "fallocate(FALLOC_FL_PUNCH_HOLE)");
-    return false;
+    remaining -= static_cast<size_t>(bytes_read);
   }
 
   return true;
 }
 
 /**
- * Performs a sparse copy from src to dst, by only copying actual data and
- * manually recreating all holes from src in dst.
- *
- * I.e. for each "segment" (data segment or hole) in src do
- *      if segment is data => copy segment to dst
- *      if segment is hole => create new hole (of the appropriate size) in dst
+ * Performs a sparse copy from src to dst, by only copying actual data.
+ * Each data segment is written to the same offset in dst, thus the holes
+ * of src stay holes in dst.
  *
  * \param src source file descriptor
- * \param dst destination file descriptor
+ * \param dst destination file descriptor, the file must be empty
  * \param src_size size of file behind src as obtained by ::fstat
  * \return if copying was successful
  *
@@ -706,17 +660,10 @@ inline bool create_hole_linux(const int fd, const off_t size) {
  *      https://www.man7.org/linux/man-pages/man3/ftruncate.3p.html
  */
 inline bool copy_file_sparse_linux(const int src, const int dst,
-                                   const off_t src_size) {
-  off_t old_off = 0;
+                                   const size_t src_size) {
   off_t off = 0;
 
   while ((off = ::lseek(src, off, SEEK_DATA)) >= 0) {
-    if (!create_hole_linux(dst, off - old_off)) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Unable to punch hole");
-      return false;
-    }
-
     off_t const hole_start = ::lseek(src, off, SEEK_HOLE);
     if (hole_start < 0) {
       logger::perror(logger::level::error, __FILE__, __LINE__,
@@ -724,13 +671,12 @@ inline bool copy_file_sparse_linux(const int src, const int dst,
       return false;
     }
 
-    if (::copy_file_range(src, &off, dst, nullptr, hole_start - off, 0) < 0) {
+    off_t dst_off = off;
+    if (::copy_file_range(src, &off, dst, &dst_off, hole_start - off, 0) < 0) {
       logger::perror(logger::level::error, __FILE__, __LINE__,
                      "copy_file_range");
       return false;
     }
-
-    old_off = off;
   }
 
   if (errno != ENXIO) {
@@ -741,97 +687,176 @@ inline bool copy_file_sparse_linux(const int src, const int dst,
     return false;
   }
 
-  if (old_off < src_size) {
-    // the final extent is a hole we must call ftruncate
-    // here in order to record the proper length in the destination.
-    // See also:
-    // https://github.com/coreutils/coreutils/blob/a257b63ce7ebcc4577adb5406b39fc0edd61dcac/src/copy.c#L643-L658
-    if (::ftruncate(dst, src_size) < 0) {
-      logger::perror(logger::level::error, __FILE__, __LINE__, "ftruncate");
-      return false;
-    }
-
-    if (!create_hole_linux(dst, src_size - old_off)) {
-      logger::out(logger::level::error, __FILE__, __LINE__,
-                  "Unable to punch hole");
-      return false;
-    }
+  // If the final extent is a hole, this records the proper length in dst
+  if (::ftruncate(dst, src_size) < 0) {
+    logger::perror(logger::level::error, __FILE__, __LINE__, "ftruncate");
+    return false;
   }
 
   return true;
 }
 
 /**
- * Attempts to perform a sparse copy from source_path to destination_path,
- * falling back to regular copy if the sparse copy fails.
+ * Clone file using
+ * https://man7.org/linux/man-pages/man2/ioctl_ficlone.2.html
  */
-inline bool copy_file_sparse_linux(
-    const std::filesystem::path &source_path,
-    const std::filesystem::path &destination_path) {
-  int src;
-  int dst;
-  const off_t src_size =
-      prepare_file_copy_linux(source_path, destination_path, &src, &dst);
-  if (src_size < 0) {
-    logger::out(logger::level::error, __FILE__, __LINE__,
-                "Unable to prepare for file copy");
+inline bool clone_file_linux(const int src, const int dst, size_t) {
+#ifdef FICLONE
+  return ::ioctl(dst, FICLONE, src) != -1;
+#else
+  errno = ENOTSUP;
+  return false;
+#endif  // defined(FICLONE)
+}
+
+#endif
+
+#ifdef __APPLE__
+
+/**
+ * Clone file using
+ * https://manpagez.com/man/2/clonefile/
+ * clonefile only accepts paths, and the destination must not exist.
+ * Thus, this function removes an existing destination first.
+ */
+inline bool clone_file_macos(const fs::path &source_path,
+                             const fs::path &destination_path) {
+  ::unlink(destination_path.c_str());
+  return ::clonefile(source_path.c_str(), destination_path.c_str(), 0) == 0 &&
+         fsync(destination_path);
+}
+
+/**
+ * \brief Performs an accelerated copy from src to dst
+ * \param src source file descriptor
+ * \param dst destination file descriptor
+ * \return if the operation was successful
+ *
+ * Relevant man pages:
+ *    - https://keith.github.io/xcode-man-pages/copyfile.3.html
+ */
+inline bool copy_file_dense_macos(const int src, const int dst, size_t) {
+  if (::fcopyfile(src, dst, nullptr, COPYFILE_DATA) < 0) {
+    logger::perror(logger::level::error, __FILE__, __LINE__, "fcopyfile");
     return false;
   }
 
-  if (copy_file_sparse_linux(src, dst, src_size)) {
-    os_fsync(dst);
-    os_close(src);
-    os_close(dst);
-    return true;
+  return true;
+}
+
+/**
+ * Performs a sparse copy from src to dst, by only copying actual data and
+ * recreating all holes from src in dst. Holes are only preserved on APFS,
+ * elsewhere copyfile silently performs a dense copy.
+ *
+ * \param src source file descriptor
+ * \param dst destination file descriptor
+ * \return if copying was successful
+ *
+ * Relevant man pages:
+ *    - https://keith.github.io/xcode-man-pages/copyfile.3.html
+ */
+inline bool copy_file_sparse_macos(const int src, const int dst, size_t) {
+  if (::fcopyfile(src, dst, nullptr, COPYFILE_DATA | COPYFILE_DATA_SPARSE) <
+      0) {
+    logger::perror(logger::level::error, __FILE__, __LINE__, "fcopyfile");
+    return false;
   }
 
-  {
-    std::stringstream ss;
-    ss << "Unable to sparse copy " << source_path << " to " << destination_path
-       << ", falling back to normal copy";
-    logger::out(logger::level::warning, __FILE__, __LINE__, ss.str().c_str());
-  }
-
-  os_close(src);
-  os_close(dst);
-
-  if (copy_file_dense_linux(source_path, destination_path)) {
-    return true;
-  }
-
-  std::stringstream ss;
-  ss << "Unable to copy " << source_path << " to " << destination_path;
-  logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
-
-  return false;
+  return true;
 }
 
 #endif
 
 }  // namespace fcpdtl
 
-/// \brief Copy a file.
+/// \brief Bit flags that select the copy methods to try before a dense copy.
+enum struct copy_flags : uint8_t {
+  dense = 0,        ///< Dense copy only.
+  sparse = 1 << 0,  ///< Try a sparse copy.
+  clone = 1 << 1,   ///< Try a clone (reflink) first.
+};
+
+constexpr copy_flags operator|(const copy_flags a, const copy_flags b) {
+  return static_cast<copy_flags>(static_cast<uint8_t>(a) |
+                                 static_cast<uint8_t>(b));
+}
+
+constexpr bool operator&(const copy_flags a, const copy_flags b) {
+  return (static_cast<uint8_t>(a) & static_cast<uint8_t>(b)) != 0;
+}
+
+/// \brief Copies a file. Tries the enabled methods in the order clone, sparse
+/// copy, dense copy, and falls back to the next one if a method fails.
 /// \param source_path A source file path.
 /// \param destination_path A destination path.
-/// \param sparse_copy If true is specified, tries to perform sparse file copy.
-/// \return  On success, returns true. On error, returns false.
-inline bool copy_file(const fs::path &source_path,
-                      const fs::path &destination_path,
-                      const bool sparse_copy = true) {
-  if (sparse_copy) {
-#ifdef __linux__
-    return fcpdtl::copy_file_sparse_linux(source_path, destination_path);
-#else
-    logger::out(logger::level::warning, __FILE__, __LINE__,
-                "Sparse file copy is not available");
+/// \param flags The copy methods to try before a dense copy.
+/// \return On success, returns true. On error, returns false.
+inline bool copy_file(
+    const fs::path &source_path, const fs::path &destination_path,
+    [[maybe_unused]] const copy_flags flags = copy_flags::sparse) {
+  const auto warn = [&](const char *const method) {
+    std::stringstream ss;
+    ss << "Unable to " << method << " " << source_path << " to "
+       << destination_path << ", falling back";
+    logger::out(logger::level::warning, __FILE__, __LINE__, ss.str().c_str());
+  };
+
+#ifdef __APPLE__
+  // Runs before the files are opened, because it needs paths
+  if (flags & copy_flags::clone) {
+    if (fcpdtl::clone_file_macos(source_path, destination_path)) {
+      return true;
+    }
+    warn("clone");
+  }
 #endif
+
+  struct method {
+    const char *name;
+    bool enabled;
+    bool (*func)(int src, int dst, size_t src_size);
+  };
+  const std::initializer_list<method> methods = {
+#if defined(__linux__)
+      {"clone", flags & copy_flags::clone, fcpdtl::clone_file_linux},
+      {"sparse copy", flags & copy_flags::sparse,
+       fcpdtl::copy_file_sparse_linux},
+      {"dense copy", true, fcpdtl::copy_file_dense_linux},
+#elif defined(__APPLE__)
+      // clone ran above (needs paths not fds)
+      {"sparse copy", flags & copy_flags::sparse,
+       fcpdtl::copy_file_sparse_macos},
+      {"dense copy", true, fcpdtl::copy_file_dense_macos},
+#endif
+  };
+
+  int src;
+  int dst;
+  const off_t src_size =
+      fcpdtl::prepare_file_copy(source_path, destination_path, &src, &dst);
+  if (src_size < 0) {
+    return false;
   }
 
-#if __linux__
-  return fcpdtl::copy_file_dense_linux(source_path, destination_path);
-#else
-  return fcpdtl::copy_file_dense(source_path, destination_path);
-#endif
+  bool ret = false;
+  for (const auto &m : methods) {
+    if (!m.enabled) continue;
+
+    ret = m.func(src, dst, src_size) && os_fsync(dst);
+    if (ret) break;
+    warn(m.name);
+
+    // Discard the partial copy before the next method
+    if (::ftruncate(dst, 0) != 0 || ::lseek(dst, 0, SEEK_SET) != 0 ||
+        ::lseek(src, 0, SEEK_SET) != 0) {
+      break;
+    }
+  }
+  ret &= os_close(src);
+  ret &= os_close(dst);
+
+  return ret || fcpdtl::copy_file_dense(source_path, destination_path);
 }
 
 /// \brief Get the file names in a directory.
@@ -921,17 +946,18 @@ inline bool copy_files_in_directory_in_parallel_helper(
 /// \param destination_dir_path A path to destination directory.
 /// \param max_num_threads The maximum number of threads to use.
 /// If <= 0 is given, it is automatically determined.
-/// \param sparse_copy Performs sparse file copy.
+/// \param flags The copy methods to try before a dense copy.
 /// \return  On success, returns true. On error, returns false.
 inline bool copy_files_in_directory_in_parallel(
     const fs::path &source_dir_path, const fs::path &destination_dir_path,
-    const int max_num_threads, const bool sparse_copy = true) {
+    const int max_num_threads, const copy_flags flags = copy_flags::sparse) {
   return copy_files_in_directory_in_parallel_helper(
       source_dir_path, destination_dir_path, max_num_threads,
-      [&sparse_copy](const fs::path &src, const fs::path &dst) -> bool {
-        return copy_file(src, dst, sparse_copy);
+      [flags](const fs::path &src, const fs::path &dst) {
+        return copy_file(src, dst, flags);
       });
 }
+
 }  // namespace metall::mtlldetail
 
 #endif  // METALL_DETAIL_UTILITY_FILE_HPP
