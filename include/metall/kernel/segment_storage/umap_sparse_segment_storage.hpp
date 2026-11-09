@@ -111,17 +111,12 @@ class umap_sparse_segment_storage {
                    [[maybe_unused]] const int max_num_threads) {
     // TODO: implement parallel copy version
 
-    if (clone) {
-      std::string s("Clone: " + source_path);
-      logger::out(logger::level::info, __FILE__, __LINE__, s.c_str());
-      return mdtl::clone_file(source_path, destination_path);
-    } else {
-      std::string s("Copy: " + source_path);
-      logger::out(logger::level::info, __FILE__, __LINE__, s.c_str());
-      return mdtl::copy_file(source_path, destination_path);
-    }
-    assert(false);
-    return false;
+    std::string s((clone ? "Clone: " : "Copy: ") + source_path);
+    logger::out(logger::level::info, __FILE__, __LINE__, s.c_str());
+    return mdtl::copy_file(
+        source_path, destination_path,
+        mdtl::copy_flags::sparse |
+            (clone ? mdtl::copy_flags::clone : mdtl::copy_flags::dense));
   }
 
   /// \brief Creates a new segment by mapping file(s) to the given VM address.

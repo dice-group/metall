@@ -12,7 +12,7 @@
 #include <iomanip>
 #include <metall/metall.hpp>
 #include <metall/detail/time.hpp>
-#include <metall/detail/file_clone.hpp>
+#include <metall/detail/file.hpp>
 #include "../data_structure/multithread_adjacency_list.hpp"
 #include "bench_driver.hpp"
 
