@@ -193,4 +193,29 @@ TEST(FileCopyTest, CopyFileReportsWriteError) {
   }
 }
 
+TEST(FileCopyTest, DirectorySourceLeavesDestinationUnchanged) {
+  const auto dir = prepare_test_dir("directory_source");
+  const auto source = dir / "source";
+  ASSERT_TRUE(mdtl::create_directory(source / "sub"));
+  ASSERT_TRUE(write_file(source / "file", "file data\n"));
+
+  // copy_file fails and does not make a destination.
+  const auto sparse_destination = dir / "sparse_destination";
+  EXPECT_FALSE(mdtl::copy_file(source, sparse_destination, true));
+  EXPECT_FALSE(mdtl::file_exist(sparse_destination))
+      << "copy_file(sparse_copy=true) made " << sparse_destination;
+
+  const auto dense_destination = dir / "dense_destination";
+  EXPECT_FALSE(mdtl::copy_file(source, dense_destination, false));
+  EXPECT_FALSE(mdtl::file_exist(dense_destination))
+      << "copy_file(sparse_copy=false) made " << dense_destination;
+
+  // clone_file does not change an existing regular file. The call can fail.
+  const auto existing_file = dir / "existing_file";
+  const std::string existing_content = "old data\n";
+  ASSERT_TRUE(write_file(existing_file, existing_content));
+  mdtl::clone_file(source, existing_file);
+  EXPECT_EQ(read_file(existing_file), existing_content);
+}
+
 }  // namespace
