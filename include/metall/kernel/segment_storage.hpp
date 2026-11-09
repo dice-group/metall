@@ -15,7 +15,6 @@
 
 #include "metall/defs.hpp"
 #include "metall/detail/file.hpp"
-#include "metall/detail/file_clone.hpp"
 #include "metall/detail/mmap.hpp"
 #include "metall/detail/utilities.hpp"
 #include "metall/logger.hpp"
@@ -307,19 +306,12 @@ class segment_storage {
       }
     }
 
-    if (clone) {
-      std::string s("Clone: " + source_path.string());
-      logger::out(logger::level::verbose, __FILE__, __LINE__, s.c_str());
-      return mdtl::clone_files_in_directory_in_parallel(
-          source_path, destination_path, max_num_threads);
-    } else {
-      std::string s("Copy: " + source_path.string());
-      logger::out(logger::level::verbose, __FILE__, __LINE__, s.c_str());
-      return mdtl::copy_files_in_directory_in_parallel(
-          source_path, destination_path, max_num_threads);
-    }
-    assert(false);
-    return false;
+    std::string s((clone ? "Clone: " : "Copy: ") + source_path.string());
+    logger::out(logger::level::verbose, __FILE__, __LINE__, s.c_str());
+    return mdtl::copy_files_in_directory_in_parallel(
+        source_path, destination_path, max_num_threads,
+        mdtl::copy_flags::sparse |
+            (clone ? mdtl::copy_flags::clone : mdtl::copy_flags::none));
   }
 
   bool priv_prepare_header_and_segment(
