@@ -18,6 +18,10 @@
 #include <linux/falloc.h>  // For FALLOC_FL_PUNCH_HOLE and FALLOC_FL_KEEP_SIZE
 #endif
 
+#ifdef __APPLE__
+#include <copyfile.h>
+#endif
+
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
@@ -548,8 +552,6 @@ inline bool copy_file_sparse_manually(const fs::path &source_path,
   return true;
 }
 
-#ifdef __linux__
-
 /**
  * \brief Prepares a file copy from source_path to destination_path
  *      by opening/creating the relevant files and setting appropriate
@@ -567,9 +569,9 @@ inline bool copy_file_sparse_manually(const fs::path &source_path,
  * \warning if the function fails the user must not use the obtained src and dst
  * file descriptors in any way (they don't need to be closed)
  */
-inline off_t prepare_file_copy_linux(
-    const std::filesystem::path &source_path,
-    const std::filesystem::path &destination_path, int *src, int *dst) {
+inline off_t prepare_file_copy(const std::filesystem::path &source_path,
+                               const std::filesystem::path &destination_path,
+                               int *src, int *dst) {
   *src = ::open(source_path.c_str(), O_RDONLY);
   if (*src == -1) {
     std::stringstream ss;
@@ -599,6 +601,8 @@ inline off_t prepare_file_copy_linux(
 
   return st.st_size;
 }
+
+#ifdef __linux__
 
 /**
  * \brief Performs an accelerated, in-kernel copy from src to dst
@@ -632,7 +636,7 @@ inline bool copy_file_dense_linux(
   int src;
   int dst;
   const off_t src_size =
-      prepare_file_copy_linux(source_path, destination_path, &src, &dst);
+      prepare_file_copy(source_path, destination_path, &src, &dst);
   if (src_size >= 0) {
     if (copy_file_dense_linux(src, dst, src_size)) {
       os_fsync(dst);
@@ -640,10 +644,10 @@ inline bool copy_file_dense_linux(
       os_close(dst);
       return true;
     }
+    os_close(src);
+    os_close(dst);
   }
 
-  os_close(src);
-  os_close(dst);
   logger::out(logger::level::warning, __FILE__, __LINE__,
               "Unable to use accelerated dense copy, falling back to "
               "unaccelerated dense copy");
@@ -771,7 +775,7 @@ inline bool copy_file_sparse_linux(
   int src;
   int dst;
   const off_t src_size =
-      prepare_file_copy_linux(source_path, destination_path, &src, &dst);
+      prepare_file_copy(source_path, destination_path, &src, &dst);
   if (src_size < 0) {
     logger::out(logger::level::error, __FILE__, __LINE__,
                 "Unable to prepare for file copy");
@@ -808,6 +812,121 @@ inline bool copy_file_sparse_linux(
 
 #endif
 
+#ifdef __APPLE__
+
+/**
+ * \brief Performs an accelerated copy from src to dst
+ * \param src source file descriptor
+ * \param dst destination file descriptor
+ * \return if the operation was successful
+ *
+ * Relevant man pages:
+ *    - https://keith.github.io/xcode-man-pages/copyfile.3.html
+ */
+inline bool copy_file_dense_macos(const int src, const int dst) {
+  if (::fcopyfile(src, dst, nullptr, COPYFILE_DATA) < 0) {
+    logger::perror(logger::level::error, __FILE__, __LINE__, "fcopyfile");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * \brief performs a dense copy from source_path to destionation_path
+ * \param source_path path to source file
+ * \param destination_path path to destination file
+ * \return if the operation was successful
+ */
+inline bool copy_file_dense_macos(
+    const std::filesystem::path &source_path,
+    const std::filesystem::path &destination_path) {
+  int src;
+  int dst;
+  if (prepare_file_copy(source_path, destination_path, &src, &dst) >= 0) {
+    if (copy_file_dense_macos(src, dst)) {
+      os_fsync(dst);
+      os_close(src);
+      os_close(dst);
+      return true;
+    }
+    os_close(src);
+    os_close(dst);
+  }
+
+  logger::out(logger::level::warning, __FILE__, __LINE__,
+              "Unable to use accelerated dense copy, falling back to "
+              "unaccelerated dense copy");
+
+  return copy_file_dense(source_path, destination_path);
+}
+
+/**
+ * Performs a sparse copy from src to dst, by only copying actual data and
+ * recreating all holes from src in dst. Holes are only preserved on APFS,
+ * elsewhere copyfile silently performs a dense copy.
+ *
+ * \param src source file descriptor
+ * \param dst destination file descriptor
+ * \return if copying was successful
+ *
+ * Relevant man pages:
+ *    - https://keith.github.io/xcode-man-pages/copyfile.3.html
+ */
+inline bool copy_file_sparse_macos(const int src, const int dst) {
+  if (::fcopyfile(src, dst, nullptr, COPYFILE_DATA | COPYFILE_DATA_SPARSE) < 0) {
+    logger::perror(logger::level::error, __FILE__, __LINE__, "fcopyfile");
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Attempts to perform a sparse copy from source_path to destination_path,
+ * falling back to regular copy if the sparse copy fails.
+ */
+inline bool copy_file_sparse_macos(
+    const std::filesystem::path &source_path,
+    const std::filesystem::path &destination_path) {
+  int src;
+  int dst;
+  if (prepare_file_copy(source_path, destination_path, &src, &dst) < 0) {
+    logger::out(logger::level::error, __FILE__, __LINE__,
+                "Unable to prepare for file copy");
+    return false;
+  }
+
+  if (copy_file_sparse_macos(src, dst)) {
+    os_fsync(dst);
+    os_close(src);
+    os_close(dst);
+    return true;
+  }
+
+  {
+    std::stringstream ss;
+    ss << "Unable to sparse copy " << source_path << " to " << destination_path
+       << ", falling back to normal copy";
+    logger::out(logger::level::warning, __FILE__, __LINE__, ss.str().c_str());
+  }
+
+  os_close(src);
+  os_close(dst);
+
+  if (copy_file_dense_macos(source_path, destination_path)) {
+    return true;
+  }
+
+  std::stringstream ss;
+  ss << "Unable to copy " << source_path << " to " << destination_path;
+  logger::out(logger::level::error, __FILE__, __LINE__, ss.str().c_str());
+
+  return false;
+}
+
+#endif
+
 }  // namespace fcpdtl
 
 /// \brief Copy a file.
@@ -819,16 +938,20 @@ inline bool copy_file(const fs::path &source_path,
                       const fs::path &destination_path,
                       const bool sparse_copy = true) {
   if (sparse_copy) {
-#ifdef __linux__
+#if defined(__linux__)
     return fcpdtl::copy_file_sparse_linux(source_path, destination_path);
+#elif defined(__APPLE__)
+    return fcpdtl::copy_file_sparse_macos(source_path, destination_path);
 #else
     logger::out(logger::level::warning, __FILE__, __LINE__,
                 "Sparse file copy is not available");
 #endif
   }
 
-#if __linux__
+#if defined(__linux__)
   return fcpdtl::copy_file_dense_linux(source_path, destination_path);
+#elif defined(__APPLE__)
+  return fcpdtl::copy_file_dense_macos(source_path, destination_path);
 #else
   return fcpdtl::copy_file_dense(source_path, destination_path);
 #endif

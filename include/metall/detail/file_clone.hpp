@@ -17,7 +17,6 @@
 #include <sys/clonefile.h>
 #endif
 
-#include <cstdlib>
 #include <metall/detail/file.hpp>
 #include <metall/logger.hpp>
 
@@ -52,7 +51,7 @@ inline bool clone_file_linux(const std::filesystem::path &source_path,
                              const std::filesystem::path &destination_path) {
   int src;
   int dst;
-  const off_t src_size = fcpdtl::prepare_file_copy_linux(source_path, destination_path, &src, &dst);
+  const off_t src_size = fcpdtl::prepare_file_copy(source_path, destination_path, &src, &dst);
   if (src_size < 0) {
     logger::out(logger::level::error, __FILE__, __LINE__, "Unable to prepare for file copy");
     return false;
@@ -105,20 +104,15 @@ inline bool clone_file_linux(const std::filesystem::path &source_path,
 #ifdef __APPLE__
 inline bool clone_file_macos(const fs::path &source_path,
                              const fs::path &destination_path) {
-  std::string command("cp -cR " + source_path.string() + " " +
-                      destination_path.string());
-  const int status = std::system(command.c_str());
-  if ((status != -1) && !!(WIFEXITED(status))) {
+  if (::clonefile(source_path.c_str(), destination_path.c_str(), 0) == 0) {
     return true;
   }
 
-  {
-    std::stringstream ss;
-    ss << "Unable to sparse copy " << source_path << " to " << destination_path << ", falling back to normal copy";
-    logger::out(logger::level::warning, __FILE__, __LINE__, ss.str().c_str());
-  }
+  std::stringstream ss;
+  ss << "Unable to clone " << source_path << " to " << destination_path << ", falling back to sparse copy";
+  logger::perror(logger::level::warning, __FILE__, __LINE__, ss.str().c_str());
 
-  return fcpdtl::copy_file_dense(source_path, destination_path);
+  return fcpdtl::copy_file_sparse_macos(source_path, destination_path);
 }
 #endif
 }  // namespace file_clone_detail
