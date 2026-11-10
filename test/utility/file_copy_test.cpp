@@ -157,4 +157,31 @@ TEST(FileCopyTest, CopyFromMissingSourceKeepsDestination) {
   }
 }
 
+TEST(FileCopyTest, DirectorySourceLeavesDestinationUnchanged) {
+  const auto dir = prepare_test_dir("directory_source");
+  const auto source = dir / "source";
+  ASSERT_TRUE(mdtl::create_directory(source / "sub"));
+  ASSERT_TRUE(write_file(source / "file", "file data\n"));
+
+  const auto new_destination = dir / "new_destination";
+  const auto existing_destination = dir / "existing_destination";
+  const std::string old_content = "old data\n";
+
+  for (const auto &mode : {k_sparse, k_dense}) {
+    SCOPED_TRACE(mode.name);
+
+    // copy_file fails and does not make a destination.
+    ASSERT_TRUE(mdtl::remove_file(new_destination));
+    EXPECT_FALSE(mdtl::copy_file(source, new_destination, mode.flags));
+    EXPECT_FALSE(mdtl::file_exist(new_destination))
+        << "copy_file made " << describe_file(new_destination);
+
+    // copy_file fails and does not change an existing destination.
+    ASSERT_TRUE(write_file(existing_destination, old_content));
+    EXPECT_FALSE(mdtl::copy_file(source, existing_destination, mode.flags));
+    EXPECT_EQ(read_file(existing_destination), old_content)
+        << "The destination is " << describe_file(existing_destination);
+  }
+}
+
 }  // namespace
