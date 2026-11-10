@@ -6,7 +6,9 @@
 #include "gtest/gtest.h"
 
 #include <algorithm>
+#include <cerrno>
 #include <cstddef>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -15,6 +17,12 @@
 #include <system_error>
 #include <utility>
 #include <vector>
+
+#include <signal.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 #include <metall/detail/file.hpp>
 
@@ -182,6 +190,51 @@ TEST(FileCopyTest, DirectorySourceLeavesDestinationUnchanged) {
     EXPECT_EQ(read_file(existing_destination), old_content)
         << "The destination is " << describe_file(existing_destination);
   }
+}
+
+TEST(FileCopyTest, FifoSourceFailsWithoutBlocking) {
+  const auto dir = prepare_test_dir("fifo_source");
+  const auto source = dir / "fifo";
+  const auto destination = dir / "destination";
+  if (::mkfifo(source.c_str(), S_IRUSR | S_IWUSR) != 0) {
+    GTEST_SKIP() << "mkfifo: " << std::strerror(errno);
+  }
+
+  // No process opens the FIFO to write. Thus, an open of the FIFO to read
+  // waits. A child process calls copy_file. If copy_file waits for more than
+  // time_limit seconds, the SIGALRM signal stops the child process.
+  constexpr unsigned int time_limit = 2;
+  const pid_t pid = ::fork();
+  ASSERT_NE(pid, -1) << "fork: " << std::strerror(errno);
+  if (pid == 0) {
+    ::signal(SIGALRM, SIG_DFL);
+    sigset_t alarm_set;
+    sigemptyset(&alarm_set);
+    sigaddset(&alarm_set, SIGALRM);
+    ::sigprocmask(SIG_UNBLOCK, &alarm_set, nullptr);
+    ::alarm(time_limit);
+    const bool copied =
+        mdtl::copy_file(source, destination, mdtl::copy_flags::sparse);
+    ::_exit(copied ? 1 : 0);
+  }
+
+  int status = 0;
+  pid_t waited = -1;
+  do {
+    waited = ::waitpid(pid, &status, 0);
+  } while (waited == -1 && errno == EINTR);
+  ASSERT_EQ(waited, pid) << "waitpid: " << std::strerror(errno);
+  const bool blocked = WIFSIGNALED(status) && WTERMSIG(status) == SIGALRM;
+  ASSERT_FALSE(blocked)
+      << "copy_file did not return in " << time_limit
+      << " seconds. It waits for a process that opens the FIFO to write.";
+  const bool exited = WIFEXITED(status);
+  ASSERT_TRUE(exited) << "The child process stopped with signal "
+                      << WTERMSIG(status);
+  const bool copied = WEXITSTATUS(status) != 0;
+  EXPECT_FALSE(copied) << "copy_file returned true";
+  EXPECT_FALSE(mdtl::file_exist(destination))
+      << "copy_file made " << describe_file(destination);
 }
 
 }  // namespace
