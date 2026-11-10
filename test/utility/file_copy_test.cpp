@@ -19,6 +19,7 @@
 #include <vector>
 
 #include <signal.h>
+#include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -235,6 +236,80 @@ TEST(FileCopyTest, FifoSourceFailsWithoutBlocking) {
   EXPECT_FALSE(copied) << "copy_file returned true";
   EXPECT_FALSE(mdtl::file_exist(destination))
       << "copy_file made " << describe_file(destination);
+}
+
+/// \brief Limits the size of the files that this process writes.
+/// A write past the limit fails with EFBIG and does not stop the process.
+/// The destructor restores the previous limit and the previous SIGXFSZ action.
+class scoped_file_size_limit {
+ public:
+  explicit scoped_file_size_limit(const rlim_t max_file_size) {
+    struct sigaction ignore_action{};
+    ignore_action.sa_handler = SIG_IGN;
+    sigemptyset(&ignore_action.sa_mask);
+    if (::sigaction(SIGXFSZ, &ignore_action, &m_old_action) != 0) {
+      return;
+    }
+    m_action_changed = true;
+
+    if (::getrlimit(RLIMIT_FSIZE, &m_old_limit) != 0) {
+      return;
+    }
+    struct rlimit limit = m_old_limit;
+    limit.rlim_cur = std::min(max_file_size, m_old_limit.rlim_max);
+    m_limit_changed = (::setrlimit(RLIMIT_FSIZE, &limit) == 0);
+  }
+
+  ~scoped_file_size_limit() {
+    if (m_limit_changed) {
+      ::setrlimit(RLIMIT_FSIZE, &m_old_limit);
+    }
+    if (m_action_changed) {
+      ::sigaction(SIGXFSZ, &m_old_action, nullptr);
+    }
+  }
+
+  scoped_file_size_limit(const scoped_file_size_limit &) = delete;
+  scoped_file_size_limit &operator=(const scoped_file_size_limit &) = delete;
+
+  bool active() const { return m_limit_changed; }
+
+ private:
+  struct sigaction m_old_action{};
+  struct rlimit m_old_limit{};
+  bool m_action_changed{false};
+  bool m_limit_changed{false};
+};
+
+TEST(FileCopyTest, CopyFileReportsWriteError) {
+  const auto dir = prepare_test_dir("write_error");
+  const auto source = dir / "source";
+  const auto destination = dir / "destination";
+
+  constexpr std::size_t source_size = 20 << 20;
+  constexpr rlim_t max_file_size = 8 << 20;
+  ASSERT_TRUE(write_file(source, make_content(source_size)));
+
+  for (const auto &mode : {k_sparse, k_dense}) {
+    SCOPED_TRACE(mode.name);
+    ASSERT_TRUE(mdtl::remove_file(destination));
+
+    bool copied = false;
+    {
+      // A write to the destination past max_file_size fails with EFBIG.
+      const scoped_file_size_limit limit(max_file_size);
+      ASSERT_TRUE(limit.active());
+      copied = mdtl::copy_file(source, destination, mode.flags);
+    }
+    const ssize_t size = mdtl::get_file_size(destination);
+
+    EXPECT_FALSE(copied) << "copy_file returned true, the destination has "
+                         << size << " of " << source_size << " bytes";
+    // A copy that reports success has all bytes of the source.
+    if (copied) {
+      EXPECT_EQ(size, ssize_t(source_size));
+    }
+  }
 }
 
 }  // namespace
