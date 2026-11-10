@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <sstream>
 #include <string>
 #include <system_error>
 #include <utility>
@@ -53,6 +54,27 @@ std::string make_content(const std::size_t size) {
     content[i] = static_cast<char>('a' + i % 26);
   }
   return content;
+}
+
+/// \brief Gives the type and the size of the file at `path` for a failure
+/// message.
+std::string describe_file(const fs::path &path) {
+  std::error_code ec;
+  const auto status = fs::symlink_status(path, ec);
+  if (ec || !fs::exists(status)) {
+    return "no file";
+  }
+  if (fs::is_directory(status)) {
+    return "a directory";
+  }
+  if (!fs::is_regular_file(status)) {
+    return "a file that is not a regular file";
+  }
+  const std::string data = read_file(path);
+  std::stringstream ss;
+  ss << "a regular file of " << data.size() << " bytes, "
+     << std::count(data.begin(), data.end(), '\0') << " of them zero";
+  return ss.str();
 }
 
 struct copy_mode {
@@ -115,6 +137,23 @@ TEST(FileCopyTest, CopyToSameFileKeepsData) {
           << " of them are zero. Before the copy, it had " << content.size()
           << " bytes and no zero byte.";
     }
+  }
+}
+
+TEST(FileCopyTest, CopyFromMissingSourceKeepsDestination) {
+  const auto dir = prepare_test_dir("missing_source");
+  const auto source = dir / "missing_source";
+  const auto destination = dir / "destination";
+  const std::string old_content = "old data\n";
+
+  for (const auto &mode : {k_sparse, k_dense, k_sparse_clone}) {
+    SCOPED_TRACE(mode.name);
+    ASSERT_TRUE(write_file(destination, old_content));
+    ASSERT_FALSE(mdtl::file_exist(source));
+
+    EXPECT_FALSE(mdtl::copy_file(source, destination, mode.flags));
+    EXPECT_EQ(read_file(destination), old_content)
+        << "The destination is " << describe_file(destination);
   }
 }
 
