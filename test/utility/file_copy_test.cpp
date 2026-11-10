@@ -18,6 +18,7 @@
 #include <utility>
 #include <vector>
 
+#include <fcntl.h>
 #include <signal.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
@@ -310,6 +311,40 @@ TEST(FileCopyTest, CopyFileReportsWriteError) {
       EXPECT_EQ(size, ssize_t(source_size));
     }
   }
+}
+
+TEST(FileCopyTest, DenseCopyFailsWhenSourceEndsBeforeExpectedSize) {
+#ifdef __linux__
+  const auto dir = prepare_test_dir("short_source");
+  const auto source = dir / "source";
+  const auto destination = dir / "destination";
+  constexpr std::size_t source_size = 1 << 20;
+  ASSERT_TRUE(write_file(source, make_content(source_size)));
+
+  // The source has fewer bytes than the expected size. This occurs when the
+  // source becomes shorter after prepare_file_copy reads its size.
+  constexpr std::size_t expected_size = source_size + 4096;
+  const int src = ::open(source.c_str(), O_RDONLY);
+  ASSERT_NE(src, -1) << "open: " << std::strerror(errno);
+  const int dst = ::open(destination.c_str(), O_WRONLY | O_CREAT | O_TRUNC,
+                         S_IRUSR | S_IWUSR);
+  if (dst == -1) {
+    ADD_FAILURE() << "open: " << std::strerror(errno);
+    ::close(src);
+    return;
+  }
+  const bool copied =
+      mdtl::fcpdtl::copy_file_dense_linux(src, dst, expected_size);
+  ::close(src);
+  ::close(dst);
+
+  EXPECT_FALSE(copied) << "copy_file_dense_linux returned true for "
+                       << expected_size << " expected bytes. The source has "
+                       << source_size << " bytes, and the destination has "
+                       << mdtl::get_file_size(destination) << " bytes.";
+#else
+  GTEST_SKIP() << "copy_file_dense_linux exists only on Linux";
+#endif
 }
 
 }  // namespace
