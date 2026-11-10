@@ -55,6 +55,8 @@ enum class copy_file_range_mode {
   /// The kernel does this when its cache has a source size of 1 MiB, but
   /// `lseek(SEEK_DATA)` finds data after 1 MiB (for example, on FUSE).
   zero_after_1mib,
+  /// Fails with `EXDEV` before 1 MiB, and returns 0 at or after 1 MiB.
+  exdev_and_zero_after_1mib,
 };
 
 std::atomic<copy_file_range_mode> current_mode{copy_file_range_mode::real};
@@ -90,13 +92,18 @@ extern "C" ssize_t copy_file_range(int fd_in, off_t *off_in, int fd_out,
     errno = EXDEV;
     return -1;
   }
-  if (mode == copy_file_range_mode::zero_after_1mib) {
+  if (mode == copy_file_range_mode::zero_after_1mib ||
+      mode == copy_file_range_mode::exdev_and_zero_after_1mib) {
     const off_t offset = off_in ? *off_in : ::lseek(fd_in, 0, SEEK_CUR);
     if (offset >= static_cast<off_t>(k_mib)) {
       if (shared_counts) {
         ++shared_counts->zero_results;
       }
       return 0;
+    }
+    if (mode == copy_file_range_mode::exdev_and_zero_after_1mib) {
+      errno = EXDEV;
+      return -1;
     }
     len = std::min(len, k_mib - static_cast<std::size_t>(offset));
   }
@@ -189,6 +196,19 @@ bool same_content(const fs::path &path1, const fs::path &path2) {
   return std::equal(
       std::istreambuf_iterator<char>(ifs1), std::istreambuf_iterator<char>(),
       std::istreambuf_iterator<char>(ifs2), std::istreambuf_iterator<char>());
+}
+
+/// \brief Gives the offset of the first data after the first hole of the file
+/// at `path`. On error, or if there is no such data, gives -1.
+off_t data_after_first_hole(const fs::path &path) {
+  const int fd = ::open(path.c_str(), O_RDONLY);
+  if (fd == -1) {
+    return -1;
+  }
+  const off_t hole = ::lseek(fd, 0, SEEK_HOLE);
+  const off_t data = (hole == -1) ? -1 : ::lseek(fd, hole, SEEK_DATA);
+  ::close(fd);
+  return data;
 }
 
 /// \brief Sets the mode of `copy_file_range` in this process until the end of
@@ -362,6 +382,41 @@ TEST(FileCopyRangeTest, SparseCopyWithoutCopyFileRangeKeepsHoles) {
       << " bytes for a file of " << file_size << " bytes. The source "
       << "allocates " << source_allocated << " bytes. Thus, the copy wrote "
       << "the holes as data.";
+}
+
+TEST(FileCopyRangeTest, SparseCopyHandlesExdevAndZeroTogether) {
+  const auto dir = prepare_test_dir("exdev_and_zero");
+  const auto source = dir / "source";
+  const auto destination = dir / "destination";
+
+  // A file of 4 MiB with two data extents of 64 KiB, at 0 and at 2 MiB.
+  // `copy_file_range` fails with `EXDEV` for the first extent and returns 0
+  // for the second extent.
+  constexpr off_t file_size = off_t(4) << 20;
+  constexpr off_t second_offset = off_t(2) << 20;
+  const std::string extent = make_content(64 << 10);
+  ASSERT_TRUE(write_sparse_file(source, file_size, {0, second_offset}, extent))
+      << source << ": " << std::strerror(errno);
+  if (data_after_first_hole(source) != second_offset) {
+    GTEST_SKIP() << "The file system of " << dir
+                 << " shows no hole between the two extents";
+  }
+
+  const child_result result = sparse_copy_in_child(
+      source, destination, copy_file_range_mode::exdev_and_zero_after_1mib);
+  ASSERT_TRUE(result.error.empty()) << result.error;
+  ASSERT_NE(result.signal, SIGALRM)
+      << "copy_file_sparse_linux did not return in " << k_time_limit
+      << " seconds, and the SIGALRM signal stopped it. " << describe_calls()
+      << ".";
+  ASSERT_EQ(result.signal, 0)
+      << "The child process stopped with signal " << result.signal;
+  EXPECT_FALSE(result.copied) << "copy_file_sparse_linux returned true, but "
+                                 "it did not copy the second extent";
+  EXPECT_EQ(read_file(destination).compare(0, extent.size(), extent), 0)
+      << "copy_file_range failed with EXDEV for the first extent, and the "
+      << "destination does not have the data of this extent. The destination "
+      << "is " << describe_file(destination);
 }
 
 }  // namespace
