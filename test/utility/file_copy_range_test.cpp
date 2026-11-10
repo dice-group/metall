@@ -25,6 +25,7 @@
 #include <sstream>
 #include <string>
 #include <system_error>
+#include <vector>
 
 #include <dlfcn.h>
 #include <fcntl.h>
@@ -48,6 +49,8 @@ constexpr std::size_t k_mib = std::size_t(1) << 20;
 enum class copy_file_range_mode {
   /// Calls `copy_file_range` of the C library.
   real,
+  /// Fails with `EXDEV`. `copy_file_range` does this across file systems.
+  exdev,
   /// Copies only the bytes before 1 MiB, and returns 0 at or after 1 MiB.
   /// The kernel does this when its cache has a source size of 1 MiB, but
   /// `lseek(SEEK_DATA)` finds data after 1 MiB (for example, on FUSE).
@@ -82,7 +85,12 @@ extern "C" ssize_t copy_file_range(int fd_in, off_t *off_in, int fd_out,
   if (shared_counts) {
     ++shared_counts->calls;
   }
-  if (current_mode.load() == copy_file_range_mode::zero_after_1mib) {
+  const copy_file_range_mode mode = current_mode.load();
+  if (mode == copy_file_range_mode::exdev) {
+    errno = EXDEV;
+    return -1;
+  }
+  if (mode == copy_file_range_mode::zero_after_1mib) {
     const off_t offset = off_in ? *off_in : ::lseek(fd_in, 0, SEEK_CUR);
     if (offset >= static_cast<off_t>(k_mib)) {
       if (shared_counts) {
@@ -151,6 +159,52 @@ std::string describe_file(const fs::path &path) {
      << std::count(data.begin(), data.end(), '\0') << " of them zero";
   return ss.str();
 }
+
+/// \brief Makes a file of `file_size` bytes that has data only at the offsets
+/// in `data_offsets`. Each data extent is a copy of `extent`. The other bytes
+/// of the file are holes.
+bool write_sparse_file(const fs::path &path, const off_t file_size,
+                       const std::vector<off_t> &data_offsets,
+                       const std::string &extent) {
+  const int fd =
+      ::open(path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+  if (fd == -1) {
+    return false;
+  }
+  bool written = true;
+  for (const off_t offset : data_offsets) {
+    written = written && ::pwrite(fd, extent.data(), extent.size(), offset) ==
+                             ssize_t(extent.size());
+  }
+  written = written && ::ftruncate(fd, file_size) == 0;
+  return (::close(fd) == 0) && written;
+}
+
+bool same_content(const fs::path &path1, const fs::path &path2) {
+  std::ifstream ifs1(path1, std::ios::binary);
+  std::ifstream ifs2(path2, std::ios::binary);
+  if (!ifs1 || !ifs2) {
+    return false;
+  }
+  return std::equal(
+      std::istreambuf_iterator<char>(ifs1), std::istreambuf_iterator<char>(),
+      std::istreambuf_iterator<char>(ifs2), std::istreambuf_iterator<char>());
+}
+
+/// \brief Sets the mode of `copy_file_range` in this process until the end of
+/// the scope.
+class scoped_copy_file_range_mode {
+ public:
+  explicit scoped_copy_file_range_mode(const copy_file_range_mode mode) {
+    current_mode = mode;
+  }
+
+  ~scoped_copy_file_range_mode() { current_mode = copy_file_range_mode::real; }
+
+  scoped_copy_file_range_mode(const scoped_copy_file_range_mode &) = delete;
+  scoped_copy_file_range_mode &operator=(const scoped_copy_file_range_mode &) =
+      delete;
+};
 
 /// \brief Closes a file descriptor at the end of the scope.
 struct fd_closer {
@@ -266,6 +320,48 @@ TEST(FileCopyRangeTest, SparseCopyStopsWhenCopyFileRangeReturnsZero) {
   EXPECT_EQ(read_file(destination).compare(0, k_mib, content, 0, k_mib), 0)
       << "The destination does not start with the first 1 MiB of the source. "
       << "The destination is " << describe_file(destination);
+}
+
+TEST(FileCopyRangeTest, SparseCopyWithoutCopyFileRangeKeepsHoles) {
+  const auto dir = prepare_test_dir("exdev");
+  const auto source = dir / "source";
+  const auto destination = dir / "destination";
+
+  // A file of 64 MiB with 3 MiB of data in three extents.
+  constexpr off_t file_size = off_t(64) << 20;
+  constexpr off_t extent_size = off_t(1) << 20;
+  const std::vector<off_t> data_offsets = {0, 16 * extent_size,
+                                           40 * extent_size};
+  ASSERT_TRUE(write_sparse_file(source, file_size, data_offsets,
+                                make_content(extent_size)))
+      << source << ": " << std::strerror(errno);
+  struct stat source_stat{};
+  ASSERT_EQ(::stat(source.c_str(), &source_stat), 0) << std::strerror(errno);
+  const off_t source_allocated = off_t(source_stat.st_blocks) * 512;
+  if (source_allocated >= file_size / 2) {
+    GTEST_SKIP() << "The file system of " << dir << " has no holes";
+  }
+
+  bool copied = false;
+  {
+    // `copy_file_range` fails with `EXDEV`, as it does across file systems.
+    const scoped_copy_file_range_mode mode(copy_file_range_mode::exdev);
+    copied = mdtl::copy_file(source, destination, mdtl::copy_flags::sparse);
+  }
+  EXPECT_TRUE(copied);
+  EXPECT_TRUE(same_content(source, destination))
+      << "The destination has other data than the source";
+
+  struct stat destination_stat{};
+  ASSERT_EQ(::stat(destination.c_str(), &destination_stat), 0)
+      << std::strerror(errno);
+  const off_t destination_allocated = off_t(destination_stat.st_blocks) * 512;
+  EXPECT_EQ(destination_stat.st_size, file_size);
+  EXPECT_LT(destination_allocated, file_size / 2)
+      << "The destination allocates " << destination_allocated
+      << " bytes for a file of " << file_size << " bytes. The source "
+      << "allocates " << source_allocated << " bytes. Thus, the copy wrote "
+      << "the holes as data.";
 }
 
 }  // namespace
