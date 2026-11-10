@@ -347,4 +347,103 @@ TEST(FileCopyTest, DenseCopyFailsWhenSourceEndsBeforeExpectedSize) {
 #endif
 }
 
+#ifdef __linux__
+/// \brief Makes a file of `file_size` bytes that has data only at the offsets
+/// in `data_offsets`. Each data extent is a copy of `extent`. The other bytes
+/// of the file are holes.
+bool write_sparse_file(const fs::path &path, const off_t file_size,
+                       const std::vector<off_t> &data_offsets,
+                       const std::string &extent) {
+  const int fd =
+      ::open(path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+  if (fd == -1) {
+    return false;
+  }
+  bool written = true;
+  for (const off_t offset : data_offsets) {
+    written = written && ::pwrite(fd, extent.data(), extent.size(), offset) ==
+                             ssize_t(extent.size());
+  }
+  written = written && ::ftruncate(fd, file_size) == 0;
+  return (::close(fd) == 0) && written;
+}
+
+bool same_content(const fs::path &path1, const fs::path &path2) {
+  std::ifstream ifs1(path1, std::ios::binary);
+  std::ifstream ifs2(path2, std::ios::binary);
+  if (!ifs1 || !ifs2) {
+    return false;
+  }
+  return std::equal(
+      std::istreambuf_iterator<char>(ifs1), std::istreambuf_iterator<char>(),
+      std::istreambuf_iterator<char>(ifs2), std::istreambuf_iterator<char>());
+}
+#endif
+
+TEST(FileCopyTest, SparseCopyAcrossFileSystemsKeepsHoles) {
+#ifdef __linux__
+  // /dev/shm is a tmpfs. The test directory is on a different file system.
+  const fs::path shm_dir("/dev/shm");
+  struct stat shm_stat{};
+  if (::stat(shm_dir.c_str(), &shm_stat) != 0 || !S_ISDIR(shm_stat.st_mode)) {
+    GTEST_SKIP() << shm_dir << " is not a directory";
+  }
+  const auto dir = prepare_test_dir("sparse_across_file_systems");
+  struct stat dir_stat{};
+  ASSERT_EQ(::stat(dir.c_str(), &dir_stat), 0) << std::strerror(errno);
+  if (dir_stat.st_dev == shm_stat.st_dev) {
+    GTEST_SKIP() << dir << " and " << shm_dir << " are on one file system";
+  }
+
+  const auto source =
+      shm_dir / test_utility::make_test_path("source").filename();
+  const auto destination = dir / "destination";
+
+  // Removes the two files at the end of the test, also after a failure.
+  struct file_remover {
+    fs::path path;
+    ~file_remover() {
+      std::error_code ec;
+      fs::remove(path, ec);
+    }
+  };
+  const file_remover source_remover{source};
+  const file_remover destination_remover{destination};
+
+  // A file of 64 MiB with 3 MiB of data in three extents.
+  constexpr off_t file_size = off_t(64) << 20;
+  constexpr off_t extent_size = off_t(1) << 20;
+  const std::vector<off_t> data_offsets = {0, 16 * extent_size,
+                                           40 * extent_size};
+  ASSERT_TRUE(write_sparse_file(source, file_size, data_offsets,
+                                make_content(extent_size)))
+      << source << ": " << std::strerror(errno);
+  struct stat source_stat{};
+  ASSERT_EQ(::stat(source.c_str(), &source_stat), 0) << std::strerror(errno);
+  const off_t source_allocated = off_t(source_stat.st_blocks) * 512;
+  if (source_allocated >= file_size / 2) {
+    GTEST_SKIP() << "The source in " << shm_dir << " is not sparse";
+  }
+
+  const bool copied =
+      mdtl::copy_file(source, destination, mdtl::copy_flags::sparse);
+  EXPECT_TRUE(copied);
+  EXPECT_TRUE(same_content(source, destination))
+      << "The destination has other data than the source";
+
+  struct stat destination_stat{};
+  ASSERT_EQ(::stat(destination.c_str(), &destination_stat), 0)
+      << std::strerror(errno);
+  const off_t destination_allocated = off_t(destination_stat.st_blocks) * 512;
+  EXPECT_EQ(destination_stat.st_size, file_size);
+  EXPECT_LT(destination_allocated, file_size / 2)
+      << "The destination allocates " << destination_allocated
+      << " bytes for a file of " << file_size << " bytes. The source "
+      << "allocates " << source_allocated << " bytes. Thus, the copy wrote "
+      << "the holes as data.";
+#else
+  GTEST_SKIP() << "This test copies from the tmpfs /dev/shm of Linux";
+#endif
+}
+
 }  // namespace
